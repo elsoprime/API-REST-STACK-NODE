@@ -1,0 +1,25 @@
+post:
+  tags:
+    - Auth
+  summary: Logout all active sessions for the authenticated user
+  operationId: logoutAllSessions
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      schema:
+        type: string
+  responses:
+    '200':
+      description: Active sessions revoked
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/auth.yaml#/LogoutSuccessResponse
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError

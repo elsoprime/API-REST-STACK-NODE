@@ -1,0 +1,268 @@
+TenantSettingsBranding:
+  type: object
+  required:
+    - displayName
+    - supportEmail
+    - supportUrl
+  properties:
+    displayName:
+      type: string
+      nullable: true
+    supportEmail:
+      type: string
+      format: email
+      nullable: true
+    supportUrl:
+      type: string
+      format: uri
+      nullable: true
+TenantSettingsLocalization:
+  type: object
+  required:
+    - defaultTimezone
+    - defaultCurrency
+    - defaultLanguage
+  properties:
+    defaultTimezone:
+      type: string
+      nullable: true
+    defaultCurrency:
+      type: string
+      pattern: '^[A-Z]{3}$'
+      nullable: true
+    defaultLanguage:
+      type: string
+      nullable: true
+TenantSettingsContact:
+  type: object
+  required:
+    - primaryEmail
+    - phone
+    - websiteUrl
+  properties:
+    primaryEmail:
+      type: string
+      format: email
+      nullable: true
+    phone:
+      type: string
+      nullable: true
+    websiteUrl:
+      type: string
+      format: uri
+      nullable: true
+TenantSettingsBilling:
+  type: object
+  required:
+    - billingEmail
+    - legalName
+    - taxId
+  properties:
+    billingEmail:
+      type: string
+      format: email
+      nullable: true
+    legalName:
+      type: string
+      nullable: true
+    taxId:
+      type: string
+      nullable: true
+TenantSettings:
+  type: object
+  required:
+    - id
+    - tenantId
+    - singletonKey
+    - branding
+    - localization
+    - contact
+    - billing
+  properties:
+    id:
+      type: string
+    tenantId:
+      type: string
+    singletonKey:
+      type: string
+      enum: [tenant_settings]
+    branding:
+      $ref: '#/TenantSettingsBranding'
+    localization:
+      $ref: '#/TenantSettingsLocalization'
+    contact:
+      $ref: '#/TenantSettingsContact'
+    billing:
+      $ref: '#/TenantSettingsBilling'
+TenantSettingsEffectiveBranding:
+  type: object
+  required:
+    - displayName
+    - supportEmail
+    - supportUrl
+  properties:
+    displayName:
+      type: string
+    supportEmail:
+      type: string
+      format: email
+      nullable: true
+    supportUrl:
+      type: string
+      format: uri
+      nullable: true
+TenantSettingsEffectiveLocalization:
+  type: object
+  required:
+    - defaultTimezone
+    - defaultCurrency
+    - defaultLanguage
+  properties:
+    defaultTimezone:
+      type: string
+    defaultCurrency:
+      type: string
+      pattern: '^[A-Z]{3}$'
+    defaultLanguage:
+      type: string
+TenantSettingsRuntime:
+  type: object
+  required:
+    - planId
+    - activeModuleKeys
+    - enabledModuleKeys
+    - featureFlagKeys
+  properties:
+    planId:
+      type: string
+      nullable: true
+    activeModuleKeys:
+      type: array
+      items:
+        type: string
+    enabledModuleKeys:
+      type: array
+      items:
+        type: string
+    featureFlagKeys:
+      type: array
+      items:
+        type: string
+TenantSettingsEffective:
+  type: object
+  required:
+    - tenantId
+    - branding
+    - localization
+    - contact
+    - billing
+    - runtime
+  properties:
+    tenantId:
+      type: string
+    branding:
+      $ref: '#/TenantSettingsEffectiveBranding'
+    localization:
+      $ref: '#/TenantSettingsEffectiveLocalization'
+    contact:
+      $ref: '#/TenantSettingsContact'
+    billing:
+      $ref: '#/TenantSettingsBilling'
+    runtime:
+      $ref: '#/TenantSettingsRuntime'
+UpdateTenantSettingsRequest:
+  type: object
+  minProperties: 1
+  properties:
+    branding:
+      type: object
+      properties:
+        displayName:
+          type: string
+          nullable: true
+        supportEmail:
+          type: string
+          format: email
+          nullable: true
+        supportUrl:
+          type: string
+          format: uri
+          nullable: true
+    localization:
+      type: object
+      properties:
+        defaultTimezone:
+          type: string
+          nullable: true
+        defaultCurrency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+          nullable: true
+        defaultLanguage:
+          type: string
+          nullable: true
+    contact:
+      type: object
+      properties:
+        primaryEmail:
+          type: string
+          format: email
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        websiteUrl:
+          type: string
+          format: uri
+          nullable: true
+    billing:
+      type: object
+      properties:
+        billingEmail:
+          type: string
+          format: email
+          nullable: true
+        legalName:
+          type: string
+          nullable: true
+        taxId:
+          type: string
+          nullable: true
+TenantSettingsSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - settings
+      properties:
+        settings:
+          $ref: '#/TenantSettings'
+    traceId:
+      type: string
+TenantSettingsEffectiveSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - settings
+      properties:
+        settings:
+          $ref: '#/TenantSettingsEffective'
+    traceId:
+      type: string

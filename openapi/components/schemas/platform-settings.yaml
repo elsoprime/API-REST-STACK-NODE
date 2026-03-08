@@ -1,0 +1,167 @@
+PlatformSettingsBranding:
+  type: object
+  required:
+    - applicationName
+    - supportEmail
+    - supportUrl
+  properties:
+    applicationName:
+      type: string
+    supportEmail:
+      type: string
+      format: email
+      nullable: true
+    supportUrl:
+      type: string
+      format: uri
+      nullable: true
+PlatformSettingsLocalization:
+  type: object
+  required:
+    - defaultTimezone
+    - defaultCurrency
+    - defaultLanguage
+  properties:
+    defaultTimezone:
+      type: string
+    defaultCurrency:
+      type: string
+      pattern: '^[A-Z]{3}$'
+    defaultLanguage:
+      type: string
+PlatformSettingsSecurity:
+  type: object
+  required:
+    - allowUserRegistration
+    - requireEmailVerification
+  properties:
+    allowUserRegistration:
+      type: boolean
+    requireEmailVerification:
+      type: boolean
+PlatformSettingsOperations:
+  type: object
+  required:
+    - maintenanceMode
+  properties:
+    maintenanceMode:
+      type: boolean
+PlatformSettingsModules:
+  type: object
+  required:
+    - disabledModuleKeys
+  properties:
+    disabledModuleKeys:
+      type: array
+      items:
+        type: string
+PlatformSettingsFeatureFlags:
+  type: object
+  required:
+    - disabledFeatureFlagKeys
+  properties:
+    disabledFeatureFlagKeys:
+      type: array
+      items:
+        type: string
+PlatformSettings:
+  type: object
+  required:
+    - id
+    - singletonKey
+    - branding
+    - localization
+    - security
+    - operations
+    - modules
+    - featureFlags
+  properties:
+    id:
+      type: string
+    singletonKey:
+      type: string
+      enum: [platform_settings]
+    branding:
+      $ref: '#/PlatformSettingsBranding'
+    localization:
+      $ref: '#/PlatformSettingsLocalization'
+    security:
+      $ref: '#/PlatformSettingsSecurity'
+    operations:
+      $ref: '#/PlatformSettingsOperations'
+    modules:
+      $ref: '#/PlatformSettingsModules'
+    featureFlags:
+      $ref: '#/PlatformSettingsFeatureFlags'
+UpdatePlatformSettingsRequest:
+  type: object
+  minProperties: 1
+  properties:
+    branding:
+      type: object
+      properties:
+        applicationName:
+          type: string
+        supportEmail:
+          type: string
+          format: email
+          nullable: true
+        supportUrl:
+          type: string
+          format: uri
+          nullable: true
+    localization:
+      type: object
+      properties:
+        defaultTimezone:
+          type: string
+        defaultCurrency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        defaultLanguage:
+          type: string
+    security:
+      type: object
+      properties:
+        allowUserRegistration:
+          type: boolean
+        requireEmailVerification:
+          type: boolean
+    operations:
+      type: object
+      properties:
+        maintenanceMode:
+          type: boolean
+    modules:
+      type: object
+      properties:
+        disabledModuleKeys:
+          type: array
+          items:
+            type: string
+    featureFlags:
+      type: object
+      properties:
+        disabledFeatureFlagKeys:
+          type: array
+          items:
+            type: string
+PlatformSettingsSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - settings
+      properties:
+        settings:
+          $ref: '#/PlatformSettings'
+    traceId:
+      type: string

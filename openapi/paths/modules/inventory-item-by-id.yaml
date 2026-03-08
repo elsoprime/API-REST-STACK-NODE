@@ -1,0 +1,111 @@
+get:
+  tags:
+    - Inventory
+  summary: Get inventory item stock snapshot
+  operationId: getInventoryItem
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+    - name: itemId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-fA-F0-9]{24}$'
+  responses:
+    '200':
+      description: Inventory item
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/inventory.yaml#/InventoryItemSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '404':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+patch:
+  tags:
+    - Inventory
+  summary: Update inventory item
+  operationId: updateInventoryItem
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+    - name: itemId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-fA-F0-9]{24}$'
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      schema:
+        type: string
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../../components/schemas/inventory.yaml#/UpdateInventoryItemRequest
+  responses:
+    '200':
+      description: Inventory item updated
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/inventory.yaml#/InventoryItemSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '404':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '409':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+delete:
+  tags:
+    - Inventory
+  summary: Delete inventory item
+  operationId: deleteInventoryItem
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+    - name: itemId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-fA-F0-9]{24}$'
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      schema:
+        type: string
+  responses:
+    '200':
+      description: Inventory item deleted
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/inventory.yaml#/InventoryItemSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '404':
+      $ref: ../../components/responses/_index.yaml#/GenericError

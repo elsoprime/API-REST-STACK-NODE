@@ -1,0 +1,51 @@
+HealthReadinessChecks:
+  type: object
+  required:
+    - database
+    - productionDeliveryAdapters
+  properties:
+    database:
+      type: boolean
+    productionDeliveryAdapters:
+      type: boolean
+HealthPayload:
+  type: object
+  required:
+    - status
+    - timestamp
+    - version
+    - db
+    - ready
+    - checks
+  properties:
+    status:
+      type: string
+      enum: [ok, degraded, down]
+    timestamp:
+      type: string
+      format: date-time
+    version:
+      type: string
+      example: 3.0.0
+    db:
+      type: string
+      enum: [connected, connecting, disconnected, disconnecting]
+    ready:
+      type: boolean
+    checks:
+      $ref: '#/HealthReadinessChecks'
+HealthResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      $ref: '#/HealthPayload'
+    traceId:
+      type: string
+      format: uuid

@@ -1,0 +1,350 @@
+HrEmploymentType:
+  type: string
+  enum: [full_time, part_time, contractor, intern]
+
+HrEmployeeStatus:
+  type: string
+  enum: [active, inactive, terminated]
+
+HrPayFrequency:
+  type: string
+  enum: [weekly, biweekly, monthly]
+
+HrEmployee:
+  type: object
+  required:
+    - id
+    - tenantId
+    - employeeCode
+    - firstName
+    - lastName
+    - workEmail
+    - personalEmail
+    - phone
+    - department
+    - jobTitle
+    - employmentType
+    - status
+    - startDate
+    - endDate
+    - birthDate
+    - managerId
+    - isActive
+    - deletedAt
+  properties:
+    id:
+      type: string
+    tenantId:
+      type: string
+    employeeCode:
+      type: string
+    firstName:
+      type: string
+    lastName:
+      type: string
+    workEmail:
+      type: string
+      format: email
+      nullable: true
+    personalEmail:
+      type: string
+      format: email
+      nullable: true
+    phone:
+      type: string
+      nullable: true
+    department:
+      type: string
+      nullable: true
+    jobTitle:
+      type: string
+      nullable: true
+    employmentType:
+      $ref: '#/HrEmploymentType'
+    status:
+      $ref: '#/HrEmployeeStatus'
+    startDate:
+      type: string
+      format: date-time
+    endDate:
+      type: string
+      format: date-time
+      nullable: true
+    birthDate:
+      type: string
+      format: date-time
+      nullable: true
+    managerId:
+      type: string
+      nullable: true
+    isActive:
+      type: boolean
+    deletedAt:
+      type: string
+      format: date-time
+      nullable: true
+
+HrCompensation:
+  type: object
+  required:
+    - id
+    - employeeId
+    - tenantId
+    - salaryAmount
+    - currency
+    - payFrequency
+    - effectiveFrom
+    - notes
+    - isActive
+  properties:
+    id:
+      type: string
+    employeeId:
+      type: string
+    tenantId:
+      type: string
+    salaryAmount:
+      type: number
+      minimum: 0
+    currency:
+      type: string
+      pattern: '^[A-Z]{3}$'
+    payFrequency:
+      $ref: '#/HrPayFrequency'
+    effectiveFrom:
+      type: string
+      format: date-time
+    notes:
+      type: string
+      nullable: true
+    isActive:
+      type: boolean
+
+CreateHrEmployeeRequest:
+  type: object
+  required:
+    - employeeCode
+    - firstName
+    - lastName
+    - employmentType
+    - startDate
+  properties:
+    employeeCode:
+      type: string
+      minLength: 1
+      maxLength: 64
+      pattern: '^[a-zA-Z0-9._-]+$'
+    firstName:
+      type: string
+      minLength: 1
+      maxLength: 120
+    lastName:
+      type: string
+      minLength: 1
+      maxLength: 120
+    workEmail:
+      type: string
+      format: email
+      nullable: true
+    personalEmail:
+      type: string
+      format: email
+      nullable: true
+    phone:
+      type: string
+      minLength: 1
+      maxLength: 40
+      nullable: true
+    department:
+      type: string
+      minLength: 1
+      maxLength: 120
+      nullable: true
+    jobTitle:
+      type: string
+      minLength: 1
+      maxLength: 160
+      nullable: true
+    employmentType:
+      $ref: '#/HrEmploymentType'
+    status:
+      $ref: '#/HrEmployeeStatus'
+    startDate:
+      type: string
+      format: date-time
+    endDate:
+      type: string
+      format: date-time
+      nullable: true
+    birthDate:
+      type: string
+      format: date-time
+      nullable: true
+    managerId:
+      type: string
+      pattern: '^[a-fA-F0-9]{24}$'
+      nullable: true
+
+UpdateHrEmployeeRequest:
+  type: object
+  minProperties: 1
+  properties:
+    employeeCode:
+      type: string
+      minLength: 1
+      maxLength: 64
+      pattern: '^[a-zA-Z0-9._-]+$'
+    firstName:
+      type: string
+      minLength: 1
+      maxLength: 120
+    lastName:
+      type: string
+      minLength: 1
+      maxLength: 120
+    workEmail:
+      type: string
+      format: email
+      nullable: true
+    personalEmail:
+      type: string
+      format: email
+      nullable: true
+    phone:
+      type: string
+      minLength: 1
+      maxLength: 40
+      nullable: true
+    department:
+      type: string
+      minLength: 1
+      maxLength: 120
+      nullable: true
+    jobTitle:
+      type: string
+      minLength: 1
+      maxLength: 160
+      nullable: true
+    employmentType:
+      $ref: '#/HrEmploymentType'
+    status:
+      $ref: '#/HrEmployeeStatus'
+    startDate:
+      type: string
+      format: date-time
+    endDate:
+      type: string
+      format: date-time
+      nullable: true
+    birthDate:
+      type: string
+      format: date-time
+      nullable: true
+    managerId:
+      type: string
+      pattern: '^[a-fA-F0-9]{24}$'
+      nullable: true
+
+UpdateHrCompensationRequest:
+  type: object
+  minProperties: 1
+  properties:
+    salaryAmount:
+      type: number
+      minimum: 0
+    currency:
+      type: string
+      pattern: '^[A-Z]{3}$'
+    payFrequency:
+      $ref: '#/HrPayFrequency'
+    effectiveFrom:
+      type: string
+      format: date-time
+    notes:
+      type: string
+      minLength: 1
+      maxLength: 200
+      nullable: true
+
+HrEmployeeSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - employee
+      properties:
+        employee:
+          $ref: '#/HrEmployee'
+    traceId:
+      type: string
+
+HrEmployeeListSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - pagination
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/HrEmployee'
+    pagination:
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+    traceId:
+      type: string
+
+HrCompensationSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - compensation
+      properties:
+        compensation:
+          $ref: '#/HrCompensation'
+    traceId:
+      type: string

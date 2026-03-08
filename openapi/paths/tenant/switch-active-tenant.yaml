@@ -1,0 +1,41 @@
+post:
+  tags:
+    - Tenant
+  summary: Switch the active tenant for the current authenticated session
+  operationId: switchActiveTenant
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      schema:
+        type: string
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - tenantId
+          properties:
+            tenantId:
+              type: string
+              pattern: '^[a-fA-F0-9]{24}$'
+  responses:
+    '200':
+      description: Active tenant switched. Headless requests receive an updated access token in the response body.
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/tenant.yaml#/SwitchTenantSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '404':
+      $ref: ../../components/responses/_index.yaml#/GenericError

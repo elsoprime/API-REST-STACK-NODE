@@ -1,0 +1,70 @@
+get:
+  tags:
+    - Audit
+  summary: List tenant-scoped audit logs
+  operationId: listAuditLogs
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+    - name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    - name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    - name: action
+      in: query
+      required: false
+      schema:
+        type: string
+    - name: resourceType
+      in: query
+      required: false
+      schema:
+        type: string
+    - name: severity
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: [info, warning, critical]
+    - name: actorKind
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: [user, system, unknown]
+    - name: from
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date-time
+    - name: to
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date-time
+  responses:
+    '200':
+      description: Tenant audit log page
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/audit.yaml#/AuditLogListSuccessResponse
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError

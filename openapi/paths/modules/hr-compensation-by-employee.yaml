@@ -1,0 +1,75 @@
+get:
+  tags:
+    - HR
+  summary: Get HR employee compensation
+  operationId: getHrEmployeeCompensation
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+    - name: employeeId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-fA-F0-9]{24}$'
+  responses:
+    '200':
+      description: HR employee compensation
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/hr.yaml#/HrCompensationSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '404':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+patch:
+  tags:
+    - HR
+  summary: Update HR employee compensation
+  operationId: updateHrEmployeeCompensation
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+    - name: employeeId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-fA-F0-9]{24}$'
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      schema:
+        type: string
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../../components/schemas/hr.yaml#/UpdateHrCompensationRequest
+  responses:
+    '200':
+      description: HR employee compensation updated
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/hr.yaml#/HrCompensationSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '404':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '409':
+      $ref: ../../components/responses/_index.yaml#/GenericError

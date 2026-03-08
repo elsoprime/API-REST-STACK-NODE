@@ -1,0 +1,6 @@
+GenericError:
+  description: Error response
+  content:
+    application/json:
+      schema:
+        $ref: ../schemas/error.yaml#/ErrorResponse

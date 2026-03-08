@@ -1,0 +1,190 @@
+ErrorResponse:
+  $ref: ./error.yaml#/ErrorResponse
+AuthenticatedUser:
+  $ref: ./auth.yaml#/AuthenticatedUser
+AuthSession:
+  $ref: ./auth.yaml#/AuthSession
+LoginRequest:
+  $ref: ./auth.yaml#/LoginRequest
+EmailVerificationStatus:
+  $ref: ./auth.yaml#/EmailVerificationStatus
+VerifyEmailRequest:
+  $ref: ./auth.yaml#/VerifyEmailRequest
+SetupTwoFactor:
+  $ref: ./auth.yaml#/SetupTwoFactor
+ConfirmTwoFactorRequest:
+  $ref: ./auth.yaml#/ConfirmTwoFactorRequest
+TwoFactorChallengeRequest:
+  $ref: ./auth.yaml#/TwoFactorChallengeRequest
+BrowserAuthSuccessResponse:
+  $ref: ./auth.yaml#/BrowserAuthSuccessResponse
+HeadlessAuthSuccessResponse:
+  $ref: ./auth.yaml#/HeadlessAuthSuccessResponse
+LogoutSuccessResponse:
+  $ref: ./auth.yaml#/LogoutSuccessResponse
+VerifyEmailSuccessResponse:
+  $ref: ./auth.yaml#/VerifyEmailSuccessResponse
+SetupTwoFactorSuccessResponse:
+  $ref: ./auth.yaml#/SetupTwoFactorSuccessResponse
+ConfirmTwoFactorSuccessResponse:
+  $ref: ./auth.yaml#/ConfirmTwoFactorSuccessResponse
+RegenerateRecoveryCodesSuccessResponse:
+  $ref: ./auth.yaml#/RegenerateRecoveryCodesSuccessResponse
+DisableTwoFactorSuccessResponse:
+  $ref: ./auth.yaml#/DisableTwoFactorSuccessResponse
+HealthResponse:
+  $ref: ./success.yaml#/HealthResponse
+Tenant:
+  $ref: ./tenant.yaml#/Tenant
+Membership:
+  $ref: ./tenant.yaml#/Membership
+Invitation:
+  $ref: ./tenant.yaml#/Invitation
+TenantMembershipSummary:
+  $ref: ./tenant.yaml#/TenantMembershipSummary
+CreateTenantSuccessResponse:
+  $ref: ./tenant.yaml#/CreateTenantSuccessResponse
+ListMyTenantsSuccessResponse:
+  $ref: ./tenant.yaml#/ListMyTenantsSuccessResponse
+SwitchTenantSuccessResponse:
+  $ref: ./tenant.yaml#/SwitchTenantSuccessResponse
+InvitationSuccessResponse:
+  $ref: ./tenant.yaml#/InvitationSuccessResponse
+AcceptInvitationSuccessResponse:
+  $ref: ./tenant.yaml#/AcceptInvitationSuccessResponse
+TransferOwnershipSuccessResponse:
+  $ref: ./tenant.yaml#/TransferOwnershipSuccessResponse
+AuditActorUser:
+  $ref: ./audit.yaml#/AuditActorUser
+AuditActorSystem:
+  $ref: ./audit.yaml#/AuditActorSystem
+AuditActorUnknown:
+  $ref: ./audit.yaml#/AuditActorUnknown
+AuditActor:
+  $ref: ./audit.yaml#/AuditActor
+AuditTenantScope:
+  $ref: ./audit.yaml#/AuditTenantScope
+AuditResource:
+  $ref: ./audit.yaml#/AuditResource
+AuditChanges:
+  $ref: ./audit.yaml#/AuditChanges
+AuditLog:
+  $ref: ./audit.yaml#/AuditLog
+AuditLogListSuccessResponse:
+  $ref: ./audit.yaml#/AuditLogListSuccessResponse
+PlatformSettings:
+  $ref: ./platform-settings.yaml#/PlatformSettings
+UpdatePlatformSettingsRequest:
+  $ref: ./platform-settings.yaml#/UpdatePlatformSettingsRequest
+PlatformSettingsSuccessResponse:
+  $ref: ./platform-settings.yaml#/PlatformSettingsSuccessResponse
+TenantSettings:
+  $ref: ./tenant-settings.yaml#/TenantSettings
+TenantSettingsEffective:
+  $ref: ./tenant-settings.yaml#/TenantSettingsEffective
+UpdateTenantSettingsRequest:
+  $ref: ./tenant-settings.yaml#/UpdateTenantSettingsRequest
+TenantSettingsSuccessResponse:
+  $ref: ./tenant-settings.yaml#/TenantSettingsSuccessResponse
+TenantSettingsEffectiveSuccessResponse:
+  $ref: ./tenant-settings.yaml#/TenantSettingsEffectiveSuccessResponse
+InventoryCategory:
+  $ref: ./inventory.yaml#/InventoryCategory
+InventoryItem:
+  $ref: ./inventory.yaml#/InventoryItem
+InventoryStockMovement:
+  $ref: ./inventory.yaml#/InventoryStockMovement
+InventoryLowStockAlert:
+  $ref: ./inventory.yaml#/InventoryLowStockAlert
+CreateInventoryCategoryRequest:
+  $ref: ./inventory.yaml#/CreateInventoryCategoryRequest
+UpdateInventoryCategoryRequest:
+  $ref: ./inventory.yaml#/UpdateInventoryCategoryRequest
+CreateInventoryItemRequest:
+  $ref: ./inventory.yaml#/CreateInventoryItemRequest
+UpdateInventoryItemRequest:
+  $ref: ./inventory.yaml#/UpdateInventoryItemRequest
+CreateInventoryStockMovementRequest:
+  $ref: ./inventory.yaml#/CreateInventoryStockMovementRequest
+InventoryCategorySuccessResponse:
+  $ref: ./inventory.yaml#/InventoryCategorySuccessResponse
+InventoryCategoryListSuccessResponse:
+  $ref: ./inventory.yaml#/InventoryCategoryListSuccessResponse
+InventoryItemSuccessResponse:
+  $ref: ./inventory.yaml#/InventoryItemSuccessResponse
+InventoryItemListSuccessResponse:
+  $ref: ./inventory.yaml#/InventoryItemListSuccessResponse
+InventoryStockMovementSuccessResponse:
+  $ref: ./inventory.yaml#/InventoryStockMovementSuccessResponse
+InventoryStockMovementListSuccessResponse:
+  $ref: ./inventory.yaml#/InventoryStockMovementListSuccessResponse
+InventoryLowStockAlertListSuccessResponse:
+  $ref: ./inventory.yaml#/InventoryLowStockAlertListSuccessResponse
+HrEmploymentType:
+  $ref: ./hr.yaml#/HrEmploymentType
+HrEmployeeStatus:
+  $ref: ./hr.yaml#/HrEmployeeStatus
+HrPayFrequency:
+  $ref: ./hr.yaml#/HrPayFrequency
+HrEmployee:
+  $ref: ./hr.yaml#/HrEmployee
+HrCompensation:
+  $ref: ./hr.yaml#/HrCompensation
+CreateHrEmployeeRequest:
+  $ref: ./hr.yaml#/CreateHrEmployeeRequest
+UpdateHrEmployeeRequest:
+  $ref: ./hr.yaml#/UpdateHrEmployeeRequest
+UpdateHrCompensationRequest:
+  $ref: ./hr.yaml#/UpdateHrCompensationRequest
+HrEmployeeSuccessResponse:
+  $ref: ./hr.yaml#/HrEmployeeSuccessResponse
+HrEmployeeListSuccessResponse:
+  $ref: ./hr.yaml#/HrEmployeeListSuccessResponse
+HrCompensationSuccessResponse:
+  $ref: ./hr.yaml#/HrCompensationSuccessResponse
+CrmOpportunityStage:
+  $ref: ./crm.yaml#/CrmOpportunityStage
+CrmContact:
+  $ref: ./crm.yaml#/CrmContact
+CrmOrganization:
+  $ref: ./crm.yaml#/CrmOrganization
+CrmOpportunity:
+  $ref: ./crm.yaml#/CrmOpportunity
+CrmActivity:
+  $ref: ./crm.yaml#/CrmActivity
+CrmCounters:
+  $ref: ./crm.yaml#/CrmCounters
+CreateCrmContactRequest:
+  $ref: ./crm.yaml#/CreateCrmContactRequest
+UpdateCrmContactRequest:
+  $ref: ./crm.yaml#/UpdateCrmContactRequest
+CreateCrmOrganizationRequest:
+  $ref: ./crm.yaml#/CreateCrmOrganizationRequest
+UpdateCrmOrganizationRequest:
+  $ref: ./crm.yaml#/UpdateCrmOrganizationRequest
+CreateCrmOpportunityRequest:
+  $ref: ./crm.yaml#/CreateCrmOpportunityRequest
+UpdateCrmOpportunityRequest:
+  $ref: ./crm.yaml#/UpdateCrmOpportunityRequest
+ChangeCrmOpportunityStageRequest:
+  $ref: ./crm.yaml#/ChangeCrmOpportunityStageRequest
+CreateCrmActivityRequest:
+  $ref: ./crm.yaml#/CreateCrmActivityRequest
+CrmContactSuccessResponse:
+  $ref: ./crm.yaml#/CrmContactSuccessResponse
+CrmContactListSuccessResponse:
+  $ref: ./crm.yaml#/CrmContactListSuccessResponse
+CrmOrganizationSuccessResponse:
+  $ref: ./crm.yaml#/CrmOrganizationSuccessResponse
+CrmOrganizationListSuccessResponse:
+  $ref: ./crm.yaml#/CrmOrganizationListSuccessResponse
+CrmOpportunitySuccessResponse:
+  $ref: ./crm.yaml#/CrmOpportunitySuccessResponse
+CrmOpportunityListSuccessResponse:
+  $ref: ./crm.yaml#/CrmOpportunityListSuccessResponse
+CrmActivitySuccessResponse:
+  $ref: ./crm.yaml#/CrmActivitySuccessResponse
+CrmActivityListSuccessResponse:
+  $ref: ./crm.yaml#/CrmActivityListSuccessResponse
+CrmCountersSuccessResponse:
+  $ref: ./crm.yaml#/CrmCountersSuccessResponse

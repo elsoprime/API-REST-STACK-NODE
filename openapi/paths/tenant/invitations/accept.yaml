@@ -1,0 +1,42 @@
+post:
+  tags:
+    - Tenant
+  summary: Accept a tenant invitation using a token delivered through a secure external channel
+  operationId: acceptTenantInvitation
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      schema:
+        type: string
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - token
+          properties:
+            token:
+              type: string
+  responses:
+    '200':
+      description: Invitation accepted
+      content:
+        application/json:
+          schema:
+            $ref: ../../../components/schemas/tenant.yaml#/AcceptInvitationSuccessResponse
+    '400':
+      $ref: ../../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../../components/responses/_index.yaml#/GenericError
+    '404':
+      $ref: ../../../components/responses/_index.yaml#/GenericError
+    '409':
+      $ref: ../../../components/responses/_index.yaml#/GenericError

@@ -1,0 +1,52 @@
+get:
+  tags:
+    - PlatformSettings
+  summary: Read the platform settings singleton
+  operationId: getPlatformSettings
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  responses:
+    '200':
+      description: Platform settings singleton
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/platform-settings.yaml#/PlatformSettingsSuccessResponse
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+patch:
+  tags:
+    - PlatformSettings
+  summary: Update the platform settings singleton
+  operationId: updatePlatformSettings
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      schema:
+        type: string
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../../components/schemas/platform-settings.yaml#/UpdatePlatformSettingsRequest
+  responses:
+    '200':
+      description: Platform settings updated
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/platform-settings.yaml#/PlatformSettingsSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError

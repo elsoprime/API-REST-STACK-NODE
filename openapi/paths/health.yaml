@@ -1,0 +1,14 @@
+get:
+  tags:
+    - Health
+  summary: Healthcheck endpoint
+  operationId: getHealth
+  responses:
+    '200':
+      description: Service health status and go-live readiness checks
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/success.yaml#/HealthResponse
+    '500':
+      $ref: ../components/responses/_index.yaml#/GenericError

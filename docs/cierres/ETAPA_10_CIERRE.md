@@ -1,0 +1,74 @@
+# Cierre Etapa 10
+
+Fecha: 2026-03-08  
+Estado: Cerrada (validada)
+
+## 1. Alcance previsto
+
+La Etapa 10 incorpora `HR` como modulo tenant-scoped para gestion de personal y compensaciones.
+
+Incluye:
+
+- `employees` con create/list/get/update/delete (soft delete esperado en runtime)
+- `compensation` por empleado con get/update
+- aislamiento tenant por `X-Tenant-Id` + resolucion tenant-scoped
+- control de acceso por rol para datos personales y salariales
+- redaccion de sensibles en auditoria/logs
+- validacion anticiclo de jerarquias (`managerId`)
+- validaciones laborales minimas en contrato y validacion de dominio
+
+## 2. Evidencia de codigo
+
+Activos documentales y contractuales publicados en este borrador:
+
+- [ADR_HR_PRIVACIDAD_Y_ACCESO.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/adrs/ADR_HR_PRIVACIDAD_Y_ACCESO.md)
+- [hr.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/components/schemas/hr.yaml)
+- [hr-employees.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/paths/modules/hr-employees.yaml)
+- [hr-employee-by-id.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/paths/modules/hr-employee-by-id.yaml)
+- [hr-compensation-by-employee.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/paths/modules/hr-compensation-by-employee.yaml)
+- [openapi.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/openapi.yaml)
+
+Implementacion runtime completada:
+
+- `src/modules/hr/*` (models, schemas, service, controller, routes, types)
+- integracion de permisos/modulo/plan HR en catalogo RBAC
+- redaccion de sensibles ampliada para HR (salarial y personal) en politica de auditoria
+
+## 3. Evidencia automatizada
+
+Comandos contractuales ejecutados:
+
+- `npm run openapi:validate`
+- `npm run build`
+- `npm run lint`
+- `npm run test`
+
+## 4. Evidencia de contrato
+
+Contrato OpenAPI publicado:
+
+- `GET /api/v1/modules/hr/employees`
+- `POST /api/v1/modules/hr/employees`
+- `GET /api/v1/modules/hr/employees/{employeeId}`
+- `PATCH /api/v1/modules/hr/employees/{employeeId}`
+- `DELETE /api/v1/modules/hr/employees/{employeeId}`
+- `GET /api/v1/modules/hr/employees/{employeeId}/compensation`
+- `PATCH /api/v1/modules/hr/employees/{employeeId}/compensation`
+
+Reglas de contrato aplicadas:
+
+- todas las rutas requieren autenticacion valida
+- `X-Tenant-Id` es obligatorio en rutas tenant-scoped
+- mutaciones exponen `X-CSRF-Token` opcional en contrato HTTP
+- respuestas exitosas usan envelope `success/data/traceId` o `success/data/pagination/traceId`
+- errores usan el envelope global `success: false` con `error.code` estable
+- requests y schemas HR incluyen minimos laborales obligatorios y semantica `anyOf/required` para updates
+
+## 5. Veredicto
+
+La Etapa 10 queda cerrada con evidencia ejecutable de contrato, calidad y seguridad:
+
+- contrato OpenAPI HR publicado y validado
+- runtime HR implementado con tenant isolation, RBAC fino, CSRF en mutaciones y anticiclo jerarquico
+- redaccion de sensibles HR activa en auditoria
+- pruebas unit/integration HR y suite global en verde

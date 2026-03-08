@@ -1,0 +1,224 @@
+Tenant:
+  type: object
+  required:
+    - id
+    - name
+    - slug
+    - status
+    - ownerUserId
+    - planId
+    - activeModuleKeys
+    - memberLimit
+  properties:
+    id:
+      type: string
+    name:
+      type: string
+    slug:
+      type: string
+    status:
+      type: string
+      enum: [active, suspended]
+    ownerUserId:
+      type: string
+    planId:
+      type: string
+      nullable: true
+    activeModuleKeys:
+      type: array
+      items:
+        type: string
+    memberLimit:
+      type: integer
+      nullable: true
+Membership:
+  type: object
+  required:
+    - id
+    - tenantId
+    - userId
+    - roleKey
+    - status
+  properties:
+    id:
+      type: string
+    tenantId:
+      type: string
+    userId:
+      type: string
+    roleKey:
+      type: string
+      enum: [tenant:owner, tenant:member]
+    status:
+      type: string
+      enum: [active, suspended]
+Invitation:
+  type: object
+  required:
+    - id
+    - tenantId
+    - email
+    - roleKey
+    - status
+    - expiresAt
+  properties:
+    id:
+      type: string
+    tenantId:
+      type: string
+    email:
+      type: string
+      format: email
+    roleKey:
+      type: string
+      enum: [tenant:owner, tenant:member]
+    status:
+      type: string
+      enum: [pending, accepted, revoked, expired]
+    expiresAt:
+      type: string
+      format: date-time
+TenantMembershipSummary:
+  type: object
+  required:
+    - tenant
+    - membership
+    - isActive
+  properties:
+    tenant:
+      $ref: '#/Tenant'
+    membership:
+      $ref: '#/Membership'
+    isActive:
+      type: boolean
+CreateTenantSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - tenant
+        - membership
+      properties:
+        tenant:
+          $ref: '#/Tenant'
+        membership:
+          $ref: '#/Membership'
+    traceId:
+      type: string
+ListMyTenantsSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/TenantMembershipSummary'
+    traceId:
+      type: string
+SwitchTenantSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - tenant
+        - membership
+      properties:
+        tenant:
+          $ref: '#/Tenant'
+        membership:
+          $ref: '#/Membership'
+        accessToken:
+          type: string
+          description: Returned for headless requests. Browser flows receive the updated access token as cookie.
+    traceId:
+      type: string
+InvitationSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - invitation
+      properties:
+        invitation:
+          $ref: '#/Invitation'
+    traceId:
+      type: string
+AcceptInvitationSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - tenant
+        - membership
+      properties:
+        tenant:
+          $ref: '#/Tenant'
+        membership:
+          $ref: '#/Membership'
+    traceId:
+      type: string
+TransferOwnershipSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - tenant
+        - membership
+      properties:
+        tenant:
+          $ref: '#/Tenant'
+        membership:
+          $ref: '#/Membership'
+    traceId:
+      type: string

@@ -1,0 +1,82 @@
+patch:
+  tags:
+    - Inventory
+  summary: Update inventory category
+  operationId: updateInventoryCategory
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+    - name: categoryId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-fA-F0-9]{24}$'
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      schema:
+        type: string
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../../components/schemas/inventory.yaml#/UpdateInventoryCategoryRequest
+  responses:
+    '200':
+      description: Inventory category updated
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/inventory.yaml#/InventoryCategorySuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '404':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '409':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+delete:
+  tags:
+    - Inventory
+  summary: Delete inventory category
+  operationId: deleteInventoryCategory
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+    - name: categoryId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-fA-F0-9]{24}$'
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      schema:
+        type: string
+  responses:
+    '200':
+      description: Inventory category deleted
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/inventory.yaml#/InventoryCategorySuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '404':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '409':
+      $ref: ../../components/responses/_index.yaml#/GenericError

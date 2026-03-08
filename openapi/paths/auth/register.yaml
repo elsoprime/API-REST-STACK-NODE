@@ -1,0 +1,57 @@
+post:
+  tags:
+    - Auth
+  summary: Register a platform user
+  operationId: registerPlatformUser
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - email
+            - password
+            - firstName
+          properties:
+            email:
+              type: string
+              format: email
+            password:
+              type: string
+              minLength: 8
+            firstName:
+              type: string
+            lastName:
+              type: string
+  responses:
+    '201':
+      description: Registered user. The verification token is delivered through a secure external channel, not in the HTTP response.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - success
+              - data
+              - traceId
+            properties:
+              success:
+                type: boolean
+                enum: [true]
+              data:
+                type: object
+                required:
+                  - user
+                  - verification
+                properties:
+                  user:
+                    $ref: ../../components/schemas/auth.yaml#/AuthenticatedUser
+                  verification:
+                    $ref: ../../components/schemas/auth.yaml#/EmailVerificationStatus
+              traceId:
+                type: string
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '409':
+      $ref: ../../components/responses/_index.yaml#/GenericError

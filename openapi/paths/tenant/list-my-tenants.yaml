@@ -1,0 +1,17 @@
+get:
+  tags:
+    - Tenant
+  summary: List the tenants available to the authenticated user
+  operationId: listMyTenants
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  responses:
+    '200':
+      description: Available tenants
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/tenant.yaml#/ListMyTenantsSuccessResponse
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError

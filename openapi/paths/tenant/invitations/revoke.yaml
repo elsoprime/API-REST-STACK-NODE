@@ -1,0 +1,44 @@
+post:
+  tags:
+    - Tenant
+  summary: Revoke a pending tenant invitation
+  operationId: revokeTenantInvitation
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - $ref: ../../../components/parameters/_index.yaml#/TenantIdHeader
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      schema:
+        type: string
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - invitationId
+          properties:
+            invitationId:
+              type: string
+              pattern: '^[a-fA-F0-9]{24}$'
+  responses:
+    '200':
+      description: Invitation revoked
+      content:
+        application/json:
+          schema:
+            $ref: ../../../components/schemas/tenant.yaml#/InvitationSuccessResponse
+    '400':
+      $ref: ../../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../../components/responses/_index.yaml#/GenericError
+    '404':
+      $ref: ../../../components/responses/_index.yaml#/GenericError
+    '409':
+      $ref: ../../../components/responses/_index.yaml#/GenericError

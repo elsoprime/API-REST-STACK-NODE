@@ -1,0 +1,111 @@
+get:
+  tags:
+    - CRM
+  summary: Get CRM contact
+  operationId: getCrmContact
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+    - name: contactId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-fA-F0-9]{24}$'
+  responses:
+    '200':
+      description: CRM contact
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/crm.yaml#/CrmContactSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '404':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+patch:
+  tags:
+    - CRM
+  summary: Update CRM contact
+  operationId: updateCrmContact
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+    - name: contactId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-fA-F0-9]{24}$'
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      schema:
+        type: string
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../../components/schemas/crm.yaml#/UpdateCrmContactRequest
+  responses:
+    '200':
+      description: CRM contact updated
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/crm.yaml#/CrmContactSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '404':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '409':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+delete:
+  tags:
+    - CRM
+  summary: Delete CRM contact
+  operationId: deleteCrmContact
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+    - name: contactId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-fA-F0-9]{24}$'
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      schema:
+        type: string
+  responses:
+    '200':
+      description: CRM contact deleted
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/crm.yaml#/CrmContactSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '404':
+      $ref: ../../components/responses/_index.yaml#/GenericError

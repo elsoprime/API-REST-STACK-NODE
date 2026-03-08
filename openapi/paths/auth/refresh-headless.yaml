@@ -1,0 +1,27 @@
+post:
+  tags:
+    - Auth
+  summary: Rotate refresh token for headless clients
+  operationId: refreshHeadless
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - refreshToken
+          properties:
+            refreshToken:
+              type: string
+  responses:
+    '200':
+      description: Refreshed headless tokens
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/auth.yaml#/HeadlessAuthSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError

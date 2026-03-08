@@ -1,0 +1,12 @@
+bearerAuth:
+  type: http
+  scheme: bearer
+  bearerFormat: JWT
+accessTokenCookie:
+  type: apiKey
+  in: cookie
+  name: __at
+refreshTokenCookie:
+  type: apiKey
+  in: cookie
+  name: __rf

@@ -1,0 +1,33 @@
+post:
+  tags:
+    - Auth
+  summary: Confirm TOTP setup with a verification code
+  operationId: confirmTwoFactor
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      schema:
+        type: string
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../../../components/schemas/auth.yaml#/ConfirmTwoFactorRequest
+  responses:
+    '200':
+      description: TOTP confirmed
+      content:
+        application/json:
+          schema:
+            $ref: ../../../components/schemas/auth.yaml#/ConfirmTwoFactorSuccessResponse
+    '401':
+      $ref: ../../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../../components/responses/_index.yaml#/GenericError
+    '409':
+      $ref: ../../../components/responses/_index.yaml#/GenericError

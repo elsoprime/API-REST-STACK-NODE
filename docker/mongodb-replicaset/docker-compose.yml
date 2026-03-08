@@ -1,0 +1,30 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: api-rest-stack-node-mongo
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --host localhost:27017 --eval \"db.adminCommand({ ping: 1 })\" --quiet"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  mongo-init-replica:
+    image: mongo:7
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: "no"
+    entrypoint:
+      - /bin/sh
+      - -c
+      - >
+        until mongosh --host mongo:27017 --eval "db.adminCommand({ ping: 1 })" --quiet; do sleep 2; done;
+        mongosh --host mongo:27017 --eval "try { rs.status() } catch (e) { rs.initiate({_id: 'rs0', members: [{ _id: 0, host: 'localhost:27017' }]}) }";
+
+volumes:
+  mongo_data:

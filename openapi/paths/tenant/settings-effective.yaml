@@ -1,0 +1,27 @@
+get:
+  tags:
+    - TenantSettings
+  summary: Read the effective tenant settings view
+  operationId: getEffectiveTenantSettings
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - name: X-Tenant-Id
+      in: header
+      required: true
+      schema:
+        type: string
+  responses:
+    '200':
+      description: Effective tenant settings
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/tenant-settings.yaml#/TenantSettingsEffectiveSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError

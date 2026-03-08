@@ -1,0 +1,65 @@
+get:
+  tags:
+    - TenantSettings
+  summary: Read the tenant settings singleton
+  operationId: getTenantSettings
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - name: X-Tenant-Id
+      in: header
+      required: true
+      schema:
+        type: string
+  responses:
+    '200':
+      description: Tenant settings singleton
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/tenant-settings.yaml#/TenantSettingsSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+patch:
+  tags:
+    - TenantSettings
+  summary: Update the tenant settings singleton
+  operationId: updateTenantSettings
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - name: X-Tenant-Id
+      in: header
+      required: true
+      schema:
+        type: string
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      schema:
+        type: string
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../../components/schemas/tenant-settings.yaml#/UpdateTenantSettingsRequest
+  responses:
+    '200':
+      description: Tenant settings updated
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/tenant-settings.yaml#/TenantSettingsSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError

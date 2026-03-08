@@ -1,0 +1,26 @@
+post:
+  tags:
+    - Auth
+  summary: Login for headless clients
+  operationId: loginHeadless
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../../components/schemas/auth.yaml#/LoginRequest
+  responses:
+    '200':
+      description: Headless login tokens
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/auth.yaml#/HeadlessAuthSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '423':
+      $ref: ../../components/responses/_index.yaml#/GenericError

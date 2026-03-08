@@ -1,0 +1,35 @@
+process.env.NODE_ENV ??= 'test';
+process.env.PORT ??= '4000';
+process.env.APP_NAME ??= 'SaaS Core Engine';
+process.env.APP_VERSION ??= '3.0.0';
+process.env.APP_URL ??= 'http://localhost:4000';
+process.env.FRONTEND_URL ??= 'http://localhost:5173';
+process.env.MONGODB_URI ??= 'mongodb://localhost:27017/saas_dev?replicaSet=rs0';
+process.env.MONGODB_URI_TEST ??= 'mongodb://localhost:27017/saas_test?replicaSet=rs0';
+process.env.MONGODB_MAX_POOL_SIZE ??= '10';
+process.env.MONGODB_CONNECT_TIMEOUT_MS ??= '10000';
+process.env.JWT_SECRET ??=
+  'change_this_value_to_at_least_64_characters_long_for_production_use';
+process.env.JWT_EXPIRES_IN ??= '15m';
+process.env.REFRESH_TOKEN_EXPIRES_IN ??= '7d';
+process.env.AUTH_ACCESS_COOKIE_NAME ??= '__at';
+process.env.REFRESH_TOKEN_COOKIE_NAME ??= '__rf';
+process.env.COOKIE_SECRET ??=
+  'change_this_value_to_at_least_64_characters_long_for_production_use';
+process.env.COOKIE_DOMAIN ??= 'localhost';
+process.env.COOKIE_SECURE ??= 'false';
+process.env.COOKIE_SAME_SITE ??= 'strict';
+process.env.CSRF_SECRET ??= 'change_this_value_to_at_least_32_characters';
+process.env.CSRF_COOKIE_NAME ??= '__csrf';
+process.env.BCRYPT_SALT_ROUNDS ??= '12';
+process.env.RATE_LIMIT_WINDOW_MS ??= '900000';
+process.env.RATE_LIMIT_MAX_GLOBAL ??= '100';
+process.env.RATE_LIMIT_MAX_AUTH ??= '10';
+process.env.RATE_LIMIT_MAX_SENSITIVE ??= '5';
+process.env.CORS_ORIGINS ??= 'http://localhost:5173';
+process.env.LOG_LEVEL ??= 'info';
+process.env.LOG_PRETTY ??= 'true';
+process.env.GO_LIVE_ENFORCE_PROD_DELIVERY_ADAPTERS ??= 'false';
+process.env.DELIVERY_WEBHOOK_TIMEOUT_MS ??= '5000';
+process.env.DB_CONNECT_MAX_RETRIES ??= '0';
+process.env.DB_CONNECT_RETRY_DELAY_MS ??= '250';

@@ -1,0 +1,645 @@
+CrmContact:
+  type: object
+  required:
+    - id
+    - tenantId
+    - firstName
+    - lastName
+    - email
+    - phone
+    - organizationId
+    - isActive
+  properties:
+    id:
+      type: string
+    tenantId:
+      type: string
+    firstName:
+      type: string
+    lastName:
+      type: string
+    email:
+      type: string
+      nullable: true
+    phone:
+      type: string
+      nullable: true
+    organizationId:
+      type: string
+      nullable: true
+    isActive:
+      type: boolean
+
+CrmOpportunityStage:
+  type: string
+  enum: [lead, qualified, proposal, negotiation, won, lost]
+
+CrmOrganization:
+  type: object
+  required:
+    - id
+    - tenantId
+    - name
+    - domain
+    - industry
+    - isActive
+  properties:
+    id:
+      type: string
+    tenantId:
+      type: string
+    name:
+      type: string
+    domain:
+      type: string
+      nullable: true
+    industry:
+      type: string
+      nullable: true
+    isActive:
+      type: boolean
+
+CrmOpportunity:
+  type: object
+  required:
+    - id
+    - tenantId
+    - title
+    - description
+    - stage
+    - amount
+    - currency
+    - contactId
+    - organizationId
+    - expectedCloseDate
+    - isActive
+  properties:
+    id:
+      type: string
+    tenantId:
+      type: string
+    title:
+      type: string
+    description:
+      type: string
+      nullable: true
+    stage:
+      type: string
+      enum: [lead, qualified, proposal, negotiation, won, lost]
+    amount:
+      type: number
+      nullable: true
+      minimum: 0
+    currency:
+      type: string
+      nullable: true
+    contactId:
+      type: string
+      nullable: true
+    organizationId:
+      type: string
+      nullable: true
+    expectedCloseDate:
+      type: string
+      format: date-time
+      nullable: true
+    isActive:
+      type: boolean
+
+CrmActivity:
+  type: object
+  required:
+    - id
+    - tenantId
+    - type
+    - note
+    - contactId
+    - organizationId
+    - opportunityId
+    - occurredAt
+  properties:
+    id:
+      type: string
+    tenantId:
+      type: string
+    type:
+      type: string
+    note:
+      type: string
+    contactId:
+      type: string
+      nullable: true
+    organizationId:
+      type: string
+      nullable: true
+    opportunityId:
+      type: string
+      nullable: true
+    occurredAt:
+      type: string
+      format: date-time
+
+CrmCounters:
+  type: object
+  required:
+    - tenantId
+    - contactsActive
+    - organizationsActive
+    - opportunitiesOpen
+    - opportunitiesWon
+    - opportunitiesLost
+  properties:
+    tenantId:
+      type: string
+    contactsActive:
+      type: integer
+      minimum: 0
+    organizationsActive:
+      type: integer
+      minimum: 0
+    opportunitiesOpen:
+      type: integer
+      minimum: 0
+    opportunitiesWon:
+      type: integer
+      minimum: 0
+    opportunitiesLost:
+      type: integer
+      minimum: 0
+
+CreateCrmContactRequest:
+  type: object
+  required:
+    - firstName
+    - lastName
+  properties:
+    firstName:
+      type: string
+      minLength: 1
+      maxLength: 120
+    lastName:
+      type: string
+      minLength: 1
+      maxLength: 120
+    email:
+      type: string
+      format: email
+      nullable: true
+    phone:
+      type: string
+      minLength: 1
+      maxLength: 40
+      nullable: true
+    organizationId:
+      type: string
+      pattern: '^[a-fA-F0-9]{24}$'
+      nullable: true
+
+UpdateCrmContactRequest:
+  type: object
+  minProperties: 1
+  properties:
+    firstName:
+      type: string
+      minLength: 1
+      maxLength: 120
+    lastName:
+      type: string
+      minLength: 1
+      maxLength: 120
+    email:
+      type: string
+      format: email
+      nullable: true
+    phone:
+      type: string
+      minLength: 1
+      maxLength: 40
+      nullable: true
+    organizationId:
+      type: string
+      pattern: '^[a-fA-F0-9]{24}$'
+      nullable: true
+
+CreateCrmOrganizationRequest:
+  type: object
+  required:
+    - name
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 180
+    domain:
+      type: string
+      minLength: 1
+      maxLength: 200
+      nullable: true
+    industry:
+      type: string
+      minLength: 1
+      maxLength: 120
+      nullable: true
+
+UpdateCrmOrganizationRequest:
+  type: object
+  minProperties: 1
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 180
+    domain:
+      type: string
+      minLength: 1
+      maxLength: 200
+      nullable: true
+    industry:
+      type: string
+      minLength: 1
+      maxLength: 120
+      nullable: true
+
+CreateCrmOpportunityRequest:
+  type: object
+  required:
+    - title
+  properties:
+    title:
+      type: string
+      minLength: 1
+      maxLength: 200
+    description:
+      type: string
+      minLength: 1
+      maxLength: 1000
+      nullable: true
+    amount:
+      type: number
+      minimum: 0
+      nullable: true
+    currency:
+      type: string
+      pattern: '^[A-Z]{3}$'
+      nullable: true
+    contactId:
+      type: string
+      pattern: '^[a-fA-F0-9]{24}$'
+      nullable: true
+    organizationId:
+      type: string
+      pattern: '^[a-fA-F0-9]{24}$'
+      nullable: true
+    expectedCloseDate:
+      type: string
+      format: date-time
+      nullable: true
+
+UpdateCrmOpportunityRequest:
+  type: object
+  minProperties: 1
+  properties:
+    title:
+      type: string
+      minLength: 1
+      maxLength: 200
+    description:
+      type: string
+      minLength: 1
+      maxLength: 1000
+      nullable: true
+    amount:
+      type: number
+      minimum: 0
+      nullable: true
+    currency:
+      type: string
+      pattern: '^[A-Z]{3}$'
+      nullable: true
+    contactId:
+      type: string
+      pattern: '^[a-fA-F0-9]{24}$'
+      nullable: true
+    organizationId:
+      type: string
+      pattern: '^[a-fA-F0-9]{24}$'
+      nullable: true
+    expectedCloseDate:
+      type: string
+      format: date-time
+      nullable: true
+
+ChangeCrmOpportunityStageRequest:
+  type: object
+  required:
+    - stage
+  properties:
+    stage:
+      type: string
+      enum: [lead, qualified, proposal, negotiation, won, lost]
+
+CreateCrmActivityRequest:
+  type: object
+  required:
+    - type
+    - note
+  anyOf:
+    - required: [contactId]
+    - required: [organizationId]
+    - required: [opportunityId]
+  properties:
+    type:
+      type: string
+      minLength: 1
+      maxLength: 100
+    note:
+      type: string
+      minLength: 1
+      maxLength: 1200
+    contactId:
+      type: string
+      pattern: '^[a-fA-F0-9]{24}$'
+      nullable: true
+    organizationId:
+      type: string
+      pattern: '^[a-fA-F0-9]{24}$'
+      nullable: true
+    opportunityId:
+      type: string
+      pattern: '^[a-fA-F0-9]{24}$'
+      nullable: true
+    occurredAt:
+      type: string
+      format: date-time
+
+CrmContactSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - contact
+      properties:
+        contact:
+          $ref: '#/CrmContact'
+    traceId:
+      type: string
+
+CrmContactListSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - pagination
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/CrmContact'
+    pagination:
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+    traceId:
+      type: string
+
+CrmOrganizationSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - organization
+      properties:
+        organization:
+          $ref: '#/CrmOrganization'
+    traceId:
+      type: string
+
+CrmOrganizationListSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - pagination
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/CrmOrganization'
+    pagination:
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+    traceId:
+      type: string
+
+CrmOpportunitySuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - opportunity
+      properties:
+        opportunity:
+          $ref: '#/CrmOpportunity'
+    traceId:
+      type: string
+
+CrmOpportunityListSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - pagination
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/CrmOpportunity'
+    pagination:
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+    traceId:
+      type: string
+
+CrmActivitySuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - activity
+      properties:
+        activity:
+          $ref: '#/CrmActivity'
+    traceId:
+      type: string
+
+CrmActivityListSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - pagination
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/CrmActivity'
+    pagination:
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+    traceId:
+      type: string
+
+CrmCountersSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - counters
+      properties:
+        counters:
+          $ref: '#/CrmCounters'
+    traceId:
+      type: string

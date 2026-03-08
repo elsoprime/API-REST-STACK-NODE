@@ -1,0 +1,44 @@
+post:
+  tags:
+    - Tenant
+  summary: Transfer tenant ownership to another active member
+  operationId: transferTenantOwnership
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      schema:
+        type: string
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - targetUserId
+          properties:
+            targetUserId:
+              type: string
+              pattern: '^[a-fA-F0-9]{24}$'
+  responses:
+    '200':
+      description: Ownership transferred
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/tenant.yaml#/TransferOwnershipSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '404':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '409':
+      $ref: ../../components/responses/_index.yaml#/GenericError

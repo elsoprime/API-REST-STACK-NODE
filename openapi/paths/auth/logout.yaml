@@ -1,0 +1,25 @@
+post:
+  tags:
+    - Auth
+  summary: Logout the current session
+  operationId: logoutSession
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      schema:
+        type: string
+  responses:
+    '200':
+      description: Current session revoked
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/auth.yaml#/LogoutSuccessResponse
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError

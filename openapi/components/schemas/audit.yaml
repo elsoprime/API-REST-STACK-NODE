@@ -1,0 +1,172 @@
+AuditActorUser:
+  type: object
+  required:
+    - kind
+    - userId
+    - scope
+  properties:
+    kind:
+      type: string
+      enum: [user]
+    userId:
+      type: string
+    sessionId:
+      type: string
+    scope:
+      type: array
+      items:
+        type: string
+AuditActorSystem:
+  type: object
+  required:
+    - kind
+    - systemId
+    - label
+  properties:
+    kind:
+      type: string
+      enum: [system]
+    systemId:
+      type: string
+    label:
+      type: string
+AuditActorUnknown:
+  type: object
+  required:
+    - kind
+    - reason
+  properties:
+    kind:
+      type: string
+      enum: [unknown]
+    reason:
+      type: string
+      enum: [http_unauthenticated, external_unresolved, internal_unresolved]
+AuditActor:
+  oneOf:
+    - $ref: '#/AuditActorUser'
+    - $ref: '#/AuditActorSystem'
+    - $ref: '#/AuditActorUnknown'
+AuditTenantScope:
+  type: object
+  required:
+    - tenantId
+  properties:
+    tenantId:
+      type: string
+    membershipId:
+      type: string
+    roleKey:
+      type: string
+    isOwner:
+      type: boolean
+    effectiveRoleKeys:
+      type: array
+      items:
+        type: string
+AuditResource:
+  type: object
+  required:
+    - type
+  properties:
+    type:
+      type: string
+    id:
+      type: string
+    label:
+      type: string
+AuditChanges:
+  type: object
+  properties:
+    before:
+      type: object
+      additionalProperties: true
+      nullable: true
+    after:
+      type: object
+      additionalProperties: true
+      nullable: true
+    fields:
+      type: array
+      items:
+        type: string
+AuditLog:
+  type: object
+  required:
+    - id
+    - scope
+    - traceId
+    - actor
+    - action
+    - resource
+    - severity
+    - createdAt
+  properties:
+    id:
+      type: string
+    scope:
+      type: string
+      enum: [platform, tenant]
+    traceId:
+      type: string
+    actor:
+      $ref: '#/AuditActor'
+    tenant:
+      $ref: '#/AuditTenantScope'
+    action:
+      type: string
+    resource:
+      $ref: '#/AuditResource'
+    severity:
+      type: string
+      enum: [info, warning, critical]
+    changes:
+      $ref: '#/AuditChanges'
+    metadata:
+      type: object
+      additionalProperties: true
+    createdAt:
+      type: string
+      format: date-time
+AuditLogListSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - pagination
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/AuditLog'
+    pagination:
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+    traceId:
+      type: string

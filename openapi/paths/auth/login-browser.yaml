@@ -1,0 +1,31 @@
+post:
+  tags:
+    - Auth
+  summary: Login with browser-first cookie session
+  operationId: loginBrowser
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../../components/schemas/auth.yaml#/LoginRequest
+  responses:
+    '200':
+      description: Browser login metadata
+      headers:
+        Set-Cookie:
+          description: Access, refresh and CSRF cookies are returned.
+          schema:
+            type: string
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/auth.yaml#/BrowserAuthSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '423':
+      $ref: ../../components/responses/_index.yaml#/GenericError

@@ -1,0 +1,23 @@
+get:
+  tags:
+    - CRM
+  summary: Get CRM counters snapshot
+  operationId: getCrmCounters
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+  responses:
+    '200':
+      description: CRM counters
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/crm.yaml#/CrmCountersSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError

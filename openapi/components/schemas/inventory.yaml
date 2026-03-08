@@ -1,0 +1,433 @@
+InventoryCategory:
+  type: object
+  required:
+    - id
+    - tenantId
+    - name
+    - description
+    - isActive
+  properties:
+    id:
+      type: string
+    tenantId:
+      type: string
+    name:
+      type: string
+    description:
+      type: string
+      nullable: true
+    isActive:
+      type: boolean
+InventoryItem:
+  type: object
+  required:
+    - id
+    - tenantId
+    - categoryId
+    - sku
+    - name
+    - description
+    - currentStock
+    - minStock
+    - isLowStock
+    - isActive
+  properties:
+    id:
+      type: string
+    tenantId:
+      type: string
+    categoryId:
+      type: string
+    sku:
+      type: string
+    name:
+      type: string
+    description:
+      type: string
+      nullable: true
+    currentStock:
+      type: integer
+      minimum: 0
+    minStock:
+      type: integer
+      minimum: 0
+    isLowStock:
+      type: boolean
+    isActive:
+      type: boolean
+InventoryStockMovement:
+  type: object
+  required:
+    - id
+    - tenantId
+    - itemId
+    - direction
+    - quantity
+    - stockBefore
+    - stockAfter
+    - reason
+    - performedByUserId
+    - createdAt
+  properties:
+    id:
+      type: string
+    tenantId:
+      type: string
+    itemId:
+      type: string
+    direction:
+      type: string
+      enum: [in, out]
+    quantity:
+      type: integer
+      minimum: 1
+    stockBefore:
+      type: integer
+      minimum: 0
+    stockAfter:
+      type: integer
+      minimum: 0
+    reason:
+      type: string
+    performedByUserId:
+      type: string
+      nullable: true
+    createdAt:
+      type: string
+      format: date-time
+InventoryLowStockAlert:
+  type: object
+  required:
+    - item
+    - deficit
+  properties:
+    item:
+      $ref: '#/InventoryItem'
+    deficit:
+      type: integer
+      minimum: 0
+CreateInventoryCategoryRequest:
+  type: object
+  required:
+    - name
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 120
+    description:
+      type: string
+      nullable: true
+      maxLength: 500
+UpdateInventoryCategoryRequest:
+  type: object
+  minProperties: 1
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 120
+    description:
+      type: string
+      nullable: true
+      maxLength: 500
+CreateInventoryItemRequest:
+  type: object
+  required:
+    - categoryId
+    - sku
+    - name
+  properties:
+    categoryId:
+      type: string
+      pattern: '^[a-fA-F0-9]{24}$'
+    sku:
+      type: string
+      minLength: 1
+      maxLength: 64
+      pattern: '^[a-zA-Z0-9._-]+$'
+    name:
+      type: string
+      minLength: 1
+      maxLength: 160
+    description:
+      type: string
+      nullable: true
+      maxLength: 500
+    initialStock:
+      type: integer
+      minimum: 0
+      default: 0
+    minStock:
+      type: integer
+      minimum: 0
+      default: 0
+UpdateInventoryItemRequest:
+  type: object
+  minProperties: 1
+  properties:
+    categoryId:
+      type: string
+      pattern: '^[a-fA-F0-9]{24}$'
+    sku:
+      type: string
+      minLength: 1
+      maxLength: 64
+      pattern: '^[a-zA-Z0-9._-]+$'
+    name:
+      type: string
+      minLength: 1
+      maxLength: 160
+    description:
+      type: string
+      nullable: true
+      maxLength: 500
+    minStock:
+      type: integer
+      minimum: 0
+CreateInventoryStockMovementRequest:
+  type: object
+  required:
+    - itemId
+    - direction
+    - quantity
+    - reason
+  properties:
+    itemId:
+      type: string
+      pattern: '^[a-fA-F0-9]{24}$'
+    direction:
+      type: string
+      enum: [in, out]
+    quantity:
+      type: integer
+      minimum: 1
+    reason:
+      type: string
+      minLength: 1
+      maxLength: 240
+InventoryCategorySuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - category
+      properties:
+        category:
+          $ref: '#/InventoryCategory'
+    traceId:
+      type: string
+InventoryCategoryListSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - pagination
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/InventoryCategory'
+    pagination:
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+    traceId:
+      type: string
+InventoryItemSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - item
+      properties:
+        item:
+          $ref: '#/InventoryItem'
+    traceId:
+      type: string
+InventoryItemListSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - pagination
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/InventoryItem'
+    pagination:
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+    traceId:
+      type: string
+InventoryStockMovementSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - movement
+      properties:
+        movement:
+          $ref: '#/InventoryStockMovement'
+    traceId:
+      type: string
+InventoryStockMovementListSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - pagination
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/InventoryStockMovement'
+    pagination:
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+    traceId:
+      type: string
+InventoryLowStockAlertListSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - pagination
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/InventoryLowStockAlert'
+    pagination:
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+    traceId:
+      type: string

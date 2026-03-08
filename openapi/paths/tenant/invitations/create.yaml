@@ -1,0 +1,47 @@
+post:
+  tags:
+    - Tenant
+  summary: Create a tenant invitation. The invitation token is delivered through a secure external channel.
+  operationId: createTenantInvitation
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - $ref: ../../../components/parameters/_index.yaml#/TenantIdHeader
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      schema:
+        type: string
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - email
+          properties:
+            email:
+              type: string
+              format: email
+            roleKey:
+              type: string
+              enum: [tenant:owner, tenant:member]
+  responses:
+    '201':
+      description: Invitation created
+      content:
+        application/json:
+          schema:
+            $ref: ../../../components/schemas/tenant.yaml#/InvitationSuccessResponse
+    '400':
+      $ref: ../../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../../components/responses/_index.yaml#/GenericError
+    '404':
+      $ref: ../../../components/responses/_index.yaml#/GenericError
+    '409':
+      $ref: ../../../components/responses/_index.yaml#/GenericError

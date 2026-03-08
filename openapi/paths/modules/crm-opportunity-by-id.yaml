@@ -1,0 +1,109 @@
+get:
+  tags:
+    - CRM
+  summary: Get CRM opportunity
+  operationId: getCrmOpportunity
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+    - name: opportunityId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-fA-F0-9]{24}$'
+  responses:
+    '200':
+      description: CRM opportunity
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/crm.yaml#/CrmOpportunitySuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '404':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+patch:
+  tags:
+    - CRM
+  summary: Update CRM opportunity
+  operationId: updateCrmOpportunity
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+    - name: opportunityId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-fA-F0-9]{24}$'
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      schema:
+        type: string
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../../components/schemas/crm.yaml#/UpdateCrmOpportunityRequest
+  responses:
+    '200':
+      description: CRM opportunity updated
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/crm.yaml#/CrmOpportunitySuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '404':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+delete:
+  tags:
+    - CRM
+  summary: Delete CRM opportunity
+  operationId: deleteCrmOpportunity
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+    - name: opportunityId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-fA-F0-9]{24}$'
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      schema:
+        type: string
+  responses:
+    '200':
+      description: CRM opportunity deleted
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/crm.yaml#/CrmOpportunitySuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '404':
+      $ref: ../../components/responses/_index.yaml#/GenericError

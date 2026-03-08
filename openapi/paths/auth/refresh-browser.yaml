@@ -1,0 +1,29 @@
+post:
+  tags:
+    - Auth
+  summary: Rotate browser refresh token and session
+  operationId: refreshBrowser
+  security:
+    - refreshTokenCookie: []
+  parameters:
+    - name: X-CSRF-Token
+      in: header
+      required: true
+      schema:
+        type: string
+  responses:
+    '200':
+      description: Browser refresh metadata
+      headers:
+        Set-Cookie:
+          description: Rotated access, refresh and CSRF cookies are returned.
+          schema:
+            type: string
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/auth.yaml#/BrowserAuthSuccessResponse
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError

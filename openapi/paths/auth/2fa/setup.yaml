@@ -1,0 +1,27 @@
+post:
+  tags:
+    - Auth
+  summary: Start TOTP setup for the authenticated user. Provisioning is delivered through a secure external channel.
+  operationId: setupTwoFactor
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      schema:
+        type: string
+  responses:
+    '200':
+      description: TOTP setup stored pending secure provisioning
+      content:
+        application/json:
+          schema:
+            $ref: ../../../components/schemas/auth.yaml#/SetupTwoFactorSuccessResponse
+    '401':
+      $ref: ../../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../../components/responses/_index.yaml#/GenericError
+    '409':
+      $ref: ../../../components/responses/_index.yaml#/GenericError

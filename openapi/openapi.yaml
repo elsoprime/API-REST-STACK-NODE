@@ -1,0 +1,102 @@
+openapi: 3.1.0
+info:
+  title: API-REST-STACK-NODE
+  version: 0.1.0
+  description: Bootstrap OpenAPI for SaaS Core Engine V3.
+servers:
+  - url: http://localhost:4000
+    description: Local development
+paths:
+  /health:
+    $ref: ./paths/health.yaml
+  /api/v1/auth/register:
+    $ref: ./paths/auth/register.yaml
+  /api/v1/auth/login/browser:
+    $ref: ./paths/auth/login-browser.yaml
+  /api/v1/auth/login/headless:
+    $ref: ./paths/auth/login-headless.yaml
+  /api/v1/auth/verify-email:
+    $ref: ./paths/auth/verify-email.yaml
+  /api/v1/auth/refresh/browser:
+    $ref: ./paths/auth/refresh-browser.yaml
+  /api/v1/auth/refresh/headless:
+    $ref: ./paths/auth/refresh-headless.yaml
+  /api/v1/auth/2fa/setup:
+    $ref: ./paths/auth/2fa/setup.yaml
+  /api/v1/auth/2fa/confirm:
+    $ref: ./paths/auth/2fa/confirm.yaml
+  /api/v1/auth/2fa/disable:
+    $ref: ./paths/auth/2fa/disable.yaml
+  /api/v1/auth/recovery-codes/regenerate:
+    $ref: ./paths/auth/recovery-codes/regenerate.yaml
+  /api/v1/auth/logout:
+    $ref: ./paths/auth/logout.yaml
+  /api/v1/auth/logout-all:
+    $ref: ./paths/auth/logout-all.yaml
+  /api/v1/audit:
+    $ref: ./paths/audit/list.yaml
+  /api/v1/platform/settings:
+    $ref: ./paths/platform/settings.yaml
+  /api/v1/tenant:
+    $ref: ./paths/tenant/create-tenant.yaml
+  /api/v1/tenant/mine:
+    $ref: ./paths/tenant/list-my-tenants.yaml
+  /api/v1/tenant/switch:
+    $ref: ./paths/tenant/switch-active-tenant.yaml
+  /api/v1/tenant/invitations:
+    $ref: ./paths/tenant/invitations/create.yaml
+  /api/v1/tenant/invitations/accept:
+    $ref: ./paths/tenant/invitations/accept.yaml
+  /api/v1/tenant/invitations/revoke:
+    $ref: ./paths/tenant/invitations/revoke.yaml
+  /api/v1/tenant/transfer-ownership:
+    $ref: ./paths/tenant/transfer-ownership.yaml
+  /api/v1/tenant/settings:
+    $ref: ./paths/tenant/settings.yaml
+  /api/v1/tenant/settings/effective:
+    $ref: ./paths/tenant/settings-effective.yaml
+  /api/v1/modules/inventory/categories:
+    $ref: ./paths/modules/inventory-categories.yaml
+  /api/v1/modules/inventory/categories/{categoryId}:
+    $ref: ./paths/modules/inventory-category-by-id.yaml
+  /api/v1/modules/inventory/items:
+    $ref: ./paths/modules/inventory-items.yaml
+  /api/v1/modules/inventory/items/{itemId}:
+    $ref: ./paths/modules/inventory-item-by-id.yaml
+  /api/v1/modules/inventory/stock-movements:
+    $ref: ./paths/modules/inventory-stock-movements.yaml
+  /api/v1/modules/inventory/alerts/low-stock:
+    $ref: ./paths/modules/inventory-alerts-low-stock.yaml
+  /api/v1/modules/crm/contacts:
+    $ref: ./paths/modules/crm-contacts.yaml
+  /api/v1/modules/crm/contacts/{contactId}:
+    $ref: ./paths/modules/crm-contact-by-id.yaml
+  /api/v1/modules/crm/organizations:
+    $ref: ./paths/modules/crm-organizations.yaml
+  /api/v1/modules/crm/organizations/{organizationId}:
+    $ref: ./paths/modules/crm-organization-by-id.yaml
+  /api/v1/modules/crm/opportunities:
+    $ref: ./paths/modules/crm-opportunities.yaml
+  /api/v1/modules/crm/opportunities/{opportunityId}:
+    $ref: ./paths/modules/crm-opportunity-by-id.yaml
+  /api/v1/modules/crm/opportunities/{opportunityId}/stage:
+    $ref: ./paths/modules/crm-opportunity-stage.yaml
+  /api/v1/modules/crm/activities:
+    $ref: ./paths/modules/crm-activities.yaml
+  /api/v1/modules/crm/counters:
+    $ref: ./paths/modules/crm-counters.yaml
+  /api/v1/modules/hr/employees:
+    $ref: ./paths/modules/hr-employees.yaml
+  /api/v1/modules/hr/employees/{employeeId}:
+    $ref: ./paths/modules/hr-employee-by-id.yaml
+  /api/v1/modules/hr/employees/{employeeId}/compensation:
+    $ref: ./paths/modules/hr-compensation-by-employee.yaml
+components:
+  schemas:
+    $ref: ./components/schemas/_index.yaml
+  responses:
+    $ref: ./components/responses/_index.yaml
+  parameters:
+    $ref: ./components/parameters/_index.yaml
+  securitySchemes:
+    $ref: ./components/securitySchemes/_index.yaml

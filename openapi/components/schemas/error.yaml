@@ -1,0 +1,31 @@
+ErrorResponse:
+  type: object
+  required:
+    - success
+    - error
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [false]
+    error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: GEN_VALIDATION_ERROR
+        message:
+          type: string
+          example: Validation error
+        details:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+    traceId:
+      type: string
+      format: uuid

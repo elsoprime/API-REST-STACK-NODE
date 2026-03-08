@@ -1,0 +1,40 @@
+post:
+  tags:
+    - Tenant
+  summary: Create a tenant and its initial owner membership
+  operationId: createTenant
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      schema:
+        type: string
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+            slug:
+              type: string
+  responses:
+    '201':
+      description: Tenant created
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/tenant.yaml#/CreateTenantSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '409':
+      $ref: ../../components/responses/_index.yaml#/GenericError
