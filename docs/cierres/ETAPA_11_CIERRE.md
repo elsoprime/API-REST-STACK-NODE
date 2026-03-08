@@ -75,8 +75,23 @@ Ejecuciones reales reportadas en local el 2026-03-08:
 3. Ajuste aplicado en [restore.mongodb-drill.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/integration/go-live/restore.mongodb-drill.test.ts): clonado de registros antes de `insertMany` durante restore.
 4. `npm run test:restore:mongodb:enabled` a las 17:34 -> `1 passed (1)` en verde.
 
+### 5.2 Evidencia release candidate en GitHub Actions
+
+Gate remoto ejecutado el 2026-03-08 sobre branch `release-candidate/etapa-11`:
+
+- workflow: `staging-release-candidate-go-live`
+- run: `https://github.com/elsoprime/API-REST-STACK-NODE/actions/runs/22830132265`
+- job: `smoke-and-restore`
+- resultado: `failure` por causa externa de cuenta
+- mensaje oficial de anotacion: `The job was not started because your account is locked due to a billing issue.`
+
+Detalle consolidado en:
+
+- [ETAPA_11_EVIDENCIA_RELEASE.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/cierres/ETAPA_11_EVIDENCIA_RELEASE.md)
+- [ETAPA_11_GO_NO_GO.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/checklists/ETAPA_11_GO_NO_GO.md)
+
 ## 6. Veredicto
 
 Etapa 11 queda cerrada a nivel de hardening y readiness con evidencia automatizada y operativa.
 
-La salida efectiva a produccion requiere ejecutar el runbook sobre infraestructura real y mantener `production` con adaptadores de delivery configurados.
+La salida efectiva a produccion requiere ejecutar el runbook sobre infraestructura real, mantener `production` con adaptadores de delivery configurados y desbloquear el gate remoto de GitHub Actions para pasar a `GO`.

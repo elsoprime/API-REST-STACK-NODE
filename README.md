@@ -114,3 +114,13 @@ Guia operativa:
 - Validacion general: `.github/workflows/ci.yml`
 - Go-live staging/release-candidate:
   - `.github/workflows/staging-release-candidate-go-live.yml`
+
+## Release readiness
+
+- Evidencia consolidada de salida Etapa 11:
+  - `docs/cierres/ETAPA_11_EVIDENCIA_RELEASE.md`
+  - `docs/checklists/ETAPA_11_GO_NO_GO.md`
+- Ultimo gate remoto RC ejecutado:
+  - `https://github.com/elsoprime/API-REST-STACK-NODE/actions/runs/22830132265`
+- Estado actual de salida formal:
+  - `NO-GO` hasta resolver bloqueo externo de facturacion en GitHub Actions y re-ejecutar el workflow en verde.
