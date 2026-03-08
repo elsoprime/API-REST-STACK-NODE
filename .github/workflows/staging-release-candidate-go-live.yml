@@ -1,0 +1,62 @@
+name: staging-release-candidate-go-live
+
+on:
+  push:
+    branches:
+      - staging
+      - release-candidate
+      - release-candidate/**
+  pull_request:
+    branches:
+      - staging
+      - release-candidate
+      - release-candidate/**
+  workflow_dispatch:
+
+jobs:
+  smoke-and-restore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      ENABLE_MONGODB_RESTORE_DRILL: 'true'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Start Mongo restore replica set
+        run: npm run mongo:restore:up
+
+      - name: Wait for replica set readiness
+        shell: bash
+        run: |
+          for attempt in {1..30}; do
+            status=$(docker exec api-rest-stack-node-mongo-restore mongosh --quiet --eval "try { rs.status().ok } catch (e) { 0 }")
+            if [ "$status" = "1" ]; then
+              echo "Replica set is ready."
+              exit 0
+            fi
+            echo "Waiting for replica set... attempt $attempt"
+            sleep 2
+          done
+          echo "Replica set not ready in time."
+          exit 1
+
+      - name: Run smoke suite
+        run: npm run test:smoke
+
+      - name: Run restore drill suite
+        run: npm run test:restore
+
+      - name: Stop Mongo restore replica set
+        if: always()
+        run: npm run mongo:restore:down
