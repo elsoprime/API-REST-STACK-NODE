@@ -1,8 +1,8 @@
 # Catalogo de Errores Frontend
 
-Version: 1.0.0  
+Version: 1.2.0  
 Estado: Activo  
-Ultima actualizacion: 2026-03-08
+Ultima actualizacion: 2026-03-10
 
 ## 1. Proposito
 
@@ -46,9 +46,12 @@ Estandarizar el manejo UX de `error.code` del backend para mensajes, acciones y 
 | `AUTH_UNAUTHENTICATED` | `auth.unauthenticated` | Tu sesion no es valida o expiro. | Ir a login. | Refresh browser 1 vez |
 | `AUTH_INVALID_CREDENTIALS` | `auth.invalidCredentials` | Credenciales invalidas. | Revisar email/password. | No |
 | `AUTH_ACCOUNT_LOCKED` | `auth.accountLocked` | Cuenta temporalmente bloqueada. | Esperar o contactar soporte. | No |
-| `AUTH_EMAIL_ALREADY_EXISTS` | `auth.emailExists` | El email ya esta registrado. | Ir a login o recuperar cuenta. | No |
+| `AUTH_EMAIL_ALREADY_EXISTS` | `auth.emailExists` | El email ya esta registrado. | Tratarlo como conflicto solo en flujos privados o administrativos; no asumirlo desde `register` publico. | No |
 | `AUTH_EMAIL_NOT_VERIFIED` | `auth.emailNotVerified` | Debes verificar tu email. | Completar verificacion. | No |
-| `AUTH_EMAIL_VERIFICATION_INVALID` | `auth.emailVerificationInvalid` | Token de verificacion invalido o expirado. | Solicitar nuevo token de verificacion. | No |
+| `AUTH_EMAIL_VERIFICATION_INVALID` | `auth.emailVerificationInvalid` | Token de verificacion invalido, expirado, reemplazado o ya usado. | Llamar `POST /api/v1/auth/resend-verification` y mostrar confirmacion generica. | No |
+| `AUTH_PASSWORD_RESET_INVALID` | `auth.passwordResetInvalid` | El token de recuperacion es invalido o expiro. | Solicitar un nuevo enlace en forgot password. | No |
+| `AUTH_PASSWORD_CHANGE_CURRENT_INVALID` | `auth.passwordChangeCurrentInvalid` | La contrasena actual no coincide. | Corregir contrasena actual y reintentar. | No |
+| `AUTH_PASSWORD_CHANGE_REUSED` | `auth.passwordChangeReused` | La nueva contrasena no puede ser igual a la actual. | Elegir una contrasena diferente. | No |
 | `AUTH_INVALID_REFRESH_TOKEN` | `auth.invalidRefresh` | No se pudo renovar la sesion. | Login de nuevo. | No |
 | `AUTH_CSRF_INVALID` | `auth.csrfInvalid` | Tu sesion de seguridad no es valida. | Recargar y reintentar accion. | No |
 | `AUTH_TWO_FACTOR_REQUIRED` | `auth.twoFactorRequired` | Se requiere codigo 2FA para continuar. | Ingresar codigo o recovery code. | No |
@@ -128,3 +131,8 @@ Estandarizar el manejo UX de `error.code` del backend para mensajes, acciones y 
 2. Usar un fallback global para codigos desconocidos (`GEN_INTERNAL_ERROR`).
 3. Incluir `traceId` en toast/modal de errores no manejados.
 4. Mantener i18n por clave, no por texto literal del backend.
+
+
+
+
+

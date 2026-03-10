@@ -1,8 +1,8 @@
 # Definition of Done Frontend
 
-Version: 1.0.0  
-Estado: Activo  
-Ultima actualizacion: 2026-03-08
+Version: 1.1.0
+Estado: Activo
+Ultima actualizacion: 2026-03-10
 
 ## 1. Proposito
 
@@ -80,10 +80,11 @@ Checklist:
 
 ## 7. DoD documental
 
-- [ ] `FRONTEND_INTEGRATION_PLAN_V1.md` actualizado si cambia flujo.
-- [ ] `FRONTEND_ACCESS_MATRIX.md` actualizado si cambia acceso/permisos.
-- [ ] `FRONTEND_ERROR_CATALOG.md` actualizado si aparece nuevo `error.code`.
-- [ ] `FRONTEND_BACKEND_DEPENDENCIES.md` actualizado si se abre/cierra bloqueo.
+- [ ] `10_IMPLEMENTATION_GUIDE_V2.md` actualizado si cambia flujo.
+- [ ] `20_ACCESS_MATRIX.md` actualizado si cambia acceso/permisos.
+- [ ] `50_ERROR_CATALOG.md` actualizado si aparece nuevo `error.code`.
+- [ ] `80_BACKEND_DEPENDENCIES.md` actualizado si se abre/cierra bloqueo.
+- [ ] `95_DOCS_DEPRECATION_MATRIX.md` actualizado si cambia estado documental.
 
 ## 8. Criterio de rechazo de PR
 
@@ -94,3 +95,4 @@ Rechazar PR frontend si:
 - Omite CSRF en mutaciones browser cookie-auth.
 - No maneja errores de dominio relevantes.
 - No incluye evidencia minima de testing.
+

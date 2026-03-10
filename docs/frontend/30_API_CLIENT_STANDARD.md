@@ -1,40 +1,44 @@
 # Estandar del Cliente API Frontend
 
-Version: 1.0.0  
-Estado: Activo  
-Ultima actualizacion: 2026-03-08
+Version: 1.1.0
+Estado: Activo
+Ultima actualizacion: 2026-03-10
 
 ## 1. Proposito
 
-Definir un unico estandar de cliente HTTP para todo el frontend: autenticacion, CSRF, contexto tenant, manejo de errores y trazabilidad.
+Definir un estandar unico de cliente HTTP para todo el frontend: autenticacion, CSRF, contexto tenant, manejo de errores y trazabilidad.
 
 ## 2. Reglas obligatorias (MUST)
 
-1. Toda llamada browser debe usar `credentials: include`.
-2. Toda ruta tenant-scoped debe enviar `X-Tenant-Id`.
-3. Toda mutacion cookie-auth debe enviar `X-CSRF-Token`.
-4. Errores deben normalizarse al envelope global (`success=false`, `error`, `traceId`).
+1. Toda llamada browser autenticada usa `credentials: include`.
+2. Toda ruta tenant-scoped envia `X-Tenant-Id`.
+3. Toda mutacion cookie-auth envia `X-CSRF-Token`.
+4. Errores se normalizan al envelope global (`success=false`, `error`, `traceId`).
 5. Solo un intento de refresh automatico por request.
-6. `traceId` debe exponerse al sistema de observabilidad frontend.
+6. `traceId` debe registrarse para soporte/observabilidad.
 
 ## 3. Clasificacion de rutas para headers
 
-### 3.1 Tenant-scoped
+### 3.1 Tenant-scoped (requiere `X-Tenant-Id`)
 
 - `/api/v1/audit`
 - `/api/v1/tenant/settings*`
 - `/api/v1/modules/*`
-- `/api/v1/tenant/invitations` y `/api/v1/tenant/invitations/revoke`
+- `/api/v1/tenant/invitations`
+- `/api/v1/tenant/invitations/revoke`
 - `/api/v1/tenant/transfer-ownership`
 
-### 3.2 No tenant-scoped
+### 3.2 Excepciones tenant-bound sin `X-Tenant-Id`
+
+- `/api/v1/tenant/switch` (tenant se define en body)
+- `/api/v1/tenant/invitations/accept` (tenant se resuelve por token)
+
+### 3.3 No tenant-scoped
 
 - `/health`
 - `/api/v1/auth/*`
 - `/api/v1/tenant`
 - `/api/v1/tenant/mine`
-- `/api/v1/tenant/switch`
-- `/api/v1/tenant/invitations/accept`
 - `/api/v1/platform/settings`
 
 ## 4. Contratos de entrada y salida sugeridos
@@ -68,25 +72,21 @@ type ApiClientError = {
 
 ## 5. Flujo de request recomendado
 
-1. Resolver metodo HTTP y ruta.
-2. Inyectar `X-Tenant-Id` si ruta es tenant-scoped.
-3. Inyectar `X-CSRF-Token` si metodo mutable y modo browser cookie-auth.
-4. Enviar request con `credentials: include`.
-5. Parsear envelope:
-   - exito: retornar `data`
-   - error: normalizar y lanzar `ApiClientError`
-6. Si `401` autenticado browser:
-   - intentar `POST /api/v1/auth/refresh/browser` una vez
-   - reenviar request original una sola vez
+1. Resolver metodo, path y modo (`browser` o `headless`).
+2. Inyectar `X-Tenant-Id` si la ruta es tenant-scoped y no esta en excepciones.
+3. Inyectar `X-CSRF-Token` en mutaciones cookie-auth.
+4. Enviar request.
+5. Parsear envelope.
+6. Si `401` en browser, intentar `POST /api/v1/auth/refresh/browser` solo una vez y reintentar request original.
 
 ## 6. Politica de retry
 
 - Retry automatico permitido:
-  - Solo para refresh browser ante 401 autenticado
+  - solo refresh browser ante `401` autenticado.
 - Retry manual sugerido:
-  - `GEN_RATE_LIMITED` despues de enfriamiento
+  - `GEN_RATE_LIMITED` despues de enfriamiento.
 - Sin retry:
-  - `403`, `404`, `409`, codigos de validacion de dominio
+  - `403`, `404`, `409` y errores de validacion/dominio.
 
 ## 7. Pseudo-codigo de referencia
 
@@ -94,12 +94,18 @@ type ApiClientError = {
 const MUTATING = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
 function isTenantScoped(path: string): boolean {
-  return path.startsWith('/api/v1/audit')
-    || path.startsWith('/api/v1/tenant/settings')
-    || path.startsWith('/api/v1/modules/')
-    || path === '/api/v1/tenant/invitations'
-    || path === '/api/v1/tenant/invitations/revoke'
-    || path === '/api/v1/tenant/transfer-ownership';
+  return (
+    path.startsWith('/api/v1/audit') ||
+    path.startsWith('/api/v1/tenant/settings') ||
+    path.startsWith('/api/v1/modules/') ||
+    path === '/api/v1/tenant/invitations' ||
+    path === '/api/v1/tenant/invitations/revoke' ||
+    path === '/api/v1/tenant/transfer-ownership'
+  );
+}
+
+function isTenantHeaderException(path: string): boolean {
+  return path === '/api/v1/tenant/switch' || path === '/api/v1/tenant/invitations/accept';
 }
 
 function readCsrfCookie(cookieName: string): string | undefined {
@@ -122,7 +128,7 @@ async function request<T>(input: {
   const method = input.method ?? 'GET';
   const headers = new Headers(input.headers ?? {});
 
-  if (isTenantScoped(input.path) && input.tenantId) {
+  if (isTenantScoped(input.path) && !isTenantHeaderException(input.path) && input.tenantId) {
     headers.set('X-Tenant-Id', input.tenantId);
   }
 
@@ -139,7 +145,7 @@ async function request<T>(input: {
     method,
     headers,
     body: input.body !== undefined ? JSON.stringify(input.body) : undefined,
-    credentials: 'include'
+    credentials: input.browserMode ? 'include' : 'omit'
   });
 
   const payload = await response.json();
@@ -170,10 +176,7 @@ async function request<T>(input: {
       allowRefreshRetry: false
     });
 
-    return request({
-      ...input,
-      allowRefreshRetry: false
-    });
+    return request({ ...input, allowRefreshRetry: false });
   }
 
   throw error;
@@ -183,13 +186,13 @@ async function request<T>(input: {
 ## 8. Observabilidad y soporte
 
 - Reportar `traceId`, `path`, `method`, `status`, `error.code`.
-- Nunca enviar tokens ni payloads sensibles al logger frontend.
-- En errores de usuario final, mostrar referencia con `traceId`.
+- No enviar tokens ni payload sensible al logger frontend.
+- Mostrar `traceId` como referencia de soporte en errores no manejados.
 
 ## 9. Checklist de adopcion
 
-- [ ] Existe una sola instancia de cliente API compartida.
-- [ ] No hay llamadas `fetch/axios` directas fuera del cliente estandar.
+- [ ] Existe una sola instancia de API client compartida.
+- [ ] No hay `fetch/axios` directos fuera del cliente estandar.
 - [ ] `X-Tenant-Id` y `X-CSRF-Token` se inyectan automaticamente.
-- [ ] Manejo de refresh 401 implementado y testeado.
-- [ ] Normalizacion de errores y `traceId` implementada.
+- [ ] Manejo de refresh `401` implementado y probado.
+- [ ] Normalizacion de errores y captura de `traceId` implementadas.

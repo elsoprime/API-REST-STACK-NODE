@@ -1,8 +1,8 @@
 # Politica de Estado y Cache Frontend
 
-Version: 1.0.0  
+Version: 1.1.0  
 Estado: Activo  
-Ultima actualizacion: 2026-03-08
+Ultima actualizacion: 2026-03-09
 
 ## 1. Proposito
 
@@ -76,6 +76,17 @@ Regla:
 
 - Nunca usar keys tenant-scoped sin `tenantId`.
 
+Implementacion vigente:
+
+- `src/lib/query/query-keys.ts`
+  - `["platform", "settings"]`
+  - `["platform", "tenant", "mine"]`
+  - `["tenant", tenantId, "settings"]`
+  - `["tenant", tenantId, "settings", "effective"]`
+- `src/lib/query/tenant-cache.ts`
+  - limpieza tenant-scoped del tenant previo en switch
+  - invalidacion central de `settings` y `settings:effective` tras update
+
 ## 5. Matriz de invalidacion
 
 | Evento | Estado afectado | Cache a invalidar | Accion adicional |
@@ -84,8 +95,8 @@ Regla:
 | Refresh browser exitoso | `session` | Ninguna por defecto | Reintentar request original una vez |
 | Refresh browser fallido | `session`, `tenant` | Todo cache de usuario | Redirect login |
 | Logout / logout-all | `session`, `tenant`, `ui.lastTraceId` | Todo cache | Volver a login |
-| Tenant switch exito | `tenant.activeTenantId`, `tenant.activeMembership`, `tenant.effectiveRuntime` | Todo `tenant:<oldTenantId>:*` | Cargar contexto del nuevo tenant |
-| Update tenant settings | `tenant.effectiveRuntime` (si aplica) | `tenant:<id>:settings`, `tenant:<id>:settings:effective` | Refetch despues de guardar |
+| Tenant switch exito | `tenant.activeTenantId`, `tenant.activeMembership`, `tenant.effectiveRuntime` | Todo `tenant:<oldTenantId>:*` | Cargar contexto del nuevo tenant y reconstruir runtime efectivo |
+| Update tenant settings | `tenant.effectiveRuntime` | `tenant:<id>:settings`, `tenant:<id>:settings:effective` | Refetch despues de guardar y resincronizar shell/runtime |
 | Update platform settings | Ningun tenant local inmediato (depende de UI) | `platform:settings`, `tenant:<id>:settings:effective` | Refetch runtime efectivo visible |
 | Mutacion inventory | Estado de modulo inventory | Keys inventory del tenant activo | Mantener consistencia de stock |
 | Mutacion CRM | Estado de modulo crm | Keys CRM del tenant activo + counters | Refetch counters |
