@@ -95,3 +95,14 @@ Detalle consolidado en:
 Etapa 11 queda cerrada a nivel de hardening y readiness con evidencia automatizada y operativa.
 
 La salida efectiva a produccion requiere ejecutar el runbook sobre infraestructura real, mantener `production` con adaptadores de delivery configurados y desbloquear el gate remoto de GitHub Actions para pasar a `GO`.
+
+## 7. Continuidad de roadmap
+
+Registro posterior al cierre:
+
+- Fecha: 2026-03-09
+- Continuidad definida en [PLAN_MAESTRO.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/PLAN_MAESTRO.md) como `Etapa 12`
+- Documento de etapa pendiente: [ETAPA_12_EMAIL_DELIVERY.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/arquitectura/ETAPA_12_EMAIL_DELIVERY.md)
+- Decision arquitectonica asociada: [ADR-014_EMAIL_DELIVERY_PROVIDERS_AND_TEMPLATES.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/adrs/ADR-014_EMAIL_DELIVERY_PROVIDERS_AND_TEMPLATES.md)
+
+Este registro no reabre la Etapa 11 ni modifica su veredicto de cierre.
