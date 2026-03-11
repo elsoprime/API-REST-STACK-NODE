@@ -1,8 +1,10 @@
 import mongoose, { Types } from 'mongoose';
 
+import { HTTP_STATUS } from '@/constants/http';
 import { TenantModel } from '@/core/tenant/models/tenant.model';
 import { TenantSettingsModel } from '@/core/tenant/settings/models/tenant-settings.model';
 import { TenantSettingsService } from '@/core/tenant/settings/services/tenant-settings.service';
+import { ERROR_CODES } from '@/infrastructure/errors/error-codes';
 
 describe('TenantSettingsService', () => {
   afterEach(() => {
@@ -317,5 +319,128 @@ describe('TenantSettingsService', () => {
     expect(result.runtime.enabledModuleKeys).toEqual(['inventory']);
     expect(result.runtime.featureFlagKeys).toEqual(['inventory:base']);
     expect(result.runtime.planId).toBe('plan:growth');
+  });
+
+  it('fails closed when tenant execution context does not match the requested tenant', async () => {
+    const tenantId = new Types.ObjectId().toString();
+    const mismatchedTenantId = new Types.ObjectId().toString();
+    const service = new TenantSettingsService(
+      {
+        getSettingsSnapshot: vi.fn(),
+        getSettings: vi.fn(),
+        updateSettings: vi.fn()
+      } as never,
+      {
+        resolveTenantRuntime: vi.fn()
+      } as never,
+      {
+        record: vi.fn()
+      } as never
+    );
+
+    vi.spyOn(TenantModel, 'findById').mockReturnValue({
+      lean: vi.fn().mockResolvedValue({
+        _id: new Types.ObjectId(tenantId),
+        name: 'Acme',
+        planId: 'plan:starter',
+        activeModuleKeys: ['inventory']
+      })
+    } as never);
+    const findSettingsSpy = vi.spyOn(TenantSettingsModel, 'findOne');
+    const startSessionSpy = vi.spyOn(mongoose, 'startSession');
+
+    await expect(
+      service.getSettings({
+        tenantId,
+        context: {
+          traceId: 'trace-mismatch-read',
+          actor: {
+            kind: 'user',
+            userId: new Types.ObjectId().toString(),
+            sessionId: new Types.ObjectId().toString(),
+            scope: ['platform:self']
+          },
+          tenant: {
+            tenantId: mismatchedTenantId
+          }
+        }
+      })
+    ).rejects.toMatchObject({
+      code: ERROR_CODES.TENANT_SCOPE_MISMATCH,
+      statusCode: HTTP_STATUS.BAD_REQUEST
+    });
+
+    await expect(
+      service.updateSettings({
+        tenantId,
+        patch: {
+          branding: {
+            displayName: 'Mismatch'
+          }
+        },
+        context: {
+          traceId: 'trace-mismatch-update',
+          actor: {
+            kind: 'user',
+            userId: new Types.ObjectId().toString(),
+            sessionId: new Types.ObjectId().toString(),
+            scope: ['platform:self']
+          },
+          tenant: {
+            tenantId: mismatchedTenantId
+          }
+        }
+      })
+    ).rejects.toMatchObject({
+      code: ERROR_CODES.TENANT_SCOPE_MISMATCH,
+      statusCode: HTTP_STATUS.BAD_REQUEST
+    });
+
+    expect(findSettingsSpy).not.toHaveBeenCalled();
+    expect(startSessionSpy).not.toHaveBeenCalled();
+  });
+
+  it('fails closed on effective settings when tenant execution context does not match requested tenant', async () => {
+    const tenantId = new Types.ObjectId().toString();
+    const mismatchedTenantId = new Types.ObjectId().toString();
+    const platformSettings = {
+      getSettingsSnapshot: vi.fn(),
+      getSettings: vi.fn(),
+      updateSettings: vi.fn()
+    };
+    const service = new TenantSettingsService(
+      platformSettings as never,
+      {
+        resolveTenantRuntime: vi.fn()
+      } as never,
+      {
+        record: vi.fn()
+      } as never
+    );
+    const findTenantSpy = vi.spyOn(TenantModel, 'findById');
+
+    await expect(
+      service.getEffectiveSettings({
+        tenantId,
+        context: {
+          traceId: 'trace-mismatch-effective',
+          actor: {
+            kind: 'user',
+            userId: new Types.ObjectId().toString(),
+            sessionId: new Types.ObjectId().toString(),
+            scope: ['platform:self']
+          },
+          tenant: {
+            tenantId: mismatchedTenantId
+          }
+        }
+      })
+    ).rejects.toMatchObject({
+      code: ERROR_CODES.TENANT_SCOPE_MISMATCH,
+      statusCode: HTTP_STATUS.BAD_REQUEST
+    });
+
+    expect(findTenantSpy).not.toHaveBeenCalled();
+    expect(platformSettings.getSettingsSnapshot).not.toHaveBeenCalled();
   });
 });

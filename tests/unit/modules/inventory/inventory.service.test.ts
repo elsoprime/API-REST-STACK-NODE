@@ -1,5 +1,7 @@
 import mongoose, { Types } from 'mongoose';
 
+import { HTTP_STATUS } from '@/constants/http';
+import { ERROR_CODES } from '@/infrastructure/errors/error-codes';
 import { InventoryCategoryModel } from '@/modules/inventory/models/inventory-category.model';
 import { InventoryItemModel } from '@/modules/inventory/models/inventory-item.model';
 import { InventoryStockMovementModel } from '@/modules/inventory/models/inventory-stock-movement.model';
@@ -165,5 +167,65 @@ describe('InventoryService', () => {
         session: sessionMock
       }
     );
+  });
+
+  it('fails closed when tenant execution context does not match requested tenant', async () => {
+    const service = new InventoryService({
+      record: vi.fn()
+    } as never);
+    const requestedTenantId = new Types.ObjectId().toString();
+    const mismatchedTenantId = new Types.ObjectId().toString();
+    const createCategorySpy = vi.spyOn(InventoryCategoryModel, 'create');
+    const startSessionSpy = vi.spyOn(mongoose, 'startSession');
+
+    await expect(
+      service.createCategory({
+        tenantId: requestedTenantId,
+        name: 'Raw Materials',
+        context: {
+          traceId: 'trace-inventory-tenant-mismatch-category',
+          actor: {
+            kind: 'user',
+            userId: new Types.ObjectId().toString(),
+            sessionId: new Types.ObjectId().toString(),
+            scope: ['platform:self']
+          },
+          tenant: {
+            tenantId: mismatchedTenantId
+          }
+        }
+      })
+    ).rejects.toMatchObject({
+      code: ERROR_CODES.TENANT_SCOPE_MISMATCH,
+      statusCode: HTTP_STATUS.BAD_REQUEST
+    });
+
+    await expect(
+      service.createStockMovement({
+        tenantId: requestedTenantId,
+        itemId: new Types.ObjectId().toString(),
+        direction: 'in',
+        quantity: 5,
+        reason: 'restock',
+        context: {
+          traceId: 'trace-inventory-tenant-mismatch-stock',
+          actor: {
+            kind: 'user',
+            userId: new Types.ObjectId().toString(),
+            sessionId: new Types.ObjectId().toString(),
+            scope: ['platform:self']
+          },
+          tenant: {
+            tenantId: mismatchedTenantId
+          }
+        }
+      })
+    ).rejects.toMatchObject({
+      code: ERROR_CODES.TENANT_SCOPE_MISMATCH,
+      statusCode: HTTP_STATUS.BAD_REQUEST
+    });
+
+    expect(createCategorySpy).not.toHaveBeenCalled();
+    expect(startSessionSpy).not.toHaveBeenCalled();
   });
 });

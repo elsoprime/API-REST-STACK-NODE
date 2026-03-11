@@ -167,6 +167,119 @@ describe('inventory routes', () => {
     expect(service.listCategories).not.toHaveBeenCalled();
   });
 
+  it('requires CSRF for cookie-authenticated category creation', async () => {
+    const tenantId = new Types.ObjectId();
+    const membershipId = new Types.ObjectId();
+    const userId = new Types.ObjectId();
+    const service = {
+      createCategory: vi.fn(),
+      listCategories: vi.fn(),
+      updateCategory: vi.fn(),
+      deleteCategory: vi.fn(),
+      createItem: vi.fn(),
+      listItems: vi.fn(),
+      getItem: vi.fn(),
+      updateItem: vi.fn(),
+      deleteItem: vi.fn(),
+      createStockMovement: vi.fn(),
+      listStockMovements: vi.fn(),
+      listLowStockAlerts: vi.fn()
+    };
+    const app = createInventoryTestApp(service);
+    const accessToken = buildAccessToken(userId.toString());
+
+    vi.spyOn(TenantModel, 'findById').mockResolvedValue({
+      _id: tenantId,
+      status: 'active',
+      ownerUserId: userId,
+      planId: 'plan:starter',
+      activeModuleKeys: ['inventory']
+    } as never);
+    vi.spyOn(MembershipModel, 'findOne').mockResolvedValue({
+      _id: membershipId,
+      userId,
+      status: 'active',
+      roleKey: 'tenant:owner'
+    } as never);
+
+    const response = await request(app)
+      .post('/api/v1/modules/inventory/categories')
+      .set('Cookie', [
+        `${process.env.AUTH_ACCESS_COOKIE_NAME}=${accessToken}`,
+        `${process.env.CSRF_COOKIE_NAME}=csrf-token`
+      ])
+      .set(APP_CONFIG.TENANT_ID_HEADER, tenantId.toString())
+      .send({
+        name: 'Raw Materials'
+      });
+
+    expect(response.status).toBe(403);
+    expect(response.body.error.code).toBe('AUTH_CSRF_INVALID');
+    expect(service.createCategory).not.toHaveBeenCalled();
+  });
+
+  it('accepts cookie-authenticated category creation when CSRF token matches cookie', async () => {
+    const tenantId = new Types.ObjectId();
+    const membershipId = new Types.ObjectId();
+    const userId = new Types.ObjectId();
+    const service = {
+      createCategory: vi.fn().mockResolvedValue({
+        id: new Types.ObjectId().toString(),
+        tenantId: tenantId.toString(),
+        name: 'Raw Materials',
+        description: null,
+        isActive: true
+      }),
+      listCategories: vi.fn(),
+      updateCategory: vi.fn(),
+      deleteCategory: vi.fn(),
+      createItem: vi.fn(),
+      listItems: vi.fn(),
+      getItem: vi.fn(),
+      updateItem: vi.fn(),
+      deleteItem: vi.fn(),
+      createStockMovement: vi.fn(),
+      listStockMovements: vi.fn(),
+      listLowStockAlerts: vi.fn()
+    };
+    const app = createInventoryTestApp(service);
+    const accessToken = buildAccessToken(userId.toString());
+
+    vi.spyOn(TenantModel, 'findById').mockResolvedValue({
+      _id: tenantId,
+      status: 'active',
+      ownerUserId: userId,
+      planId: 'plan:starter',
+      activeModuleKeys: ['inventory']
+    } as never);
+    vi.spyOn(MembershipModel, 'findOne').mockResolvedValue({
+      _id: membershipId,
+      userId,
+      status: 'active',
+      roleKey: 'tenant:owner'
+    } as never);
+
+    const response = await request(app)
+      .post('/api/v1/modules/inventory/categories')
+      .set('Cookie', [
+        `${process.env.AUTH_ACCESS_COOKIE_NAME}=${accessToken}`,
+        `${process.env.CSRF_COOKIE_NAME}=csrf-token`
+      ])
+      .set(APP_CONFIG.CSRF_HEADER, 'csrf-token')
+      .set(APP_CONFIG.TENANT_ID_HEADER, tenantId.toString())
+      .send({
+        name: 'Raw Materials'
+      });
+
+    expect(response.status).toBe(201);
+    expect(service.createCategory).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tenantId: tenantId.toString(),
+        name: 'Raw Materials'
+      })
+    );
+  });
+
   it('returns tenant header validation error when X-Tenant-Id is missing', async () => {
     const userId = new Types.ObjectId();
     const service = {

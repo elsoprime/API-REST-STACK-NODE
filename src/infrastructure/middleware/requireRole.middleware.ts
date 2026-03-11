@@ -22,12 +22,13 @@ function getTenantContext(locals: Record<string, unknown>): TenantContext {
 
 export function createRequireRoleMiddleware(
   requiredRoleKey: string,
-  authorization: RbacServiceContract = rbacService
+  authorization: RbacServiceContract = rbacService,
+  options: { allowPlatformSuperAdmin?: boolean } = {}
 ): RequestHandler {
   return async (_req, res, next) => {
     try {
       const tenantContext = getTenantContext(res.locals as Record<string, unknown>);
-      await authorization.assertRoleGranted(tenantContext.authorization, requiredRoleKey);
+      await authorization.assertRoleGranted(tenantContext.authorization, requiredRoleKey, options);
       next();
     } catch (error) {
       next(error);

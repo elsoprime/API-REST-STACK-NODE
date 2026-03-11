@@ -1,5 +1,7 @@
 import { Types } from 'mongoose';
 
+import { HTTP_STATUS } from '@/constants/http';
+import { ERROR_CODES } from '@/infrastructure/errors/error-codes';
 import { HrCompensationModel } from '@/modules/hr/models/hr-compensation.model';
 import { HrEmployeeModel } from '@/modules/hr/models/hr-employee.model';
 import { HrService } from '@/modules/hr/services/hr.service';
@@ -7,6 +9,75 @@ import { HrService } from '@/modules/hr/services/hr.service';
 describe('HrService', () => {
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it('fails closed when tenant execution context does not match requested tenant', async () => {
+    const service = new HrService({
+      record: vi.fn()
+    } as never);
+    const requestedTenantId = new Types.ObjectId().toString();
+    const mismatchedTenantId = new Types.ObjectId().toString();
+    const createEmployeeSpy = vi.spyOn(HrEmployeeModel, 'create');
+    const updateCompensationSpy = vi.spyOn(HrCompensationModel, 'findOneAndUpdate');
+    const findEmployeeSpy = vi.spyOn(HrEmployeeModel, 'findOne');
+
+    await expect(
+      service.createEmployee({
+        tenantId: requestedTenantId,
+        employeeCode: 'HR-001',
+        firstName: 'Ada',
+        lastName: 'Lovelace',
+        employmentType: 'full_time',
+        startDate: '2026-03-01T00:00:00.000Z',
+        context: {
+          traceId: 'trace-hr-tenant-mismatch-create',
+          actor: {
+            kind: 'user',
+            userId: new Types.ObjectId().toString(),
+            sessionId: new Types.ObjectId().toString(),
+            scope: ['platform:self']
+          },
+          tenant: {
+            tenantId: mismatchedTenantId
+          }
+        }
+      })
+    ).rejects.toMatchObject({
+      code: ERROR_CODES.TENANT_SCOPE_MISMATCH,
+      statusCode: HTTP_STATUS.BAD_REQUEST
+    });
+
+    await expect(
+      service.updateCompensation({
+        tenantId: requestedTenantId,
+        employeeId: new Types.ObjectId().toString(),
+        patch: {
+          salaryAmount: 100000,
+          currency: 'USD',
+          payFrequency: 'monthly',
+          effectiveFrom: '2026-03-01T00:00:00.000Z'
+        },
+        context: {
+          traceId: 'trace-hr-tenant-mismatch-compensation',
+          actor: {
+            kind: 'user',
+            userId: new Types.ObjectId().toString(),
+            sessionId: new Types.ObjectId().toString(),
+            scope: ['platform:self']
+          },
+          tenant: {
+            tenantId: mismatchedTenantId
+          }
+        }
+      })
+    ).rejects.toMatchObject({
+      code: ERROR_CODES.TENANT_SCOPE_MISMATCH,
+      statusCode: HTTP_STATUS.BAD_REQUEST
+    });
+
+    expect(createEmployeeSpy).not.toHaveBeenCalled();
+    expect(updateCompensationSpy).not.toHaveBeenCalled();
+    expect(findEmployeeSpy).not.toHaveBeenCalled();
   });
 
   it('maps duplicate employee creation to a stable conflict code', async () => {

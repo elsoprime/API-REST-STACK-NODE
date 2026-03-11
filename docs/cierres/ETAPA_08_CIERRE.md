@@ -81,3 +81,31 @@ Cobertura funcional minima:
 ## 5. Veredicto
 
 La Etapa 8 queda formalmente cerrada.
+
+## 6. Re-cierre tecnico
+
+Fecha: 2026-03-10  
+Estado: Re-cierre aplicado por hardening de tenant-context en servicio y CSRF cookie-auth.
+
+Se incorpora al cierre de Etapa 8:
+
+- `InventoryService` valida coherencia contractual entre `tenantId` solicitado y `context.tenant.tenantId`:
+  - mismatch falla cerrado con `TENANT_SCOPE_MISMATCH` (`400`) antes de mutaciones.
+  - aplica a create/update/delete de categorias e items, y a stock movements.
+- Rutas de mutacion de `Inventory` amplian evidencia browser-first:
+  - test negativo para cookie-auth sin header CSRF en `POST /modules/inventory/categories`.
+  - test positivo para cookie-auth con header CSRF valido en el mismo endpoint.
+- OpenAPI de mutaciones Inventory explicita regla condicional de `X-CSRF-Token` para auth por cookie.
+
+Cobertura agregada:
+
+- `tests/unit/modules/inventory/inventory.service.test.ts`
+- `tests/integration/inventory/inventory.routes.test.ts`
+
+Validaciones ejecutadas:
+
+- `npm run docs:cierres:validate`
+- `npm run openapi:validate`
+- `npm run build`
+- `npm run lint`
+- `npm run test` (`98` archivos, `278` tests en verde, `1` skipped)

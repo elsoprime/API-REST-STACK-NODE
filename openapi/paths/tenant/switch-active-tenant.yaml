@@ -1,7 +1,7 @@
 post:
   tags:
     - Tenant
-  summary: Switch the active tenant for the current authenticated session
+  summary: Switch the active tenant for the current authenticated session (tenant-bound exception without X-Tenant-Id)
   operationId: switchActiveTenant
   security:
     - bearerAuth: []

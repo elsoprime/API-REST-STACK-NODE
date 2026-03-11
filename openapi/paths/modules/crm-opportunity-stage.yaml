@@ -17,6 +17,7 @@ patch:
     - name: X-CSRF-Token
       in: header
       required: false
+      description: Required when authenticating with access token cookie; not required for Bearer auth.
       schema:
         type: string
   requestBody:
@@ -42,3 +43,4 @@ patch:
       $ref: ../../components/responses/_index.yaml#/GenericError
     '409':
       $ref: ../../components/responses/_index.yaml#/GenericError
+

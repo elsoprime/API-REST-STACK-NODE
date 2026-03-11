@@ -49,7 +49,9 @@ function createInvitationTestApp() {
     createInvitation: vi.fn().mockResolvedValue(fakeInvitationResult),
     acceptInvitation: vi.fn().mockResolvedValue(fakeAcceptanceResult),
     revokeInvitation: vi.fn().mockResolvedValue(fakeInvitationResult),
-    transferOwnership: vi.fn()
+    transferOwnership: vi.fn(),
+    assignSubscription: vi.fn(),
+    cancelSubscription: vi.fn()
   };
   const rootRouter = Router();
   const apiV1Router = Router();
@@ -223,3 +225,4 @@ describe('tenant invitation routes', () => {
     );
   });
 });
+

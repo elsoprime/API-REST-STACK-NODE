@@ -6,6 +6,7 @@ SaaS Core Engine V3 construido con Node.js + TypeScript + MongoDB para arquitect
 
 - Etapa 10 (HR): cerrada con pruebas y documentacion.
 - Etapa 11 (hardening y go-live): cerrada con smoke suite, restore drill y runbook operativo.
+- Etapa 12 (email delivery): implementada con plantillas versionadas, Mailpit local y Resend para produccion.
 
 ## Stack
 
@@ -67,6 +68,7 @@ npm run dev
   - `npm run build`
   - `npm run lint`
   - `npm run openapi:validate`
+  - `npm run docs:cierres:validate`
 - Tests:
   - `npm run test`
   - `npm run test:unit`
@@ -76,6 +78,9 @@ npm run dev
   - `npm run test:restore`
 - Go-live check:
   - `npm run go-live:check`
+- Email local:
+  - `npm run mailpit:up`
+  - `npm run mailpit:down`
 
 ## Restore drill Mongo real (Etapa 11)
 
@@ -100,6 +105,24 @@ npm run mongo:restore:down
 Guia operativa:
 - [docs/operaciones/MONGO_LOCAL_RESTORE_DRILL.md](docs/operaciones/MONGO_LOCAL_RESTORE_DRILL.md)
 
+## Email local (Etapa 12)
+
+1. Levantar Mailpit:
+
+```bash
+npm run mailpit:up
+```
+
+2. Ejecutar la API con `.env.dev` configurado para `EMAIL_PROVIDER=mailpit`.
+
+3. Abrir Mailpit en `http://localhost:8025`.
+
+4. Bajar Mailpit:
+
+```bash
+npm run mailpit:down
+```
+
 ## Documentacion principal
 
 - [docs/PLAN_MAESTRO.md](docs/PLAN_MAESTRO.md)
@@ -107,6 +130,7 @@ Guia operativa:
 - [docs/checklists/CRITERIOS_DE_CIERRE.md](docs/checklists/CRITERIOS_DE_CIERRE.md)
 - [docs/operaciones/RUNBOOK_GO_LIVE.md](docs/operaciones/RUNBOOK_GO_LIVE.md)
 - [docs/cierres/ETAPA_11_CIERRE.md](docs/cierres/ETAPA_11_CIERRE.md)
+- [docs/cierres/ETAPA_12_CIERRE.md](docs/cierres/ETAPA_12_CIERRE.md)
 - [docs/checklists/ETAPA_11_PR_CHECKLIST.md](docs/checklists/ETAPA_11_PR_CHECKLIST.md)
 
 ## CI/CD
@@ -114,3 +138,13 @@ Guia operativa:
 - Validacion general: `.github/workflows/ci.yml`
 - Go-live staging/release-candidate:
   - `.github/workflows/staging-release-candidate-go-live.yml`
+
+## Release readiness
+
+- Evidencia consolidada de salida Etapa 11:
+  - `docs/cierres/ETAPA_11_EVIDENCIA_RELEASE.md`
+  - `docs/checklists/ETAPA_11_GO_NO_GO.md`
+- Ultimo gate remoto RC ejecutado:
+  - `https://github.com/elsoprime/API-REST-STACK-NODE/actions/runs/22830132265`
+- Estado actual de salida formal:
+  - `NO-GO` hasta resolver bloqueo externo de facturacion en GitHub Actions y re-ejecutar el workflow en verde.

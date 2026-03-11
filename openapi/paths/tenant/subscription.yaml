@@ -1,0 +1,75 @@
+patch:
+  tags:
+    - Tenant
+  summary: Assign or change tenant subscription plan and activate modules
+  operationId: assignTenantSubscription
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - name: X-Tenant-Id
+      in: header
+      required: true
+      schema:
+        type: string
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      description: Required when authenticating with access token cookie; not required for Bearer auth.
+      schema:
+        type: string
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../../components/schemas/billing.yaml#/AssignTenantSubscriptionRequest
+  responses:
+    '200':
+      description: Tenant subscription assigned
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/billing.yaml#/TenantSubscriptionSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '404':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+
+delete:
+  tags:
+    - Tenant
+  summary: Cancel tenant subscription and clear active modules
+  operationId: cancelTenantSubscription
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - name: X-Tenant-Id
+      in: header
+      required: true
+      schema:
+        type: string
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      description: Required when authenticating with access token cookie; not required for Bearer auth.
+      schema:
+        type: string
+  responses:
+    '200':
+      description: Tenant subscription canceled
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/billing.yaml#/TenantSubscriptionSuccessResponse
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '404':
+      $ref: ../../components/responses/_index.yaml#/GenericError

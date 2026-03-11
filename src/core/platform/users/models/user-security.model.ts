@@ -27,6 +27,18 @@ const userSecuritySchema = new Schema(
       type: Date,
       default: null
     },
+    emailVerificationLastSentAt: {
+      type: Date,
+      default: null
+    },
+    passwordResetTokenHash: {
+      type: String,
+      default: null
+    },
+    passwordResetExpiresAt: {
+      type: Date,
+      default: null
+    },
     twoFactorEnabled: {
       type: Boolean,
       default: false

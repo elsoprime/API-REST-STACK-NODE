@@ -82,3 +82,24 @@ Cobertura funcional relevante:
 ## 7. Veredicto
 
 Con la evidencia disponible y con los findings contractuales corregidos en `/health`, `traceId` y logging de DB, Etapa 0 y Etapa 1 quedan formalmente cerradas.
+
+## 8. Re-cierre tecnico (2026-03-10)
+
+Motivo:
+
+- fortalecer gobernanza documental transversal sin crear ruido en cierres de etapa
+
+Fix aplicado:
+
+- nomenclatura canonica de cierres formalizada (`ETAPA_{ID}_{TIPO}.md`)
+- renombre total de cierres legacy a formato `ETAPA_XX_*`
+- gate automatizado `docs:cierres:validate` integrado en CI
+- politica de no crear nuevos documentos de cierre sin control explicito (allowlist)
+
+Evidencia:
+
+- `npm run docs:cierres:validate` en verde
+- `npm run openapi:validate` en verde
+- `npm run build` en verde
+- `npm run lint` en verde
+- `npm run test` en verde

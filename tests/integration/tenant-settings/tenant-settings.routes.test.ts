@@ -188,6 +188,127 @@ describe('tenant settings routes', () => {
     );
   });
 
+  it('requires CSRF for cookie-authenticated tenant settings PATCH requests', async () => {
+    const tenantId = new Types.ObjectId();
+    const membershipId = new Types.ObjectId();
+    const userId = new Types.ObjectId();
+    const service = {
+      getSettings: vi.fn(),
+      updateSettings: vi.fn(),
+      getEffectiveSettings: vi.fn()
+    };
+    const app = createTenantSettingsTestApp(service);
+    const accessToken = buildAccessToken(userId.toString());
+
+    vi.spyOn(TenantModel, 'findById').mockResolvedValue({
+      _id: tenantId,
+      status: 'active',
+      ownerUserId: userId,
+      planId: 'plan:starter',
+      activeModuleKeys: ['inventory']
+    } as never);
+    vi.spyOn(MembershipModel, 'findOne').mockResolvedValue({
+      _id: membershipId,
+      userId,
+      status: 'active',
+      roleKey: 'tenant:owner'
+    } as never);
+
+    const response = await request(app)
+      .patch('/api/v1/tenant/settings')
+      .set('Cookie', [
+        `${process.env.AUTH_ACCESS_COOKIE_NAME}=${accessToken}`,
+        `${process.env.CSRF_COOKIE_NAME}=csrf-token`
+      ])
+      .set(APP_CONFIG.TENANT_ID_HEADER, tenantId.toString())
+      .send({
+        branding: {
+          displayName: 'Acme South'
+        }
+      });
+
+    expect(response.status).toBe(403);
+    expect(response.body.error.code).toBe('AUTH_CSRF_INVALID');
+    expect(service.updateSettings).not.toHaveBeenCalled();
+  });
+
+  it('accepts cookie-authenticated tenant settings PATCH requests when CSRF token matches cookie', async () => {
+    const tenantId = new Types.ObjectId();
+    const membershipId = new Types.ObjectId();
+    const userId = new Types.ObjectId();
+    const service = {
+      getSettings: vi.fn(),
+      updateSettings: vi.fn().mockResolvedValue({
+        id: new Types.ObjectId().toString(),
+        tenantId: tenantId.toString(),
+        singletonKey: 'tenant_settings',
+        branding: {
+          displayName: 'Acme South',
+          supportEmail: null,
+          supportUrl: null
+        },
+        localization: {
+          defaultTimezone: null,
+          defaultCurrency: null,
+          defaultLanguage: null
+        },
+        contact: {
+          primaryEmail: null,
+          phone: null,
+          websiteUrl: null
+        },
+        billing: {
+          billingEmail: null,
+          legalName: null,
+          taxId: null
+        }
+      }),
+      getEffectiveSettings: vi.fn()
+    };
+    const app = createTenantSettingsTestApp(service);
+    const accessToken = buildAccessToken(userId.toString());
+
+    vi.spyOn(TenantModel, 'findById').mockResolvedValue({
+      _id: tenantId,
+      status: 'active',
+      ownerUserId: userId,
+      planId: 'plan:starter',
+      activeModuleKeys: ['inventory']
+    } as never);
+    vi.spyOn(MembershipModel, 'findOne').mockResolvedValue({
+      _id: membershipId,
+      userId,
+      status: 'active',
+      roleKey: 'tenant:owner'
+    } as never);
+
+    const response = await request(app)
+      .patch('/api/v1/tenant/settings')
+      .set('Cookie', [
+        `${process.env.AUTH_ACCESS_COOKIE_NAME}=${accessToken}`,
+        `${process.env.CSRF_COOKIE_NAME}=csrf-token`
+      ])
+      .set(APP_CONFIG.CSRF_HEADER, 'csrf-token')
+      .set(APP_CONFIG.TENANT_ID_HEADER, tenantId.toString())
+      .send({
+        branding: {
+          displayName: 'Acme South'
+        }
+      });
+
+    expect(response.status).toBe(200);
+    expect(service.updateSettings).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tenantId: tenantId.toString(),
+        patch: {
+          branding: {
+            displayName: 'Acme South'
+          }
+        }
+      })
+    );
+  });
+
   it('reads the effective tenant settings view', async () => {
     const tenantId = new Types.ObjectId();
     const membershipId = new Types.ObjectId();

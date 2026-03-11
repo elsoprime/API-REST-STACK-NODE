@@ -130,9 +130,7 @@ describe('TenantService', () => {
       status: 'active',
       roleKey: 'tenant:owner'
     } as never);
-    vi.spyOn(InvitationModel, 'findOne').mockReturnValue({
-      lean: vi.fn().mockResolvedValue(null)
-    } as never);
+    vi.spyOn(InvitationModel, 'findOne').mockResolvedValue(null as never);
     vi.spyOn(mongoose, 'startSession').mockResolvedValue(sessionMock as never);
     vi.spyOn(InvitationModel, 'create').mockResolvedValue([
       {
@@ -161,6 +159,68 @@ describe('TenantService', () => {
       email: 'member@example.com',
       tenantId: fakeTenantId.toString()
     });
+    expect(delivery?.token).toBeDefined();
+  });
+
+  it('reuses a pending invitation by refreshing its token instead of failing with conflict', async () => {
+    const deliveryAdapter = new InMemoryTenantInvitationDeliveryAdapter();
+    const invitationSave = vi.fn().mockResolvedValue(undefined);
+    const service = new TenantService(
+      {
+        hashToken: vi.fn().mockImplementation((value: string) => `hash:${value}`),
+        signAccessToken: vi.fn(),
+        signRefreshToken: vi.fn(),
+        generateCsrfToken: vi.fn(),
+        verifyAccessToken: vi.fn(),
+        verifyRefreshToken: vi.fn()
+      } as never,
+      deliveryAdapter,
+      createAuthorizationStub() as never,
+      createAuditStub() as never
+    );
+    const fakeTenantId = new Types.ObjectId();
+    const fakeInvitationId = new Types.ObjectId();
+    const fakeOwnerUserId = new Types.ObjectId();
+
+    vi.spyOn(TenantModel, 'findById').mockResolvedValue({
+      _id: fakeTenantId,
+      name: 'Acme',
+      status: 'active',
+      ownerUserId: fakeOwnerUserId,
+      planId: null,
+      activeModuleKeys: []
+    } as never);
+    vi.spyOn(MembershipModel, 'findOne').mockResolvedValue({
+      status: 'active',
+      roleKey: 'tenant:owner'
+    } as never);
+    vi.spyOn(InvitationModel, 'findOne').mockResolvedValue({
+      _id: fakeInvitationId,
+      tenantId: fakeTenantId,
+      email: 'member@example.com',
+      roleKey: 'tenant:member',
+      status: 'pending',
+      expiresAt: new Date(Date.now() + 60_000),
+      save: invitationSave,
+      toObject: () => ({
+        _id: fakeInvitationId,
+        tenantId: fakeTenantId,
+        email: 'member@example.com',
+        roleKey: 'tenant:member',
+        status: 'pending',
+        expiresAt: new Date(Date.now() + 60_000)
+      })
+    } as never);
+
+    const result = await service.createInvitation({
+      userId: fakeOwnerUserId.toString(),
+      tenantId: fakeTenantId.toString(),
+      email: 'member@example.com'
+    });
+    const delivery = deliveryAdapter.peekLatestByEmail('member@example.com');
+
+    expect(result.invitation.id).toBe(fakeInvitationId.toString());
+    expect(invitationSave).toHaveBeenCalled();
     expect(delivery?.token).toBeDefined();
   });
 
@@ -297,6 +357,7 @@ describe('TenantService', () => {
     vi.spyOn(TenantModel, 'findById').mockResolvedValue({
       _id: fakeTenantId,
       ownerUserId: currentOwnerUserId,
+      status: 'active',
       save: tenantSave,
       toObject: () => ({
         _id: fakeTenantId,
@@ -359,7 +420,8 @@ describe('TenantService', () => {
 
     vi.spyOn(TenantModel, 'findById').mockResolvedValue({
       _id: fakeTenantId,
-      ownerUserId: actualOwnerUserId
+      ownerUserId: actualOwnerUserId,
+      status: 'active'
     } as never);
     vi.spyOn(MembershipModel, 'findOne')
       .mockResolvedValueOnce({
@@ -385,6 +447,75 @@ describe('TenantService', () => {
       })
     ).rejects.toMatchObject({
       code: 'TENANT_OWNER_REQUIRED',
+      statusCode: 403
+    });
+  });
+
+  it('rejects invitation revocation when the tenant is not active', async () => {
+    const service = new TenantService(undefined, undefined, undefined, createAuditStub() as never);
+    const fakeTenantId = new Types.ObjectId();
+    const actorUserId = new Types.ObjectId();
+
+    vi.spyOn(TenantModel, 'findById').mockResolvedValue({
+      _id: fakeTenantId,
+      ownerUserId: actorUserId,
+      status: 'suspended'
+    } as never);
+    vi.spyOn(MembershipModel, 'findOne').mockResolvedValue({
+      _id: new Types.ObjectId(),
+      tenantId: fakeTenantId,
+      userId: actorUserId,
+      roleKey: 'tenant:owner',
+      status: 'active'
+    } as never);
+
+    await expect(
+      service.revokeInvitation({
+        userId: actorUserId.toString(),
+        tenantId: fakeTenantId.toString(),
+        invitationId: new Types.ObjectId().toString()
+      })
+    ).rejects.toMatchObject({
+      code: 'TENANT_INACTIVE',
+      statusCode: 403
+    });
+  });
+
+  it('rejects ownership transfer when the tenant is not active', async () => {
+    const service = new TenantService(undefined, undefined, undefined, createAuditStub() as never);
+    const fakeTenantId = new Types.ObjectId();
+    const actorUserId = new Types.ObjectId();
+    const targetUserId = new Types.ObjectId();
+
+    vi.spyOn(TenantModel, 'findById').mockResolvedValue({
+      _id: fakeTenantId,
+      ownerUserId: actorUserId,
+      status: 'suspended'
+    } as never);
+    vi.spyOn(MembershipModel, 'findOne')
+      .mockResolvedValueOnce({
+        _id: new Types.ObjectId(),
+        tenantId: fakeTenantId,
+        userId: actorUserId,
+        roleKey: 'tenant:owner',
+        status: 'active'
+      } as never)
+      .mockResolvedValueOnce({
+        _id: new Types.ObjectId(),
+        tenantId: fakeTenantId,
+        userId: targetUserId,
+        roleKey: 'tenant:member',
+        status: 'active'
+      } as never);
+
+    await expect(
+      service.transferOwnership({
+        userId: actorUserId.toString(),
+        tenantId: fakeTenantId.toString(),
+        targetUserId: targetUserId.toString()
+      })
+    ).rejects.toMatchObject({
+      code: 'TENANT_INACTIVE',
       statusCode: 403
     });
   });
@@ -428,6 +559,7 @@ describe('TenantService', () => {
     vi.spyOn(TenantModel, 'findById').mockResolvedValue({
       _id: fakeTenantId,
       ownerUserId: currentOwnerUserId,
+      status: 'active',
       save: tenantSave,
       toObject: () => ({
         _id: fakeTenantId,

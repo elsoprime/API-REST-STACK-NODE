@@ -68,7 +68,7 @@ API-REST-STACK-NODE/
 - `openapi/` existe desde Etapa -1
 - `tests/` existe desde Etapa -1
 - `docker/` o equivalente de entorno reproducible existe desde Etapa -1
-- `docs/DOCUMENTACION_COMPLETA_SAAS_V3.md` no es fuente de verdad; si se mantiene, es un artefacto derivado
+- `docs/_legacy/DOCUMENTACION_COMPLETA_SAAS_V3.md` no es fuente de verdad; se mantiene solo como artefacto derivado
 
 ## Responsabilidades
 

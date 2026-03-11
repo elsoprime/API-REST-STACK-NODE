@@ -43,6 +43,30 @@ function buildHrError(
   });
 }
 
+function assertTenantContextConsistency(tenantId: string, context?: ExecutionContext): void {
+  const contextTenantId = context?.tenant?.tenantId;
+
+  if (!contextTenantId) {
+    return;
+  }
+
+  if (!Types.ObjectId.isValid(tenantId) || !Types.ObjectId.isValid(contextTenantId)) {
+    throw buildHrError(
+      ERROR_CODES.TENANT_SCOPE_MISMATCH,
+      'Tenant context does not match the requested tenant.',
+      HTTP_STATUS.BAD_REQUEST
+    );
+  }
+
+  if (new Types.ObjectId(tenantId).toString() !== new Types.ObjectId(contextTenantId).toString()) {
+    throw buildHrError(
+      ERROR_CODES.TENANT_SCOPE_MISMATCH,
+      'Tenant context does not match the requested tenant.',
+      HTTP_STATUS.BAD_REQUEST
+    );
+  }
+}
+
 function isMongoDuplicateKeyError(error: unknown): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === 11000;
 }
@@ -225,6 +249,7 @@ export class HrService implements HrServiceContract {
   constructor(private readonly audit: AuditService = auditService) {}
 
   async createEmployee(input: CreateHrEmployeeInput): Promise<HrEmployeeView> {
+    assertTenantContextConsistency(input.tenantId, input.context);
     const tenantId = new Types.ObjectId(input.tenantId);
     const startDate = parseDateInput(input.startDate, 'startDate', { required: true });
     if (!startDate) {
@@ -349,6 +374,7 @@ export class HrService implements HrServiceContract {
   }
 
   async updateEmployee(input: UpdateHrEmployeeInput): Promise<HrEmployeeView> {
+    assertTenantContextConsistency(input.tenantId, input.context);
     const tenantId = new Types.ObjectId(input.tenantId);
     const employeeId = new Types.ObjectId(input.employeeId);
 
@@ -497,6 +523,7 @@ export class HrService implements HrServiceContract {
   }
 
   async deleteEmployee(input: DeleteHrEmployeeInput): Promise<HrEmployeeView> {
+    assertTenantContextConsistency(input.tenantId, input.context);
     const tenantId = new Types.ObjectId(input.tenantId);
     const employeeId = new Types.ObjectId(input.employeeId);
 
@@ -591,6 +618,7 @@ export class HrService implements HrServiceContract {
   }
 
   async updateCompensation(input: UpdateHrCompensationInput): Promise<HrCompensationView> {
+    assertTenantContextConsistency(input.tenantId, input.context);
     const tenantId = new Types.ObjectId(input.tenantId);
     const employeeId = new Types.ObjectId(input.employeeId);
 

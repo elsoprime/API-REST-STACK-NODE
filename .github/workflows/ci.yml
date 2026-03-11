@@ -34,3 +34,6 @@ jobs:
 
       - name: Validate OpenAPI
         run: npm run openapi:validate
+
+      - name: Validate Cierres Nomenclature
+        run: npm run docs:cierres:validate

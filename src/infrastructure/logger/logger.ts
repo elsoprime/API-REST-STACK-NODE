@@ -1,25 +1,49 @@
 import pino, { type Logger, type LoggerOptions } from 'pino';
 
 import { env } from '@/config/env';
+import { EMAIL_LOGGER_REDACT_PATHS } from '@/infrastructure/email/email-logger.redaction';
 
 export type AppLogger = Pick<Logger, 'info' | 'warn' | 'error' | 'child'>;
 
 export const LOGGER_REDACT_PATHS = [
   'req.headers.authorization',
   'req.headers.cookie',
+  'req.headers.x-api-key',
   'req.body.password',
+  'req.body.currentPassword',
+  'req.body.newPassword',
+  'req.body.confirmPassword',
   'req.body.token',
   'req.body.secret',
+  'req.body.clientSecret',
+  'req.body.privateKey',
   'req.body.refreshToken',
+  'req.body.accessToken',
+  'req.body.apiKey',
   'req.body.recoveryCode',
   'req.body.csrfToken',
   'error.details.password',
+  'error.details.currentPassword',
+  'error.details.newPassword',
+  'error.details.confirmPassword',
   'error.details.token',
   'error.details.secret',
+  'error.details.clientSecret',
+  'error.details.privateKey',
   'error.details.refreshToken',
+  'error.details.accessToken',
+  'error.details.apiKey',
   'error.details.recoveryCode',
   'error.details.csrfToken',
   'error.details.otpauthUrl',
+  'metadata.secret',
+  'metadata.clientSecret',
+  'metadata.privateKey',
+  'metadata.apiKey',
+  'metadata.accessToken',
+  'metadata.refreshToken',
+  'metadata.csrfToken',
+  'metadata.smtpPassword',
   'changes.before.password',
   'changes.after.password',
   'changes.before.token',
@@ -35,7 +59,8 @@ export const LOGGER_REDACT_PATHS = [
   'changes.before.recoveryCode',
   'changes.after.recoveryCode',
   'changes.before.otpauthUrl',
-  'changes.after.otpauthUrl'
+  'changes.after.otpauthUrl',
+  ...EMAIL_LOGGER_REDACT_PATHS
 ] as const;
 
 function buildLoggerOptions(): LoggerOptions {

@@ -82,6 +82,9 @@ describe('auth delivery flow', () => {
       }
     ] as never);
     vi.spyOn(UserSecurityModel, 'create').mockResolvedValue([] as never);
+    vi.spyOn(UserSecurityModel, 'updateOne').mockResolvedValue({
+      acknowledged: true
+    } as never);
 
     apiV1Router.use(APP_CONFIG.AUTH_BASE_PATH, createAuthRouter(service));
     rootRouter.use(APP_CONFIG.API_PREFIX, apiV1Router);
@@ -98,8 +101,10 @@ describe('auth delivery flow', () => {
 
     const delivery = deliveryAdapter.peekLatestByEmail('john@example.com');
 
-    expect(registerResponse.status).toBe(201);
-    expect(registerResponse.body.data.verification.token).toBeUndefined();
+    expect(registerResponse.status).toBe(202);
+    expect(registerResponse.body.data).toEqual({
+      accepted: true
+    });
     expect(delivery?.token).toBeDefined();
 
     vi.spyOn(UserSecurityModel, 'findOne').mockResolvedValueOnce({

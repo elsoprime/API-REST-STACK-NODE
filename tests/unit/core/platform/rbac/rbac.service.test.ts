@@ -158,4 +158,77 @@ describe('RbacService', () => {
       service.assertRoleGranted(authorization, 'tenant:manager')
     ).resolves.toBeUndefined();
   });
+
+  it('denies permissions when the permission scope does not match the tenant authorization scope', async () => {
+    const service = new RbacService();
+    const ownerUserId = new Types.ObjectId().toString();
+    const authorization = await service.resolveTenantAuthorization({
+      tenantId: new Types.ObjectId().toString(),
+      roleKey: 'tenant:owner',
+      ownerUserId,
+      membershipUserId: ownerUserId,
+      planId: 'plan:starter',
+      activeModuleKeys: ['inventory']
+    });
+    const poisonedAuthorization = {
+      ...authorization,
+      permissionKeys: [...authorization.permissionKeys, 'platform:settings:read']
+    };
+
+    await expect(
+      service.assertPermissionGranted(poisonedAuthorization, 'platform:settings:read')
+    ).rejects.toMatchObject({
+      code: 'RBAC_PERMISSION_DENIED',
+      statusCode: 403
+    });
+  });
+
+  it('allows platform super admin bypass only when explicitly requested by the caller', async () => {
+    const service = new RbacService();
+    const superAdminAuthorization = {
+      tenantId: new Types.ObjectId().toString(),
+      role: {
+        key: 'platform:super_admin',
+        name: 'Platform Super Admin',
+        description: 'Administrative platform role',
+        scope: 'platform' as const,
+        tenantId: null,
+        isSystem: true,
+        hierarchyLevel: 1000,
+        permissions: ['*']
+      },
+      isOwner: false,
+      effectiveHierarchyLevel: 1000,
+      effectiveRoleKeys: ['platform:super_admin'],
+      permissionKeys: ['*'],
+      plan: null,
+      activeModuleKeys: [],
+      enabledModuleKeys: [],
+      featureFlagKeys: []
+    };
+
+    await expect(
+      service.assertRoleGranted(superAdminAuthorization, 'tenant:owner')
+    ).rejects.toMatchObject({
+      code: 'RBAC_ROLE_DENIED',
+      statusCode: 403
+    });
+    await expect(
+      service.assertPermissionGranted(superAdminAuthorization, 'tenant:settings:update')
+    ).rejects.toMatchObject({
+      code: 'RBAC_PERMISSION_DENIED',
+      statusCode: 403
+    });
+
+    await expect(
+      service.assertRoleGranted(superAdminAuthorization, 'tenant:owner', {
+        allowPlatformSuperAdmin: true
+      })
+    ).resolves.toBeUndefined();
+    await expect(
+      service.assertPermissionGranted(superAdminAuthorization, 'tenant:settings:update', {
+        allowPlatformSuperAdmin: true
+      })
+    ).resolves.toBeUndefined();
+  });
 });

@@ -1,0 +1,244 @@
+BillingPlan:
+  type: object
+  required:
+    - key
+    - name
+    - description
+    - rank
+    - allowedModuleKeys
+    - featureFlagKeys
+    - memberLimit
+  properties:
+    key:
+      type: string
+    name:
+      type: string
+    description:
+      type: string
+    rank:
+      type: integer
+    allowedModuleKeys:
+      type: array
+      items:
+        type: string
+    featureFlagKeys:
+      type: array
+      items:
+        type: string
+    memberLimit:
+      type: integer
+      nullable: true
+BillingCheckoutSession:
+  type: object
+  required:
+    - id
+    - tenantId
+    - planId
+    - provider
+    - providerSessionId
+    - status
+    - checkoutUrl
+    - createdAt
+    - expiresAt
+    - activatedAt
+  properties:
+    id:
+      type: string
+    tenantId:
+      type: string
+    planId:
+      type: string
+    provider:
+      type: string
+      enum: [simulated, stripe]
+    providerSessionId:
+      type: string
+    status:
+      type: string
+      enum: [pending, paid, activated, failed, canceled]
+    checkoutUrl:
+      type: string
+      format: uri
+    createdAt:
+      type: string
+      format: date-time
+    expiresAt:
+      type: string
+      format: date-time
+    activatedAt:
+      type: string
+      format: date-time
+      nullable: true
+BillingWebhookEvent:
+  type: object
+  required:
+    - id
+    - provider
+    - type
+    - data
+  properties:
+    id:
+      type: string
+    provider:
+      type: string
+      enum: [simulated, stripe]
+    type:
+      type: string
+      enum: [billing.checkout.paid, billing.checkout.failed, billing.checkout.canceled]
+    createdAt:
+      type: string
+      format: date-time
+    data:
+      type: object
+      required:
+        - tenantId
+      properties:
+        tenantId:
+          type: string
+          pattern: '^[a-fA-F0-9]{24}$'
+        planId:
+          type: string
+          nullable: true
+        checkoutSessionId:
+          type: string
+          pattern: '^[a-fA-F0-9]{24}$'
+        providerSessionId:
+          type: string
+        reason:
+          type: string
+CreateCheckoutSessionRequest:
+  type: object
+  required:
+    - planId
+  properties:
+    planId:
+      type: string
+    provider:
+      type: string
+      enum: [simulated, stripe]
+      default: simulated
+AssignTenantSubscriptionRequest:
+  type: object
+  required:
+    - planId
+  properties:
+    planId:
+      type: string
+TenantSubscription:
+  type: object
+  required:
+    - planId
+    - activeModuleKeys
+    - status
+  properties:
+    planId:
+      type: string
+      nullable: true
+    activeModuleKeys:
+      type: array
+      items:
+        type: string
+    status:
+      type: string
+      enum: [activated, canceled]
+BillingPlanCatalogSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/BillingPlan'
+    traceId:
+      type: string
+CreateCheckoutSessionSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - checkoutSession
+      properties:
+        checkoutSession:
+          $ref: '#/BillingCheckoutSession'
+    traceId:
+      type: string
+BillingWebhookProcessSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - eventId
+        - provider
+        - type
+        - status
+        - checkoutSessionId
+        - tenantId
+      properties:
+        eventId:
+          type: string
+        provider:
+          type: string
+          enum: [simulated, stripe]
+        type:
+          type: string
+          enum: [billing.checkout.paid, billing.checkout.failed, billing.checkout.canceled]
+        status:
+          type: string
+          enum: [processed, duplicate, ignored]
+        checkoutSessionId:
+          type: string
+          nullable: true
+        tenantId:
+          type: string
+          nullable: true
+    traceId:
+      type: string
+TenantSubscriptionSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - tenant
+        - subscription
+      properties:
+        tenant:
+          $ref: ./tenant.yaml#/Tenant
+        subscription:
+          $ref: '#/TenantSubscription'
+    traceId:
+      type: string

@@ -213,6 +213,114 @@ describe('platform settings routes', () => {
     expect(service.getSettings).not.toHaveBeenCalled();
   });
 
+  it('requires CSRF for cookie-authenticated PATCH requests', async () => {
+    const userId = new Types.ObjectId();
+    const service = {
+      getSettings: vi.fn(),
+      updateSettings: vi.fn()
+    };
+    const app = createPlatformSettingsTestApp(service);
+    const accessToken = tokenService.signAccessToken({
+      sub: userId.toString(),
+      sid: userId.toString(),
+      scope: platformScopeGrants.resolveScopesForEmail('admin@example.com')
+    });
+
+    vi.spyOn(AuthSessionModel, 'findById').mockResolvedValue({
+      _id: userId,
+      userId,
+      status: 'active',
+      expiresAt: new Date(Date.now() + 60_000)
+    } as never);
+
+    const response = await request(app)
+      .patch('/api/v1/platform/settings')
+      .set('Cookie', [
+        `${process.env.AUTH_ACCESS_COOKIE_NAME}=${accessToken}`,
+        `${process.env.CSRF_COOKIE_NAME}=csrf-token`
+      ])
+      .send({
+        operations: {
+          maintenanceMode: true
+        }
+      });
+
+    expect(response.status).toBe(403);
+    expect(response.body.error.code).toBe('AUTH_CSRF_INVALID');
+    expect(service.updateSettings).not.toHaveBeenCalled();
+  });
+
+  it('accepts cookie-authenticated PATCH requests when CSRF token matches cookie', async () => {
+    const userId = new Types.ObjectId();
+    const service = {
+      getSettings: vi.fn(),
+      updateSettings: vi.fn().mockResolvedValue({
+        id: new Types.ObjectId().toString(),
+        singletonKey: 'platform_settings',
+        branding: {
+          applicationName: 'API-REST-STACK-NODE',
+          supportEmail: 'support@example.com',
+          supportUrl: 'http://localhost:3000'
+        },
+        localization: {
+          defaultTimezone: 'UTC',
+          defaultCurrency: 'USD',
+          defaultLanguage: 'en'
+        },
+        security: {
+          allowUserRegistration: true,
+          requireEmailVerification: true
+        },
+        operations: {
+          maintenanceMode: true
+        },
+        modules: {
+          disabledModuleKeys: []
+        },
+        featureFlags: {
+          disabledFeatureFlagKeys: []
+        }
+      })
+    };
+    const app = createPlatformSettingsTestApp(service);
+    const accessToken = tokenService.signAccessToken({
+      sub: userId.toString(),
+      sid: userId.toString(),
+      scope: platformScopeGrants.resolveScopesForEmail('admin@example.com')
+    });
+
+    vi.spyOn(AuthSessionModel, 'findById').mockResolvedValue({
+      _id: userId,
+      userId,
+      status: 'active',
+      expiresAt: new Date(Date.now() + 60_000)
+    } as never);
+
+    const response = await request(app)
+      .patch('/api/v1/platform/settings')
+      .set('Cookie', [
+        `${process.env.AUTH_ACCESS_COOKIE_NAME}=${accessToken}`,
+        `${process.env.CSRF_COOKIE_NAME}=csrf-token`
+      ])
+      .set(APP_CONFIG.CSRF_HEADER, 'csrf-token')
+      .send({
+        operations: {
+          maintenanceMode: true
+        }
+      });
+
+    expect(response.status).toBe(200);
+    expect(service.updateSettings).toHaveBeenCalledWith(
+      expect.objectContaining({
+        patch: {
+          operations: {
+            maintenanceMode: true
+          }
+        }
+      })
+    );
+  });
+
   it('rejects unknown module keys through the public platform settings contract', async () => {
     const userId = new Types.ObjectId();
     const service = {

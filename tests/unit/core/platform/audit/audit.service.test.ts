@@ -1,8 +1,10 @@
 import { Types } from 'mongoose';
 
+import { HTTP_STATUS } from '@/constants/http';
 import { AuditLogModel } from '@/core/platform/audit/models/audit-log.model';
 import { AuditOutboxModel } from '@/core/platform/audit/models/audit-outbox.model';
 import { AuditService } from '@/core/platform/audit/services/audit.service';
+import { ERROR_CODES } from '@/infrastructure/errors/error-codes';
 
 describe('AuditService', () => {
   afterEach(() => {
@@ -121,6 +123,155 @@ describe('AuditService', () => {
       scope: 'tenant',
       action: 'tenant.ownership.transfer',
       severity: 'critical'
+    });
+  });
+
+  it('serializes complex payloads before redaction and persistence', async () => {
+    const service = new AuditService();
+    const auditId = new Types.ObjectId();
+    const modelId = new Types.ObjectId();
+    const cycle: Record<string, unknown> = {};
+    cycle.self = cycle;
+    const createSpy = vi.spyOn(AuditLogModel, 'create').mockResolvedValue([
+      {
+        toObject: () => ({
+          _id: auditId,
+          scope: 'platform',
+          traceId: 'trace-serialization',
+          actor: {
+            kind: 'system',
+            systemId: 'audit-worker',
+            label: 'Audit Worker'
+          },
+          action: 'platform.settings.rotate_secret',
+          resource: {
+            type: 'platform_settings',
+            id: 'singleton'
+          },
+          severity: 'warning',
+          createdAt: new Date('2026-03-10T14:00:00.000Z')
+        })
+      }
+    ] as never);
+
+    await service.record(
+      {
+        traceId: ' trace-serialization ',
+        scope: 'platform',
+        actor: {
+          kind: 'system',
+          systemId: 'audit-worker',
+          label: 'Audit Worker'
+        },
+        action: ' platform.settings.rotate_secret ',
+        resource: {
+          type: ' platform_settings ',
+          id: ' singleton '
+        },
+        severity: 'warning',
+        changes: {
+          before: {
+            token: 'raw-token',
+            batchId: modelId as never,
+            seenAt: new Date('2026-03-10T13:59:59.000Z') as never
+          },
+          fields: ['token', 'token', ' seenAt ', '']
+        } as never,
+        metadata: {
+          modelId: modelId as never,
+          generatedAt: new Date('2026-03-10T14:00:00.000Z') as never,
+          maxRetries: BigInt(3) as never,
+          apiKey: 'super-secret',
+          cycle: cycle as never
+        } as never
+      },
+      {
+        session: {} as never
+      }
+    );
+
+    expect(createSpy).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({
+          traceId: 'trace-serialization',
+          action: 'platform.settings.rotate_secret',
+          resource: {
+            type: 'platform_settings',
+            id: 'singleton',
+            label: null
+          },
+          changes: {
+            before: {
+              token: '[Redacted]',
+              batchId: modelId.toString(),
+              seenAt: '2026-03-10T13:59:59.000Z'
+            },
+            after: null,
+            fields: ['token', 'seenAt']
+          },
+          metadata: {
+            modelId: modelId.toString(),
+            generatedAt: '2026-03-10T14:00:00.000Z',
+            maxRetries: '3',
+            apiKey: '[Redacted]',
+            cycle: {
+              self: '[Circular]'
+            }
+          }
+        })
+      ]),
+      {
+        session: expect.anything()
+      }
+    );
+  });
+
+  it('fails closed when audit scope and tenant context are inconsistent', async () => {
+    const service = new AuditService();
+
+    await expect(
+      service.record({
+        traceId: 'trace-scope-tenant',
+        scope: 'tenant',
+        actor: {
+          kind: 'system',
+          systemId: 'audit-worker',
+          label: 'Audit Worker'
+        },
+        action: 'tenant.settings.update',
+        resource: {
+          type: 'tenant_settings',
+          id: 'singleton'
+        },
+        severity: 'warning'
+      })
+    ).rejects.toMatchObject({
+      code: ERROR_CODES.TENANT_SCOPE_MISMATCH,
+      statusCode: HTTP_STATUS.BAD_REQUEST
+    });
+
+    await expect(
+      service.record({
+        traceId: 'trace-scope-platform',
+        scope: 'platform',
+        actor: {
+          kind: 'system',
+          systemId: 'audit-worker',
+          label: 'Audit Worker'
+        },
+        tenant: {
+          tenantId: new Types.ObjectId().toString()
+        },
+        action: 'platform.settings.update',
+        resource: {
+          type: 'platform_settings',
+          id: 'singleton'
+        },
+        severity: 'warning'
+      })
+    ).rejects.toMatchObject({
+      code: ERROR_CODES.TENANT_SCOPE_MISMATCH,
+      statusCode: HTTP_STATUS.BAD_REQUEST
     });
   });
 

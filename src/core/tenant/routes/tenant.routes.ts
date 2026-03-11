@@ -4,6 +4,7 @@ import { createTenantController } from '@/core/tenant/controllers/tenant.control
 import { tenantSettingsRouter } from '@/core/tenant/settings/routes/tenant-settings.routes';
 import {
   acceptInvitationSchema,
+  assignTenantSubscriptionSchema,
   createInvitationSchema,
   createTenantSchema,
   revokeInvitationSchema,
@@ -13,6 +14,7 @@ import {
 import { tenantService } from '@/core/tenant/services/tenant.service';
 import { type TenantServiceContract } from '@/core/tenant/types/tenant.types';
 import { authenticateMiddleware } from '@/infrastructure/middleware/authenticate.middleware';
+import { requirePermission } from '@/infrastructure/middleware/requirePermission.middleware';
 import { resolveTenantContextMiddleware } from '@/infrastructure/middleware/resolveTenantContext.middleware';
 import { sensitiveRateLimiter } from '@/infrastructure/middleware/rateLimiter.middleware';
 import { validateBody } from '@/infrastructure/middleware/validateBody.middleware';
@@ -85,6 +87,23 @@ export function createTenantRouter(service: TenantServiceContract = tenantServic
     resolveTenantContextMiddleware,
     validateBody(transferOwnershipSchema),
     controller.transferOwnership
+  );
+  tenantRouter.patch(
+    '/subscription',
+    authenticateMiddleware,
+    requireCsrfForCookieAuth(),
+    resolveTenantContextMiddleware,
+    requirePermission('tenant:settings:update'),
+    validateBody(assignTenantSubscriptionSchema),
+    controller.assignSubscription
+  );
+  tenantRouter.delete(
+    '/subscription',
+    authenticateMiddleware,
+    requireCsrfForCookieAuth(),
+    resolveTenantContextMiddleware,
+    requirePermission('tenant:settings:update'),
+    controller.cancelSubscription
   );
 
   return tenantRouter;

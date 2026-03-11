@@ -1,5 +1,6 @@
 import { Types } from 'mongoose';
 
+import { HTTP_STATUS } from '@/constants/http';
 import { type AuthScope } from '@/constants/security';
 import { AuditLogModel } from '@/core/platform/audit/models/audit-log.model';
 import { AuditOutboxModel } from '@/core/platform/audit/models/audit-outbox.model';
@@ -9,6 +10,7 @@ import {
 } from '@/core/platform/audit/types/audit-query.types';
 import {
   type AuditActor,
+  type AuditJsonValue,
   type AuditJsonObject,
   type AuditLogView,
   type AuditServiceContract,
@@ -21,6 +23,8 @@ import {
   redactAuditChanges,
   redactAuditMetadata
 } from '@/core/platform/audit/policies/audit-redaction.policy';
+import { AppError } from '@/infrastructure/errors/app-error';
+import { ERROR_CODES } from '@/infrastructure/errors/error-codes';
 
 interface StoredAuditLog {
   id?: string;
@@ -83,6 +87,127 @@ interface NormalizedAuditPayload {
     fields: string[];
   } | null;
   metadata: AuditJsonObject | null;
+}
+
+const CIRCULAR_REFERENCE_PLACEHOLDER = '[Circular]' as const;
+
+function dedupeNonEmptyStrings(values: string[] | undefined): string[] {
+  if (!values?.length) {
+    return [];
+  }
+
+  return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
+}
+
+function serializeAuditJsonValue(
+  value: unknown,
+  visited: WeakSet<object> = new WeakSet<object>()
+): AuditJsonValue | undefined {
+  if (value === null) {
+    return null;
+  }
+
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    return value;
+  }
+
+  if (typeof value === 'bigint') {
+    return value.toString();
+  }
+
+  if (typeof value === 'undefined' || typeof value === 'function' || typeof value === 'symbol') {
+    return undefined;
+  }
+
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+
+  if (value instanceof Types.ObjectId) {
+    return value.toString();
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => serializeAuditJsonValue(item, visited) ?? null);
+  }
+
+  if (value && typeof value === 'object') {
+    if (visited.has(value)) {
+      return CIRCULAR_REFERENCE_PLACEHOLDER;
+    }
+
+    visited.add(value);
+
+    try {
+      if (value instanceof Set) {
+        return [...value].map((item) => serializeAuditJsonValue(item, visited) ?? null);
+      }
+
+      if (value instanceof Map) {
+        const serializedMap: AuditJsonObject = {};
+
+        for (const [key, item] of value.entries()) {
+          const serializedItem = serializeAuditJsonValue(item, visited);
+
+          if (typeof serializedItem !== 'undefined') {
+            serializedMap[String(key)] = serializedItem;
+          }
+        }
+
+        return serializedMap;
+      }
+
+      const serializedObject: AuditJsonObject = {};
+
+      for (const [key, item] of Object.entries(value as Record<string, unknown>)) {
+        const serializedItem = serializeAuditJsonValue(item, visited);
+
+        if (typeof serializedItem !== 'undefined') {
+          serializedObject[key] = serializedItem;
+        }
+      }
+
+      return serializedObject;
+    } finally {
+      visited.delete(value);
+    }
+  }
+
+  return String(value);
+}
+
+function toSerializableAuditObject(
+  value: AuditJsonObject | null | undefined
+): AuditJsonObject | null | undefined {
+  if (typeof value === 'undefined' || value === null) {
+    return value;
+  }
+
+  const serialized = serializeAuditJsonValue(value);
+
+  if (!serialized || Array.isArray(serialized) || typeof serialized !== 'object') {
+    return {};
+  }
+
+  return serialized;
+}
+
+function assertAuditScopeConsistency(input: CreateAuditLogInput): void {
+  if (input.scope === 'tenant' && !input.tenant?.tenantId) {
+    throw new AppError({
+      code: ERROR_CODES.TENANT_SCOPE_MISMATCH,
+      message: 'Tenant-scoped audit logs require tenant context.',
+      statusCode: HTTP_STATUS.BAD_REQUEST
+    });
+  }
+
+  if (input.scope === 'platform' && input.tenant?.tenantId) {
+    throw new AppError({
+      code: ERROR_CODES.TENANT_SCOPE_MISMATCH,
+      message: 'Platform-scoped audit logs cannot include tenant context.',
+      statusCode: HTTP_STATUS.BAD_REQUEST
+    });
+  }
 }
 
 function toAuditLogView(document: StoredAuditLog): AuditLogView {
@@ -215,11 +340,34 @@ function buildPlatformListQuery(input: ListPlatformAuditLogsInput) {
 }
 
 function normalizeAuditPayload(input: CreateAuditLogInput): NormalizedAuditPayload {
-  const redactedChanges = redactAuditChanges(input.changes);
+  assertAuditScopeConsistency(input);
+
+  const serializableChanges = input.changes
+    ? {
+        ...(typeof input.changes.before !== 'undefined'
+          ? {
+              before: toSerializableAuditObject(input.changes.before)
+            }
+          : {}),
+        ...(typeof input.changes.after !== 'undefined'
+          ? {
+              after: toSerializableAuditObject(input.changes.after)
+            }
+          : {}),
+        ...(input.changes.fields
+          ? {
+              fields: dedupeNonEmptyStrings(input.changes.fields)
+            }
+          : {})
+      }
+    : undefined;
+
+  const redactedChanges = redactAuditChanges(serializableChanges);
+  const redactedMetadata = redactAuditMetadata(toSerializableAuditObject(input.metadata) ?? undefined);
 
   return {
     scope: input.scope,
-    traceId: input.traceId,
+    traceId: input.traceId.trim() || 'unknown',
     actor: input.actor,
     tenant: input.tenant
       ? {
@@ -227,24 +375,24 @@ function normalizeAuditPayload(input: CreateAuditLogInput): NormalizedAuditPaylo
           membershipId: input.tenant.membershipId ? new Types.ObjectId(input.tenant.membershipId) : null,
           roleKey: input.tenant.roleKey ?? null,
           isOwner: typeof input.tenant.isOwner === 'boolean' ? input.tenant.isOwner : null,
-          effectiveRoleKeys: input.tenant.effectiveRoleKeys ?? []
+          effectiveRoleKeys: dedupeNonEmptyStrings(input.tenant.effectiveRoleKeys)
         }
       : null,
-    action: input.action,
+    action: input.action.trim(),
     resource: {
-      type: input.resource.type,
-      id: input.resource.id ?? null,
-      label: input.resource.label ?? null
+      type: input.resource.type.trim(),
+      id: input.resource.id?.trim() || null,
+      label: input.resource.label?.trim() || null
     },
     severity: input.severity,
     changes: redactedChanges
       ? {
           before: redactedChanges.before ?? null,
           after: redactedChanges.after ?? null,
-          fields: redactedChanges.fields ?? []
+          fields: dedupeNonEmptyStrings(redactedChanges.fields)
         }
       : null,
-    metadata: redactAuditMetadata(input.metadata) ?? null
+    metadata: redactedMetadata ?? null
   };
 }
 
@@ -259,7 +407,7 @@ function toAuditLogStorageDocument(payload: NormalizedAuditPayload, sourceOutbox
     severity: payload.severity,
     changes: payload.changes,
     metadata: payload.metadata,
-    sourceOutboxId: sourceOutboxId ? new Types.ObjectId(sourceOutboxId) : null
+    ...(sourceOutboxId ? { sourceOutboxId: new Types.ObjectId(sourceOutboxId) } : {})
   };
 }
 
@@ -325,7 +473,7 @@ function toNormalizedPayloadFromOutbox(outboxEntry: {
             : null,
           roleKey: outboxEntry.tenant.roleKey ?? null,
           isOwner: typeof outboxEntry.tenant.isOwner === 'boolean' ? outboxEntry.tenant.isOwner : null,
-          effectiveRoleKeys: outboxEntry.tenant.effectiveRoleKeys ?? []
+          effectiveRoleKeys: dedupeNonEmptyStrings(outboxEntry.tenant.effectiveRoleKeys)
         }
       : null,
     action: outboxEntry.action,
@@ -339,7 +487,7 @@ function toNormalizedPayloadFromOutbox(outboxEntry: {
       ? {
           before: outboxEntry.changes.before ?? null,
           after: outboxEntry.changes.after ?? null,
-          fields: outboxEntry.changes.fields ?? []
+          fields: dedupeNonEmptyStrings(outboxEntry.changes.fields)
         }
       : null,
     metadata: outboxEntry.metadata ?? null

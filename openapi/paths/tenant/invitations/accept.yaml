@@ -1,7 +1,7 @@
 post:
   tags:
     - Tenant
-  summary: Accept a tenant invitation using a token delivered through a secure external channel
+  summary: Accept a tenant invitation using a delivery token (token-bound exception without X-Tenant-Id)
   operationId: acceptTenantInvitation
   security:
     - bearerAuth: []

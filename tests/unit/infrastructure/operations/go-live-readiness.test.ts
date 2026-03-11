@@ -9,9 +9,13 @@ describe('go-live readiness', () => {
     const productionEnv = {
       NODE_ENV: 'production',
       GO_LIVE_ENFORCE_PROD_DELIVERY_ADAPTERS: true,
-      AUTH_EMAIL_VERIFICATION_DELIVERY_WEBHOOK_URL: undefined,
+      EMAIL_PROVIDER: 'resend',
+      EMAIL_FROM: undefined,
+      AUTH_VERIFY_EMAIL_URL: undefined,
+      AUTH_RESET_PASSWORD_URL: undefined,
+      TENANT_INVITATION_ACCEPT_URL: undefined,
+      EMAIL_RESEND_API_KEY: undefined,
       AUTH_TWO_FACTOR_PROVISIONING_WEBHOOK_URL: undefined,
-      TENANT_INVITATION_DELIVERY_WEBHOOK_URL: undefined
     };
 
     expect(hasProductionDeliveryAdaptersConfigured(productionEnv as never)).toBe(false);
@@ -21,9 +25,12 @@ describe('go-live readiness', () => {
         productionDeliveryAdapters: false
       },
       missingProductionDeliveryConfigKeys: [
-        'AUTH_EMAIL_VERIFICATION_DELIVERY_WEBHOOK_URL',
+        'EMAIL_FROM',
+        'AUTH_VERIFY_EMAIL_URL',
+        'AUTH_RESET_PASSWORD_URL',
+        'TENANT_INVITATION_ACCEPT_URL',
+        'EMAIL_RESEND_API_KEY',
         'AUTH_TWO_FACTOR_PROVISIONING_WEBHOOK_URL',
-        'TENANT_INVITATION_DELIVERY_WEBHOOK_URL'
       ]
     });
   });
@@ -32,9 +39,13 @@ describe('go-live readiness', () => {
     const testEnv = {
       NODE_ENV: 'test',
       GO_LIVE_ENFORCE_PROD_DELIVERY_ADAPTERS: false,
-      AUTH_EMAIL_VERIFICATION_DELIVERY_WEBHOOK_URL: undefined,
+      EMAIL_PROVIDER: 'mailpit',
+      EMAIL_FROM: undefined,
+      AUTH_VERIFY_EMAIL_URL: undefined,
+      AUTH_RESET_PASSWORD_URL: undefined,
+      TENANT_INVITATION_ACCEPT_URL: undefined,
+      EMAIL_RESEND_API_KEY: undefined,
       AUTH_TWO_FACTOR_PROVISIONING_WEBHOOK_URL: undefined,
-      TENANT_INVITATION_DELIVERY_WEBHOOK_URL: undefined
     };
 
     expect(buildGoLiveConfigurationReadiness(testEnv as never)).toEqual({
@@ -50,9 +61,13 @@ describe('go-live readiness', () => {
     const productionEnvWithLegacyFlagOff = {
       NODE_ENV: 'production',
       GO_LIVE_ENFORCE_PROD_DELIVERY_ADAPTERS: false,
-      AUTH_EMAIL_VERIFICATION_DELIVERY_WEBHOOK_URL: undefined,
+      EMAIL_PROVIDER: 'resend',
+      EMAIL_FROM: undefined,
+      AUTH_VERIFY_EMAIL_URL: undefined,
+      AUTH_RESET_PASSWORD_URL: undefined,
+      TENANT_INVITATION_ACCEPT_URL: undefined,
+      EMAIL_RESEND_API_KEY: undefined,
       AUTH_TWO_FACTOR_PROVISIONING_WEBHOOK_URL: undefined,
-      TENANT_INVITATION_DELIVERY_WEBHOOK_URL: undefined
     };
 
     expect(buildGoLiveConfigurationReadiness(productionEnvWithLegacyFlagOff as never)).toEqual({
@@ -61,9 +76,12 @@ describe('go-live readiness', () => {
         productionDeliveryAdapters: false
       },
       missingProductionDeliveryConfigKeys: [
-        'AUTH_EMAIL_VERIFICATION_DELIVERY_WEBHOOK_URL',
+        'EMAIL_FROM',
+        'AUTH_VERIFY_EMAIL_URL',
+        'AUTH_RESET_PASSWORD_URL',
+        'TENANT_INVITATION_ACCEPT_URL',
+        'EMAIL_RESEND_API_KEY',
         'AUTH_TWO_FACTOR_PROVISIONING_WEBHOOK_URL',
-        'TENANT_INVITATION_DELIVERY_WEBHOOK_URL'
       ]
     });
   });
@@ -72,9 +90,13 @@ describe('go-live readiness', () => {
     const productionEnv = {
       NODE_ENV: 'production',
       GO_LIVE_ENFORCE_PROD_DELIVERY_ADAPTERS: true,
-      AUTH_EMAIL_VERIFICATION_DELIVERY_WEBHOOK_URL: 'https://delivery.local/email',
+      EMAIL_PROVIDER: 'resend',
+      EMAIL_FROM: 'no-reply@example.com',
+      AUTH_VERIFY_EMAIL_URL: 'https://app.example.com/auth/verify-email',
+      AUTH_RESET_PASSWORD_URL: 'https://app.example.com/auth/reset-password',
+      TENANT_INVITATION_ACCEPT_URL: 'https://app.example.com/tenant/invitations/accept',
+      EMAIL_RESEND_API_KEY: 're_test_123',
       AUTH_TWO_FACTOR_PROVISIONING_WEBHOOK_URL: 'https://delivery.local/2fa',
-      TENANT_INVITATION_DELIVERY_WEBHOOK_URL: 'https://delivery.local/invitations'
     };
 
     expect(buildGoLiveReadinessSnapshot(true, productionEnv as never)).toEqual({

@@ -48,7 +48,23 @@ function createTenantTestApp() {
     createInvitation: vi.fn(),
     acceptInvitation: vi.fn(),
     revokeInvitation: vi.fn(),
-    transferOwnership: vi.fn().mockResolvedValue(fakeTenantResult)
+    transferOwnership: vi.fn().mockResolvedValue(fakeTenantResult),
+    assignSubscription: vi.fn().mockResolvedValue({
+      ...fakeTenantResult,
+      subscription: {
+        planId: 'plan:growth',
+        activeModuleKeys: ['inventory', 'crm', 'hr'],
+        status: 'activated' as const
+      }
+    }),
+    cancelSubscription: vi.fn().mockResolvedValue({
+      ...fakeTenantResult,
+      subscription: {
+        planId: null,
+        activeModuleKeys: [],
+        status: 'canceled' as const
+      }
+    })
   };
   const rootRouter = Router();
   const apiV1Router = Router();
@@ -220,5 +236,85 @@ describe('tenant routes', () => {
         targetUserId: '507f1f77bcf86cd799439012'
       })
     );
+  });
+
+  it('assigns tenant subscription plan inside tenant context', async () => {
+    const { app, service } = createTenantTestApp();
+    const fakeTenantId = new Types.ObjectId('507f1f77bcf86cd799439011');
+    const accessToken = tokenService.signAccessToken({
+      sub: authenticatedUserId,
+      sid: authenticatedSessionId,
+      scope: ['platform:self']
+    });
+
+    vi.spyOn(TenantModel, 'findById').mockResolvedValue({
+      _id: fakeTenantId,
+      status: 'active',
+      ownerUserId: new Types.ObjectId(authenticatedUserId),
+      planId: null,
+      activeModuleKeys: []
+    } as never);
+    vi.spyOn(MembershipModel, 'findOne').mockResolvedValue({
+      _id: new Types.ObjectId(),
+      userId: new Types.ObjectId(authenticatedUserId),
+      status: 'active',
+      roleKey: 'tenant:owner'
+    } as never);
+
+    const response = await request(app)
+      .patch('/api/v1/tenant/subscription')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .set(APP_CONFIG.TENANT_ID_HEADER, fakeTenantId.toString())
+      .send({
+        planId: 'plan:growth'
+      });
+
+    expect(response.status).toBe(200);
+    expect(service.assignSubscription).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: authenticatedUserId,
+        tenantId: fakeTenantId.toString(),
+        planId: 'plan:growth'
+      })
+    );
+    expect(response.body.data.subscription.status).toBe('activated');
+  });
+
+  it('cancels tenant subscription plan inside tenant context', async () => {
+    const { app, service } = createTenantTestApp();
+    const fakeTenantId = new Types.ObjectId('507f1f77bcf86cd799439011');
+    const accessToken = tokenService.signAccessToken({
+      sub: authenticatedUserId,
+      sid: authenticatedSessionId,
+      scope: ['platform:self']
+    });
+
+    vi.spyOn(TenantModel, 'findById').mockResolvedValue({
+      _id: fakeTenantId,
+      status: 'active',
+      ownerUserId: new Types.ObjectId(authenticatedUserId),
+      planId: 'plan:growth',
+      activeModuleKeys: ['inventory', 'crm', 'hr']
+    } as never);
+    vi.spyOn(MembershipModel, 'findOne').mockResolvedValue({
+      _id: new Types.ObjectId(),
+      userId: new Types.ObjectId(authenticatedUserId),
+      status: 'active',
+      roleKey: 'tenant:owner'
+    } as never);
+
+    const response = await request(app)
+      .delete('/api/v1/tenant/subscription')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .set(APP_CONFIG.TENANT_ID_HEADER, fakeTenantId.toString());
+
+    expect(response.status).toBe(200);
+    expect(service.cancelSubscription).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: authenticatedUserId,
+        tenantId: fakeTenantId.toString()
+      })
+    );
+    expect(response.body.data.subscription.status).toBe('canceled');
   });
 });

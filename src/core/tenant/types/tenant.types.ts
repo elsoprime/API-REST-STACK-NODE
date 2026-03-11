@@ -130,6 +130,30 @@ export interface TransferOwnershipResult {
   membership: MembershipView;
 }
 
+export interface AssignTenantSubscriptionInput {
+  userId: string;
+  tenantId: string;
+  planId: string;
+  context?: ExecutionContext;
+}
+
+export interface CancelTenantSubscriptionInput {
+  userId: string;
+  tenantId: string;
+  context?: ExecutionContext;
+}
+
+export interface TenantSubscriptionView {
+  planId: string | null;
+  activeModuleKeys: string[];
+  status: 'activated' | 'canceled';
+}
+
+export interface TenantSubscriptionResult {
+  tenant: TenantView;
+  subscription: TenantSubscriptionView;
+}
+
 export interface TenantServiceContract {
   createTenant: (input: CreateTenantInput) => Promise<CreateTenantResult>;
   listMyTenants: (input: ListMyTenantsInput) => Promise<ListMyTenantsResult>;
@@ -138,4 +162,6 @@ export interface TenantServiceContract {
   acceptInvitation: (input: AcceptInvitationInput) => Promise<AcceptInvitationResult>;
   revokeInvitation: (input: RevokeInvitationInput) => Promise<RevokeInvitationResult>;
   transferOwnership: (input: TransferOwnershipInput) => Promise<TransferOwnershipResult>;
+  assignSubscription: (input: AssignTenantSubscriptionInput) => Promise<TenantSubscriptionResult>;
+  cancelSubscription: (input: CancelTenantSubscriptionInput) => Promise<TenantSubscriptionResult>;
 }

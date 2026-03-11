@@ -172,6 +172,39 @@ export function createTenantController(service: TenantServiceContract) {
       } catch (error) {
         next(error);
       }
+    },
+
+    assignSubscription: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+      try {
+        const auth = getAuthContext(res);
+        const tenantContext = getTenantContext(res);
+        const result = await service.assignSubscription({
+          userId: auth.userId,
+          tenantId: tenantContext.tenantId,
+          planId: req.body.planId,
+          context: getExecutionContext(res)
+        });
+
+        res.status(HTTP_STATUS.OK).json(buildSuccess(result, getTraceId(res)));
+      } catch (error) {
+        next(error);
+      }
+    },
+
+    cancelSubscription: async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+      try {
+        const auth = getAuthContext(res);
+        const tenantContext = getTenantContext(res);
+        const result = await service.cancelSubscription({
+          userId: auth.userId,
+          tenantId: tenantContext.tenantId,
+          context: getExecutionContext(res)
+        });
+
+        res.status(HTTP_STATUS.OK).json(buildSuccess(result, getTraceId(res)));
+      } catch (error) {
+        next(error);
+      }
     }
   };
 }

@@ -62,3 +62,30 @@ Cobertura funcional minima:
 ## 5. Veredicto
 
 La Etapa 6 queda formalmente cerrada.
+
+## 6. Re-cierre tecnico
+
+Fecha: 2026-03-10  
+Estado: Re-cierre aplicado por hardening contractual de scope platform y CSRF cookie-auth.
+
+Se incorpora al cierre de Etapa 6:
+
+- `PlatformSettingsService` valida frontera platform-only:
+  - rechaza `ExecutionContext` tenant-scoped en `getSettings`, `getSettingsSnapshot` y `updateSettings`.
+  - falla cerrado con `TENANT_SCOPE_MISMATCH` (`400`) para evitar deriva tenant en eventos/rutas platform.
+- `PATCH /api/v1/platform/settings` refuerza evidencia browser-first:
+  - cobertura de CSRF obligatoria para cookie-auth.
+  - cobertura positiva con cookie + header CSRF valido.
+- OpenAPI actualizado para dejar explicita la regla condicional de `X-CSRF-Token` en auth por cookie.
+
+Cobertura agregada:
+
+- `tests/unit/core/platform/settings/platform-settings.service.test.ts`
+- `tests/integration/platform-settings/platform-settings.routes.test.ts`
+
+Validaciones ejecutadas:
+
+- `npm run openapi:validate`
+- `npm run build`
+- `npm run lint`
+- `npm run test` (`98` archivos, `271` tests en verde, `1` skipped)

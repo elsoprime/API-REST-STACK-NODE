@@ -394,6 +394,14 @@ export class RbacService implements RbacServiceContract {
       );
     }
 
+    if (permission.scope !== authorization.role.scope) {
+      throw buildRbacError(
+        ERROR_CODES.RBAC_PERMISSION_DENIED,
+        'Permission scope is not valid for the current authorization context',
+        HTTP_STATUS.FORBIDDEN
+      );
+    }
+
     if (permission.moduleKey && !authorization.enabledModuleKeys.includes(permission.moduleKey)) {
       throw buildRbacError(
         ERROR_CODES.RBAC_MODULE_DENIED,

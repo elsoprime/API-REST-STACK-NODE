@@ -55,6 +55,31 @@ export interface RegisterInput {
   context?: ExecutionContext;
 }
 
+export interface ResendVerificationInput {
+  email: string;
+  context?: ExecutionContext;
+}
+
+export interface ForgotPasswordInput {
+  email: string;
+  context?: ExecutionContext;
+}
+
+export interface ResetPasswordInput {
+  email: string;
+  token: string;
+  newPassword: string;
+  context?: ExecutionContext;
+}
+
+export interface ChangePasswordInput {
+  userId: string;
+  sessionId: string;
+  currentPassword: string;
+  newPassword: string;
+  context?: ExecutionContext;
+}
+
 export interface LoginInput {
   email: string;
   password: string;
@@ -109,12 +134,18 @@ export interface TwoFactorChallengeInput {
   context?: ExecutionContext;
 }
 
-export interface RegisterResult {
-  user: AuthenticatedUserView;
-  verification: {
-    required: true;
-    expiresAt: string;
-  };
+export interface EmailVerificationDispatchResult {
+  accepted: true;
+}
+
+export interface PasswordResetResult {
+  reset: true;
+  revokedSessionIds: string[];
+}
+
+export interface ChangePasswordResult {
+  changed: true;
+  revokedSessionIds: string[];
 }
 
 export interface AuthResult {
@@ -148,7 +179,13 @@ export interface RegenerateRecoveryCodesResult {
 }
 
 export interface AuthServiceContract {
-  register: (input: RegisterInput) => Promise<RegisterResult>;
+  register: (input: RegisterInput) => Promise<EmailVerificationDispatchResult>;
+  resendVerification: (
+    input: ResendVerificationInput
+  ) => Promise<EmailVerificationDispatchResult>;
+  forgotPassword: (input: ForgotPasswordInput) => Promise<EmailVerificationDispatchResult>;
+  resetPassword: (input: ResetPasswordInput) => Promise<PasswordResetResult>;
+  changePassword: (input: ChangePasswordInput) => Promise<ChangePasswordResult>;
   login: (input: LoginInput) => Promise<AuthResult>;
   refresh: (input: RefreshBrowserInput | RefreshHeadlessInput) => Promise<AuthResult>;
   logout: (input: LogoutInput) => Promise<LogoutResult>;

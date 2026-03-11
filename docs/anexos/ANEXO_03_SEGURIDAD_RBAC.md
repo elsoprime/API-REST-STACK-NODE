@@ -37,6 +37,8 @@ Campos minimos de `Role`:
 - el plan efectivo define techo de modulos y limites
 - los modulos activos del tenant no pueden superar el plan
 - los feature flags no pueden habilitar algo fuera del plan salvo bypass administrativo explicitamente documentado
+- el bypass de `platform:super_admin` solo aplica cuando el guard lo declara explicitamente (`allowPlatformSuperAdmin`)
+- un permiso no puede concederse si su `scope` no coincide con el `scope` de la autorizacion efectiva
 
 ## 4. Auditoria
 

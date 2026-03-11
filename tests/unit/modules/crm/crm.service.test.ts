@@ -1,5 +1,7 @@
 import mongoose, { Types } from 'mongoose';
 
+import { HTTP_STATUS } from '@/constants/http';
+import { ERROR_CODES } from '@/infrastructure/errors/error-codes';
 import { CrmContactModel } from '@/modules/crm/models/crm-contact.model';
 import { CrmCounterModel } from '@/modules/crm/models/crm-counter.model';
 import { CrmOpportunityModel } from '@/modules/crm/models/crm-opportunity.model';
@@ -8,6 +10,65 @@ import { CrmService } from '@/modules/crm/services/crm.service';
 describe('CrmService', () => {
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it('fails closed when tenant execution context does not match requested tenant', async () => {
+    const service = new CrmService({
+      record: vi.fn()
+    } as never);
+    const requestedTenantId = new Types.ObjectId().toString();
+    const mismatchedTenantId = new Types.ObjectId().toString();
+    const createContactSpy = vi.spyOn(CrmContactModel, 'create');
+    const startSessionSpy = vi.spyOn(mongoose, 'startSession');
+
+    await expect(
+      service.createContact({
+        tenantId: requestedTenantId,
+        firstName: 'Ada',
+        lastName: 'Lovelace',
+        context: {
+          traceId: 'trace-crm-tenant-mismatch-contact',
+          actor: {
+            kind: 'user',
+            userId: new Types.ObjectId().toString(),
+            sessionId: new Types.ObjectId().toString(),
+            scope: ['platform:self']
+          },
+          tenant: {
+            tenantId: mismatchedTenantId
+          }
+        }
+      })
+    ).rejects.toMatchObject({
+      code: ERROR_CODES.TENANT_SCOPE_MISMATCH,
+      statusCode: HTTP_STATUS.BAD_REQUEST
+    });
+
+    await expect(
+      service.changeOpportunityStage({
+        tenantId: requestedTenantId,
+        opportunityId: new Types.ObjectId().toString(),
+        stage: 'qualified',
+        context: {
+          traceId: 'trace-crm-tenant-mismatch-stage',
+          actor: {
+            kind: 'user',
+            userId: new Types.ObjectId().toString(),
+            sessionId: new Types.ObjectId().toString(),
+            scope: ['platform:self']
+          },
+          tenant: {
+            tenantId: mismatchedTenantId
+          }
+        }
+      })
+    ).rejects.toMatchObject({
+      code: ERROR_CODES.TENANT_SCOPE_MISMATCH,
+      statusCode: HTTP_STATUS.BAD_REQUEST
+    });
+
+    expect(createContactSpy).not.toHaveBeenCalled();
+    expect(startSessionSpy).not.toHaveBeenCalled();
   });
 
   it('maps duplicate contact creation to a stable conflict code', async () => {

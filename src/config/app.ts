@@ -2,6 +2,7 @@ export const APP_CONFIG = {
   API_PREFIX: '/api/v1',
   AUTH_BASE_PATH: '/auth',
   AUDIT_BASE_PATH: '/audit',
+  BILLING_BASE_PATH: '/billing',
   MODULES_BASE_PATH: '/modules',
   PLATFORM_BASE_PATH: '/platform',
   TENANT_BASE_PATH: '/tenant',

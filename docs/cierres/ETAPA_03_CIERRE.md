@@ -90,3 +90,26 @@ Cobertura funcional relevante:
 ## 7. Veredicto
 
 Con la evidencia disponible y con los findings de validacion de `roleKey` y sesion autenticada corregidos, Etapa 3 queda formalmente cerrada. El siguiente paso permitido es planificar Etapa 4, manteniendo como prerequisito de go-live el cableado del adaptador real de invitaciones en `production`.
+
+## 8. Re-cierre tecnico
+
+Fecha: 2026-03-10  
+Estado: Re-cierre aplicado por hardening contractual de tenant context.
+
+Se incorpora al cierre de Etapa 3:
+
+- contrato reforzado para tenant-scoped: `X-Tenant-Id` obligatorio en create/revoke invitations y transfer ownership.
+- excepciones tenant-bound explicitas y verificadas para `switch-active-tenant` y `invitations/accept`.
+- validacion defensiva de `tenant.status === active` en `revokeInvitation` y `transferOwnership` a nivel de servicio.
+- pruebas nuevas de contrato:
+  - `tests/integration/tenant/tenant-context.contract.test.ts`
+  - `tests/integration/tenant/tenant-header-enforcement.test.ts`
+- cobertura ampliada en servicio:
+  - `tests/unit/core/tenant/tenant.service.test.ts`
+
+Validaciones ejecutadas:
+
+- `npm run openapi:validate`
+- `npm run build`
+- `npm run lint`
+- `npm run test`
