@@ -191,6 +191,139 @@ describe('crm routes', () => {
     expect(service.listContacts).not.toHaveBeenCalled();
   });
 
+  it('requires CSRF for cookie-authenticated contact creation', async () => {
+    const tenantId = new Types.ObjectId();
+    const membershipId = new Types.ObjectId();
+    const userId = new Types.ObjectId();
+    const service = {
+      createContact: vi.fn(),
+      listContacts: vi.fn(),
+      getContact: vi.fn(),
+      updateContact: vi.fn(),
+      deleteContact: vi.fn(),
+      createOrganization: vi.fn(),
+      listOrganizations: vi.fn(),
+      getOrganization: vi.fn(),
+      updateOrganization: vi.fn(),
+      deleteOrganization: vi.fn(),
+      createOpportunity: vi.fn(),
+      listOpportunities: vi.fn(),
+      getOpportunity: vi.fn(),
+      updateOpportunity: vi.fn(),
+      deleteOpportunity: vi.fn(),
+      changeOpportunityStage: vi.fn(),
+      createActivity: vi.fn(),
+      listActivities: vi.fn(),
+      getCounters: vi.fn()
+    };
+    const app = createCrmTestApp(service);
+    const accessToken = buildAccessToken(userId.toString());
+
+    vi.spyOn(TenantModel, 'findById').mockResolvedValue({
+      _id: tenantId,
+      status: 'active',
+      ownerUserId: userId,
+      planId: 'plan:growth',
+      activeModuleKeys: ['inventory', 'crm']
+    } as never);
+    vi.spyOn(MembershipModel, 'findOne').mockResolvedValue({
+      _id: membershipId,
+      userId,
+      status: 'active',
+      roleKey: 'tenant:owner'
+    } as never);
+
+    const response = await request(app)
+      .post('/api/v1/modules/crm/contacts')
+      .set('Cookie', [
+        `${process.env.AUTH_ACCESS_COOKIE_NAME}=${accessToken}`,
+        `${process.env.CSRF_COOKIE_NAME}=csrf-token`
+      ])
+      .set(APP_CONFIG.TENANT_ID_HEADER, tenantId.toString())
+      .send({
+        firstName: 'Ada',
+        lastName: 'Lovelace'
+      });
+
+    expect(response.status).toBe(403);
+    expect(response.body.error.code).toBe('AUTH_CSRF_INVALID');
+    expect(service.createContact).not.toHaveBeenCalled();
+  });
+
+  it('accepts cookie-authenticated contact creation when CSRF token matches cookie', async () => {
+    const tenantId = new Types.ObjectId();
+    const membershipId = new Types.ObjectId();
+    const userId = new Types.ObjectId();
+    const service = {
+      createContact: vi.fn().mockResolvedValue({
+        id: new Types.ObjectId().toString(),
+        tenantId: tenantId.toString(),
+        firstName: 'Ada',
+        lastName: 'Lovelace',
+        email: null,
+        phone: null,
+        organizationId: null,
+        isActive: true
+      }),
+      listContacts: vi.fn(),
+      getContact: vi.fn(),
+      updateContact: vi.fn(),
+      deleteContact: vi.fn(),
+      createOrganization: vi.fn(),
+      listOrganizations: vi.fn(),
+      getOrganization: vi.fn(),
+      updateOrganization: vi.fn(),
+      deleteOrganization: vi.fn(),
+      createOpportunity: vi.fn(),
+      listOpportunities: vi.fn(),
+      getOpportunity: vi.fn(),
+      updateOpportunity: vi.fn(),
+      deleteOpportunity: vi.fn(),
+      changeOpportunityStage: vi.fn(),
+      createActivity: vi.fn(),
+      listActivities: vi.fn(),
+      getCounters: vi.fn()
+    };
+    const app = createCrmTestApp(service);
+    const accessToken = buildAccessToken(userId.toString());
+
+    vi.spyOn(TenantModel, 'findById').mockResolvedValue({
+      _id: tenantId,
+      status: 'active',
+      ownerUserId: userId,
+      planId: 'plan:growth',
+      activeModuleKeys: ['inventory', 'crm']
+    } as never);
+    vi.spyOn(MembershipModel, 'findOne').mockResolvedValue({
+      _id: membershipId,
+      userId,
+      status: 'active',
+      roleKey: 'tenant:owner'
+    } as never);
+
+    const response = await request(app)
+      .post('/api/v1/modules/crm/contacts')
+      .set('Cookie', [
+        `${process.env.AUTH_ACCESS_COOKIE_NAME}=${accessToken}`,
+        `${process.env.CSRF_COOKIE_NAME}=csrf-token`
+      ])
+      .set(APP_CONFIG.CSRF_HEADER, 'csrf-token')
+      .set(APP_CONFIG.TENANT_ID_HEADER, tenantId.toString())
+      .send({
+        firstName: 'Ada',
+        lastName: 'Lovelace'
+      });
+
+    expect(response.status).toBe(201);
+    expect(service.createContact).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tenantId: tenantId.toString(),
+        firstName: 'Ada',
+        lastName: 'Lovelace'
+      })
+    );
+  });
+
   it('returns tenant header validation error when X-Tenant-Id is missing', async () => {
     const userId = new Types.ObjectId();
     const service = {

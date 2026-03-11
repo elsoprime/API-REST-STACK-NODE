@@ -1,33 +1,46 @@
 import { env } from '@/config/env';
+import { transactionalEmailService } from '@/core/communications/email/services/transactional-email.service';
 import { type TenantInvitationDeliveryPort } from '@/core/tenant/ports/tenant-invitation-delivery.port';
-import { InMemoryTenantInvitationDeliveryAdapter } from '@/infrastructure/tenant/tenant-invitation-delivery.memory';
-import { postDeliveryWebhook } from '@/infrastructure/security/webhook-delivery';
+function buildPublicUrl(baseUrl: string, parameters: Record<string, string>): string {
+  const resolvedUrl = new URL(baseUrl);
 
-class WebhookTenantInvitationDeliveryAdapter implements TenantInvitationDeliveryPort {
-  constructor(
-    private readonly webhookUrl: string,
-    private readonly timeoutMs: number,
-    private readonly bearerToken?: string
-  ) {}
+  for (const [key, value] of Object.entries(parameters)) {
+    resolvedUrl.searchParams.set(key, value);
+  }
 
-  async deliver(payload: Parameters<TenantInvitationDeliveryPort['deliver']>[0]): Promise<void> {
-    await postDeliveryWebhook({
-      webhookUrl: this.webhookUrl,
-      payload: {
-        event: 'tenant.invitation',
-        payload
-      },
-      timeoutMs: this.timeoutMs,
-      bearerToken: this.bearerToken
-    });
+  return resolvedUrl.toString();
+}
+
+function resolveRoleLabel(roleKey: string): string {
+  switch (roleKey) {
+    case 'tenant:owner':
+      return 'Owner';
+    case 'tenant:member':
+      return 'Member';
+    default:
+      return roleKey;
   }
 }
 
-class MissingProductionTenantInvitationDeliveryAdapter implements TenantInvitationDeliveryPort {
-  async deliver(): Promise<void> {
-    throw new Error(
-      'Tenant invitation delivery adapter is not configured for production. Configure TENANT_INVITATION_DELIVERY_WEBHOOK_URL.'
-    );
+class TransactionalTenantInvitationDeliveryAdapter implements TenantInvitationDeliveryPort {
+  async deliver(payload: Parameters<TenantInvitationDeliveryPort['deliver']>[0]): Promise<void> {
+    await transactionalEmailService.sendTemplate({
+      templateKey: 'tenant-invitation',
+      semantic: 'tenant.invitation',
+      to: payload.email,
+      variables: {
+        applicationName: env.APP_NAME,
+        recipientEmail: payload.email,
+        tenantName: payload.tenantName?.trim() || 'your tenant workspace',
+        invitationUrl: buildPublicUrl(env.TENANT_INVITATION_ACCEPT_URL, {
+          token: payload.token,
+          tenantId: payload.tenantId
+        }),
+        roleLabel: resolveRoleLabel(payload.roleKey),
+        expiresAt: payload.expiresAt,
+        supportEmail: env.EMAIL_FROM
+      }
+    });
   }
 }
 
@@ -35,28 +48,9 @@ export interface TenantInvitationRegistry {
   tenantInvitationDeliveryPort: TenantInvitationDeliveryPort;
 }
 
-export const inMemoryTenantInvitationDeliveryAdapter =
-  new InMemoryTenantInvitationDeliveryAdapter();
-
 export function createTenantInvitationRegistry(): TenantInvitationRegistry {
-  if (env.NODE_ENV === 'production') {
-    if (!env.TENANT_INVITATION_DELIVERY_WEBHOOK_URL) {
-      return {
-        tenantInvitationDeliveryPort: new MissingProductionTenantInvitationDeliveryAdapter()
-      };
-    }
-
-    return {
-      tenantInvitationDeliveryPort: new WebhookTenantInvitationDeliveryAdapter(
-        env.TENANT_INVITATION_DELIVERY_WEBHOOK_URL,
-        env.DELIVERY_WEBHOOK_TIMEOUT_MS,
-        env.DELIVERY_WEBHOOK_AUTH_TOKEN
-      )
-    };
-  }
-
   return {
-    tenantInvitationDeliveryPort: inMemoryTenantInvitationDeliveryAdapter
+    tenantInvitationDeliveryPort: new TransactionalTenantInvitationDeliveryAdapter()
   };
 }
 

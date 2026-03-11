@@ -42,6 +42,36 @@ function buildTenantSettingsError(
   });
 }
 
+function assertTenantContextConsistency(
+  tenantId: string,
+  context:
+    | GetTenantSettingsInput['context']
+    | UpdateTenantSettingsInput['context']
+    | GetEffectiveTenantSettingsInput['context']
+): void {
+  const contextTenantId = context?.tenant?.tenantId;
+
+  if (!contextTenantId) {
+    return;
+  }
+
+  if (!Types.ObjectId.isValid(tenantId) || !Types.ObjectId.isValid(contextTenantId)) {
+    throw buildTenantSettingsError(
+      ERROR_CODES.TENANT_SCOPE_MISMATCH,
+      'Tenant context does not match the requested tenant.',
+      HTTP_STATUS.BAD_REQUEST
+    );
+  }
+
+  if (new Types.ObjectId(tenantId).toString() !== new Types.ObjectId(contextTenantId).toString()) {
+    throw buildTenantSettingsError(
+      ERROR_CODES.TENANT_SCOPE_MISMATCH,
+      'Tenant context does not match the requested tenant.',
+      HTTP_STATUS.BAD_REQUEST
+    );
+  }
+}
+
 function isMongoDuplicateKeyError(error: unknown): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === 11000;
 }
@@ -226,6 +256,7 @@ export class TenantSettingsService implements TenantSettingsServiceContract {
 
   async getSettings(input: GetTenantSettingsInput): Promise<TenantSettingsView> {
     await this.assertTenantExists(input.tenantId);
+    assertTenantContextConsistency(input.tenantId, input.context);
 
     const existingSettings = await TenantSettingsModel.findOne({
       tenantId: new Types.ObjectId(input.tenantId)
@@ -295,6 +326,7 @@ export class TenantSettingsService implements TenantSettingsServiceContract {
 
   async updateSettings(input: UpdateTenantSettingsInput): Promise<TenantSettingsView> {
     await this.assertTenantExists(input.tenantId);
+    assertTenantContextConsistency(input.tenantId, input.context);
 
     const session = await mongoose.startSession();
 
@@ -369,6 +401,8 @@ export class TenantSettingsService implements TenantSettingsServiceContract {
   async getEffectiveSettings(
     input: GetEffectiveTenantSettingsInput
   ): Promise<TenantSettingsEffectiveView> {
+    assertTenantContextConsistency(input.tenantId, input.context);
+
     const tenant = await TenantModel.findById(input.tenantId).lean();
 
     if (!tenant) {

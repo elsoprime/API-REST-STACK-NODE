@@ -58,6 +58,16 @@ describe('audit delivery semantics', () => {
     );
 
     expect(createAuditLog).toHaveBeenCalled();
+    expect(createAuditLog).toHaveBeenCalledWith(
+      [
+        expect.not.objectContaining({
+          sourceOutboxId: expect.anything()
+        })
+      ],
+      {
+        session: expect.any(Object)
+      }
+    );
     expect(outboxCreate).not.toHaveBeenCalled();
   });
 
@@ -121,6 +131,11 @@ describe('audit delivery semantics', () => {
       scope: 'platform',
       action: 'platform.settings.bootstrap'
     });
+    expect(AuditLogModel.create).toHaveBeenCalledWith([
+      expect.objectContaining({
+        sourceOutboxId: outboxId
+      })
+    ]);
     expect(outboxSave).toHaveBeenCalled();
   });
 });

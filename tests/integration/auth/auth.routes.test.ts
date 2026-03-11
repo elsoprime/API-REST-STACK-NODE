@@ -31,11 +31,21 @@ const fakeAuthResult = {
 function createAuthTestApp() {
   const service = {
     register: vi.fn().mockResolvedValue({
-      user: fakeAuthResult.user,
-      verification: {
-        required: true,
-        expiresAt: '2026-03-08T00:00:00.000Z'
-      }
+      accepted: true
+    }),
+    resendVerification: vi.fn().mockResolvedValue({
+      accepted: true
+    }),
+    forgotPassword: vi.fn().mockResolvedValue({
+      accepted: true
+    }),
+    resetPassword: vi.fn().mockResolvedValue({
+      reset: true,
+      revokedSessionIds: ['session-1']
+    }),
+    changePassword: vi.fn().mockResolvedValue({
+      changed: true,
+      revokedSessionIds: ['session-2']
     }),
     login: vi.fn().mockResolvedValue(fakeAuthResult),
     refresh: vi.fn().mockResolvedValue(fakeAuthResult),
@@ -91,7 +101,7 @@ describe('auth routes', () => {
       firstName: 'John'
     });
 
-    expect(response.status).toBe(201);
+    expect(response.status).toBe(202);
     expect(service.register).toHaveBeenCalledWith(
       expect.objectContaining({
         email: 'john@example.com',
@@ -102,16 +112,9 @@ describe('auth routes', () => {
     expect(response.body).toMatchObject({
       success: true,
       data: {
-        user: {
-          email: 'john@example.com'
-        },
-        verification: {
-          required: true,
-          expiresAt: '2026-03-08T00:00:00.000Z'
-        }
+        accepted: true
       }
     });
-    expect(response.body.data.verification.token).toBeUndefined();
     expect(response.body.traceId).toBeDefined();
   });
 

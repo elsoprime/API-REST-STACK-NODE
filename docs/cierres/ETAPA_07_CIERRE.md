@@ -61,3 +61,31 @@ Cobertura funcional minima:
 ## 5. Veredicto
 
 La Etapa 7 queda cerrada formalmente. No quedan hallazgos bloqueantes abiertos para iniciar Inventory, y la vista efectiva tenant ya no puede crear estado platform por una lectura tenant-scoped.
+
+## 6. Re-cierre tecnico
+
+Fecha: 2026-03-10  
+Estado: Re-cierre aplicado por hardening de tenant-context y CSRF cookie-auth.
+
+Se incorpora al cierre de Etapa 7:
+
+- `TenantSettingsService` valida coherencia contractual entre `tenantId` solicitado y `context.tenant.tenantId`:
+  - en mismatch falla cerrado con `TENANT_SCOPE_MISMATCH` (`400`) en lectura, actualizacion y vista efectiva.
+  - evita deriva de contexto tenant en invocaciones de servicio fuera del pipeline HTTP.
+- `PATCH /api/v1/tenant/settings` amplía evidencia browser-first:
+  - test negativo: cookie-auth sin header CSRF -> `AUTH_CSRF_INVALID`.
+  - test positivo: cookie-auth con header CSRF valido -> `200`.
+- OpenAPI actualizado para explicitar regla condicional de `X-CSRF-Token` en auth por cookie.
+
+Cobertura agregada:
+
+- `tests/unit/core/tenant/settings/tenant-settings.service.test.ts`
+- `tests/integration/tenant-settings/tenant-settings.routes.test.ts`
+
+Validaciones ejecutadas:
+
+- `npm run docs:cierres:validate`
+- `npm run openapi:validate`
+- `npm run build`
+- `npm run lint`
+- `npm run test`

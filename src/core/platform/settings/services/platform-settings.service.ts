@@ -47,6 +47,25 @@ function buildPlatformSettingsValidationError(message: string): AppError {
   });
 }
 
+function buildPlatformScopeMismatchError(): AppError {
+  return new AppError({
+    code: ERROR_CODES.TENANT_SCOPE_MISMATCH,
+    message: 'Platform settings do not accept tenant-scoped context.',
+    statusCode: HTTP_STATUS.BAD_REQUEST
+  });
+}
+
+function assertPlatformOnlyContext(
+  context:
+    | GetPlatformSettingsInput['context']
+    | GetPlatformSettingsSnapshotInput['context']
+    | UpdatePlatformSettingsInput['context']
+): void {
+  if (context?.tenant?.tenantId) {
+    throw buildPlatformScopeMismatchError();
+  }
+}
+
 function isMongoDuplicateKeyError(error: unknown): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === 11000;
 }
@@ -199,6 +218,8 @@ export class PlatformSettingsService implements PlatformSettingsServiceContract 
   constructor(private readonly audit: AuditService = auditService) {}
 
   async getSettings(input: GetPlatformSettingsInput = {}): Promise<PlatformSettingsView> {
+    assertPlatformOnlyContext(input.context);
+
     const existingSettings = await this.getSettingsSnapshot(input);
 
     if (existingSettings) {
@@ -263,9 +284,9 @@ export class PlatformSettingsService implements PlatformSettingsServiceContract 
   }
 
   async getSettingsSnapshot(
-    _input: GetPlatformSettingsSnapshotInput = {}
+    input: GetPlatformSettingsSnapshotInput = {}
   ): Promise<PlatformSettingsView | null> {
-    void _input;
+    assertPlatformOnlyContext(input.context);
 
     const existingSettings = await PlatformSettingsModel.findOne({
       singletonKey: PLATFORM_SETTINGS_SINGLETON_KEY
@@ -279,6 +300,8 @@ export class PlatformSettingsService implements PlatformSettingsServiceContract 
   }
 
   async updateSettings(input: UpdatePlatformSettingsInput): Promise<PlatformSettingsView> {
+    assertPlatformOnlyContext(input.context);
+
     const session = await mongoose.startSession();
 
     try {

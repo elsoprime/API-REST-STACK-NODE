@@ -172,6 +172,118 @@ describe('hr routes', () => {
     expect(service.listEmployees).not.toHaveBeenCalled();
   });
 
+  it('requires CSRF for cookie-authenticated employee creation', async () => {
+    const tenantId = new Types.ObjectId();
+    const membershipId = new Types.ObjectId();
+    const userId = new Types.ObjectId();
+    const { service } = createHrServiceDouble();
+    const app = createHrTestApp(service);
+    const accessToken = buildAccessToken(userId.toString());
+
+    vi.spyOn(TenantModel, 'findById').mockResolvedValue({
+      _id: tenantId,
+      status: 'active',
+      ownerUserId: userId,
+      planId: 'plan:growth',
+      activeModuleKeys: ['inventory', 'crm', 'hr']
+    } as never);
+    vi.spyOn(MembershipModel, 'findOne').mockResolvedValue({
+      _id: membershipId,
+      userId,
+      status: 'active',
+      roleKey: 'tenant:owner'
+    } as never);
+
+    const response = await request(app)
+      .post('/api/v1/modules/hr/employees')
+      .set('Cookie', [
+        `${process.env.AUTH_ACCESS_COOKIE_NAME}=${accessToken}`,
+        `${process.env.CSRF_COOKIE_NAME}=csrf-token`
+      ])
+      .set(APP_CONFIG.TENANT_ID_HEADER, tenantId.toString())
+      .send({
+        employeeCode: 'HR-001',
+        firstName: 'Ada',
+        lastName: 'Lovelace',
+        employmentType: 'full_time',
+        startDate: '2026-03-01T00:00:00.000Z'
+      });
+
+    expect(response.status).toBe(403);
+    expect(response.body.error.code).toBe('AUTH_CSRF_INVALID');
+    expect(service.createEmployee).not.toHaveBeenCalled();
+  });
+
+  it('accepts cookie-authenticated employee creation when CSRF token matches cookie', async () => {
+    const tenantId = new Types.ObjectId();
+    const membershipId = new Types.ObjectId();
+    const userId = new Types.ObjectId();
+    const { service } = createHrServiceDouble();
+    service.createEmployee.mockResolvedValue({
+      id: new Types.ObjectId().toString(),
+      tenantId: tenantId.toString(),
+      employeeCode: 'HR-001',
+      firstName: 'Ada',
+      lastName: 'Lovelace',
+      workEmail: null,
+      personalEmail: null,
+      phone: null,
+      department: null,
+      jobTitle: null,
+      employmentType: 'full_time',
+      status: 'active',
+      startDate: '2026-03-01T00:00:00.000Z',
+      endDate: null,
+      birthDate: null,
+      managerId: null,
+      isActive: true,
+      deletedAt: null
+    });
+    const app = createHrTestApp(service);
+    const accessToken = buildAccessToken(userId.toString());
+
+    vi.spyOn(TenantModel, 'findById').mockResolvedValue({
+      _id: tenantId,
+      status: 'active',
+      ownerUserId: userId,
+      planId: 'plan:growth',
+      activeModuleKeys: ['inventory', 'crm', 'hr']
+    } as never);
+    vi.spyOn(MembershipModel, 'findOne').mockResolvedValue({
+      _id: membershipId,
+      userId,
+      status: 'active',
+      roleKey: 'tenant:owner'
+    } as never);
+
+    const response = await request(app)
+      .post('/api/v1/modules/hr/employees')
+      .set('Cookie', [
+        `${process.env.AUTH_ACCESS_COOKIE_NAME}=${accessToken}`,
+        `${process.env.CSRF_COOKIE_NAME}=csrf-token`
+      ])
+      .set(APP_CONFIG.CSRF_HEADER, 'csrf-token')
+      .set(APP_CONFIG.TENANT_ID_HEADER, tenantId.toString())
+      .send({
+        employeeCode: 'HR-001',
+        firstName: 'Ada',
+        lastName: 'Lovelace',
+        employmentType: 'full_time',
+        startDate: '2026-03-01T00:00:00.000Z'
+      });
+
+    expect(response.status).toBe(201);
+    expect(service.createEmployee).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tenantId: tenantId.toString(),
+        employeeCode: 'HR-001',
+        firstName: 'Ada',
+        lastName: 'Lovelace',
+        employmentType: 'full_time'
+      })
+    );
+  });
+
   it('returns tenant header validation error when X-Tenant-Id is missing', async () => {
     const userId = new Types.ObjectId();
     const { service } = createHrServiceDouble();

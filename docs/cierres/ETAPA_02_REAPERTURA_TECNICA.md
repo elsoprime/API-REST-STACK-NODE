@@ -39,3 +39,47 @@ Motivo: Hardening del flujo publico de verificacion de email
 ## 5. Resultado
 
 Etapa 2 queda endurecida en su superficie publica de verificacion de email, con menor riesgo de enumeracion, contrato explicito para reenvio de verificacion y evidencia automatizada completa verde en la suite del repositorio.
+
+## 6. Reapertura tecnica complementaria
+
+Fecha: 2026-03-10  
+Motivo: cerrar deuda en gestion de claves (forgot/reset/change password) bajo contrato OpenAPI y reglas browser/headless.
+
+### 6.1 Correcciones aplicadas
+
+- se agregan rutas publicas `POST /api/v1/auth/forgot-password` y `POST /api/v1/auth/reset-password`
+- se agrega ruta protegida `POST /api/v1/auth/change-password` con `Bearer` o cookie-auth + CSRF
+- se incorpora `PasswordResetDeliveryPort` para despacho externo del token de reset
+- se agrega template transaccional `reset-password`
+- se extiende `user_security` con `passwordResetTokenHash` y `passwordResetExpiresAt`
+- `reset-password` revoca sesiones activas y limpia lockout
+- `change-password` revoca sesiones hermanas (mantiene la sesion actual)
+
+### 6.2 Evidencia
+
+- runtime:
+  - `src/core/platform/auth/services/auth.service.ts`
+  - `src/core/platform/auth/routes/auth.routes.ts`
+  - `src/core/platform/auth/controllers/auth.controller.ts`
+  - `src/infrastructure/security/auth-delivery.registry.ts`
+- contrato:
+  - `openapi/paths/auth/forgot-password.yaml`
+  - `openapi/paths/auth/reset-password.yaml`
+  - `openapi/paths/auth/change-password.yaml`
+  - `openapi/components/schemas/auth.yaml`
+- pruebas:
+  - `tests/integration/auth/auth.password-management.routes.test.ts`
+  - `tests/unit/core/communications/email/email-template.service.test.ts`
+  - `tests/unit/infrastructure/security/auth-delivery.registry.test.ts`
+
+### 6.3 Verificacion ejecutada
+
+- `npm run docs:cierres:validate`
+- `npm run openapi:validate`
+- `npm run build`
+- `npm run lint`
+- `npm run test`
+
+### 6.4 Resultado
+
+La deuda tecnica de password management en Etapa 2 queda corregida y re-cerrada con evidencia automatizada verde.

@@ -11,6 +11,10 @@ import { createTenantRouter } from '@/core/tenant/routes/tenant.routes';
 function createInvalidClaimsHardeningApp() {
   const authService = {
     register: vi.fn(),
+    resendVerification: vi.fn(),
+    forgotPassword: vi.fn(),
+    resetPassword: vi.fn(),
+    changePassword: vi.fn(),
     login: vi.fn(),
     refresh: vi.fn(),
     logout: vi.fn(),

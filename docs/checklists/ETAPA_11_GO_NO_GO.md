@@ -1,9 +1,11 @@
 # Checklist Go/No-Go Etapa 11
 
-Fecha de evaluacion: 2026-03-08
+Fecha de evaluacion: 2026-03-10
 
 ## 1. Gate tecnico
 
+- [x] `npm run go-live:check` en verde local
+- [x] `npm run test:restore` en verde local
 - [x] `npm run test:smoke` en verde local
 - [x] `npm run test:restore:mongodb:enabled` en verde local
 - [x] Workflow RC disparado en GitHub Actions
@@ -24,5 +26,5 @@ Fecha de evaluacion: 2026-03-08
 ## 4. Veredicto
 
 - Estado: `NO-GO`
-- Motivo: gate CI remoto no ejecutable por bloqueo de cuenta (facturacion).
+- Motivo: gate CI remoto sin evidencia verde vigente por bloqueo de cuenta (facturacion).
 - Revalidacion requerida: volver a correr workflow RC y exigir resultado verde antes de Go.

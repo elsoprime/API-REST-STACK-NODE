@@ -39,6 +39,11 @@ Estandarizar el manejo UX de `error.code` del backend para mensajes, acciones y 
 | `GEN_RATE_LIMITED` | `error.rateLimit` | Demasiadas solicitudes en poco tiempo. | Esperar y reintentar manualmente. | No |
 | `GEN_INTERNAL_ERROR` | `error.internal` | Ocurrio un error inesperado. | Reintentar luego o contactar soporte con traceId. | No |
 
+Nota operativa tenant settings:
+- Si `GET /api/v1/tenant/settings/effective` responde `GEN_INTERNAL_ERROR`, no aplicar retry en loop desde frontend.
+- Escalar a backend para validar bootstrap de `PlatformSettings` en startup.
+
+
 ### 4.2 Auth
 
 | Codigo | Clave i18n sugerida | Mensaje UX base | Accion usuario | Retry |
@@ -131,8 +136,4 @@ Estandarizar el manejo UX de `error.code` del backend para mensajes, acciones y 
 2. Usar un fallback global para codigos desconocidos (`GEN_INTERNAL_ERROR`).
 3. Incluir `traceId` en toast/modal de errores no manejados.
 4. Mantener i18n por clave, no por texto literal del backend.
-
-
-
-
 

@@ -49,18 +49,67 @@ export function createAuthController(service: AuthServiceContract) {
           ...req.body,
           context: getExecutionContext(res)
         });
-        res.status(HTTP_STATUS.CREATED).json(
+        res.status(HTTP_STATUS.ACCEPTED).json(
           buildSuccess(
             {
-              user: result.user,
-              verification: {
-                required: result.verification.required,
-                expiresAt: result.verification.expiresAt
-              }
+              accepted: result.accepted
             },
             getTraceId(res)
           )
         );
+      } catch (error) {
+        next(error);
+      }
+    },
+
+    resendVerification: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+      try {
+        const result = await service.resendVerification({
+          ...req.body,
+          context: getExecutionContext(res)
+        });
+
+        res.status(HTTP_STATUS.ACCEPTED).json(
+          buildSuccess(
+            {
+              accepted: result.accepted
+            },
+            getTraceId(res)
+          )
+        );
+      } catch (error) {
+        next(error);
+      }
+    },
+
+    forgotPassword: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+      try {
+        const result = await service.forgotPassword({
+          ...req.body,
+          context: getExecutionContext(res)
+        });
+
+        res.status(HTTP_STATUS.ACCEPTED).json(
+          buildSuccess(
+            {
+              accepted: result.accepted
+            },
+            getTraceId(res)
+          )
+        );
+      } catch (error) {
+        next(error);
+      }
+    },
+
+    resetPassword: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+      try {
+        const result = await service.resetPassword({
+          ...req.body,
+          context: getExecutionContext(res)
+        });
+
+        res.status(HTTP_STATUS.OK).json(buildSuccess(result, getTraceId(res)));
       } catch (error) {
         next(error);
       }
@@ -268,6 +317,22 @@ export function createAuthController(service: AuthServiceContract) {
         });
 
         clearAuthCookies(res);
+        res.status(HTTP_STATUS.OK).json(buildSuccess(result, getTraceId(res)));
+      } catch (error) {
+        next(error);
+      }
+    },
+
+    changePassword: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+      try {
+        const auth = getAuthContext(res);
+        const result = await service.changePassword({
+          userId: auth.userId,
+          sessionId: auth.sessionId,
+          ...req.body,
+          context: getExecutionContext(res)
+        });
+
         res.status(HTTP_STATUS.OK).json(buildSuccess(result, getTraceId(res)));
       } catch (error) {
         next(error);

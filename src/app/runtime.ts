@@ -48,6 +48,7 @@ interface RuntimeDependencies {
   createApp?: () => Express;
   connectToDatabase?: () => Promise<void>;
   disconnectFromDatabase?: () => Promise<void>;
+  bootstrapPlatformSettings?: () => Promise<void>;
   listen?: (app: Express, port: number) => Promise<ServerLike>;
   closeServer?: (server: ServerLike) => Promise<void>;
   signalProcess?: SignalProcessLike;
@@ -116,12 +117,22 @@ async function closeHttpServer(server: ServerLike): Promise<void> {
   });
 }
 
+async function defaultBootstrapPlatformSettings(): Promise<void> {
+  const { platformSettingsService } = await import(
+    '@/core/platform/settings/services/platform-settings.service'
+  );
+
+  await platformSettingsService.getSettings();
+}
+
 export async function startApplication(
   dependencies: RuntimeDependencies = {}
 ): Promise<StartedApplication> {
   const createApp = dependencies.createApp ?? createServer;
   const connect = dependencies.connectToDatabase ?? connectToDatabase;
   const disconnect = dependencies.disconnectFromDatabase ?? disconnectFromDatabase;
+  const bootstrapPlatformSettings =
+    dependencies.bootstrapPlatformSettings ?? defaultBootstrapPlatformSettings;
   const listen = dependencies.listen ?? listenHttpServer;
   const closeServer = dependencies.closeServer ?? closeHttpServer;
   const signalProcess = dependencies.signalProcess ?? process;
@@ -175,6 +186,31 @@ export async function startApplication(
       environment: env.NODE_ENV,
       databaseStatus: databaseState.status,
       healthStatus: databaseState.healthStatus
+    })
+  );
+
+  try {
+    await bootstrapPlatformSettings();
+  } catch (error) {
+    await disconnect().catch(() => undefined);
+    const message = error instanceof Error ? error.message : 'Unknown platform bootstrap error';
+    logger.error(
+      formatRuntimeLogLine(
+        'ERROR',
+        'app.error',
+        'Platform settings bootstrap failed during startup.',
+        {
+          environment: env.NODE_ENV,
+          error: message
+        }
+      )
+    );
+    throw error;
+  }
+
+  logger.info(
+    formatRuntimeLogLine('INFO', 'app.dependencies', 'Platform settings singleton is ready.', {
+      environment: env.NODE_ENV
     })
   );
 
@@ -283,3 +319,4 @@ export async function startApplication(
     shutdown
   };
 }
+

@@ -4,7 +4,7 @@
 
 Version: 2.0.0  
 Estado: Activo  
-Ultima revision: 2026-03-08
+Ultima revision: 2026-03-10
 
 ## 1. Proposito
 
@@ -17,6 +17,7 @@ Su objetivo no es describir una vision aspiracional, sino dejar una base ejecuta
 - Un solo lugar de verdad por concepto.
 - Ningun endpoint existe fuera de OpenAPI.
 - Ninguna etapa se cierra sin evidencia ejecutable.
+- No se crea documentacion nueva si un documento canonico existente cubre el cambio.
 - Todo recurso tenant-scoped filtra por `tenantId`.
 - Los secretos nunca se exponen ni en respuestas ni en logs.
 - Los servicios no dependen de `req` ni `res`.
@@ -34,6 +35,19 @@ Su objetivo no es describir una vision aspiracional, sino dejar una base ejecuta
 - ADRs: [ADRs.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/adrs/ADRs.md)
 
 Los anexos de `docs/anexos/` desarrollan cada bloque funcional, pero no pueden contradecir este documento ni los contratos transversales.
+
+### 3.1 Nomenclatura canonica de cierres
+
+La nomenclatura oficial para documentos de cierre vive en `docs/checklists/CRITERIOS_DE_CIERRE.md` y sigue el patron:
+
+- `ETAPA_{ID}_{TIPO}.md`
+
+Reglas clave:
+
+- `ID`: `M1`, `00..12` o `00_01`
+- `TIPO`: `CIERRE`, `REAPERTURA_TECNICA`, `EVIDENCIA_RELEASE`
+- la etapa `-1` se mantiene canonica en `docs/arquitectura/ETAPA_-1_BOOTSTRAP.md`
+- no se genera ruido documental: se prioriza actualizar documentos existentes sobre crear nuevos archivos
 
 ## 4. Stack base
 
@@ -264,6 +278,26 @@ Prerequisito minimo:
 
 - Etapas -1 a 8 cerradas
 - Etapas 9 y 10 cerradas solo si forman parte del release objetivo
+
+### Etapa 12
+
+Comunicaciones transaccionales (email delivery).
+
+Objetivo del corte:
+
+- delivery de correo con plantillas personalizadas
+- estrategia por entorno (`development/test` con Mailpit en Docker, `production` con proveedor real como Resend o equivalente)
+- continuidad de contrato seguro: secretos fuera de responses y logs
+
+Estado actual:
+
+- etapa implementada con plantillas versionadas y provider por entorno
+- evidencia de cierre en `docs/cierres/ETAPA_12_CIERRE.md`
+
+Prerequisito minimo:
+
+- Etapa 11 cerrada formalmente
+- ADR de delivery de email aprobado antes de implementacion
 
 ## 8. Decisiones estructurales cerradas
 

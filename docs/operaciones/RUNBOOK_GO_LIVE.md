@@ -15,9 +15,12 @@ Ejecutar despliegues y rollback de forma segura, agnostica a infraestructura, pr
 - Etapas `9` y `10` cerradas si entran en el release comprometido
 - variables de entorno validadas al arranque
 - adaptadores productivos cableados:
-  - `AUTH_EMAIL_VERIFICATION_DELIVERY_WEBHOOK_URL`
+  - `EMAIL_PROVIDER=resend`
+  - `EMAIL_FROM`
+  - `AUTH_VERIFY_EMAIL_URL`
+  - `TENANT_INVITATION_ACCEPT_URL`
+  - `EMAIL_RESEND_API_KEY`
   - `AUTH_TWO_FACTOR_PROVISIONING_WEBHOOK_URL`
-  - `TENANT_INVITATION_DELIVERY_WEBHOOK_URL`
   - en `production`, las URLs de delivery deben usar `https://`
 
 ## 3. Preflight obligatorio

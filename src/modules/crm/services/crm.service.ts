@@ -67,6 +67,30 @@ function buildCrmError(
   });
 }
 
+function assertTenantContextConsistency(tenantId: string, context?: ExecutionContext): void {
+  const contextTenantId = context?.tenant?.tenantId;
+
+  if (!contextTenantId) {
+    return;
+  }
+
+  if (!Types.ObjectId.isValid(tenantId) || !Types.ObjectId.isValid(contextTenantId)) {
+    throw buildCrmError(
+      ERROR_CODES.TENANT_SCOPE_MISMATCH,
+      'Tenant context does not match the requested tenant.',
+      HTTP_STATUS.BAD_REQUEST
+    );
+  }
+
+  if (new Types.ObjectId(tenantId).toString() !== new Types.ObjectId(contextTenantId).toString()) {
+    throw buildCrmError(
+      ERROR_CODES.TENANT_SCOPE_MISMATCH,
+      'Tenant context does not match the requested tenant.',
+      HTTP_STATUS.BAD_REQUEST
+    );
+  }
+}
+
 function escapeRegexLiteral(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -250,6 +274,7 @@ export class CrmService implements CrmServiceContract {
   constructor(private readonly audit: AuditService = auditService) {}
 
   async createContact(input: CreateCrmContactInput): Promise<CrmContactView> {
+    assertTenantContextConsistency(input.tenantId, input.context);
     const tenantId = new Types.ObjectId(input.tenantId);
     const dedup = crmDedupService.buildContactKeys({
       firstName: input.firstName,
@@ -356,6 +381,7 @@ export class CrmService implements CrmServiceContract {
   }
 
   async updateContact(input: UpdateCrmContactInput): Promise<CrmContactView> {
+    assertTenantContextConsistency(input.tenantId, input.context);
     const tenantId = new Types.ObjectId(input.tenantId);
     const currentContact = await this.findActiveContact(tenantId, input.contactId);
 
@@ -445,6 +471,7 @@ export class CrmService implements CrmServiceContract {
   }
 
   async deleteContact(input: DeleteCrmContactInput): Promise<CrmContactView> {
+    assertTenantContextConsistency(input.tenantId, input.context);
     const tenantId = new Types.ObjectId(input.tenantId);
     const deletedContact = await CrmContactModel.findOneAndUpdate(
       {
@@ -490,6 +517,7 @@ export class CrmService implements CrmServiceContract {
   }
 
   async createOrganization(input: CreateCrmOrganizationInput): Promise<CrmOrganizationView> {
+    assertTenantContextConsistency(input.tenantId, input.context);
     const tenantId = new Types.ObjectId(input.tenantId);
     const dedup = crmDedupService.buildOrganizationKeys({
       name: input.name,
@@ -593,6 +621,7 @@ export class CrmService implements CrmServiceContract {
   }
 
   async updateOrganization(input: UpdateCrmOrganizationInput): Promise<CrmOrganizationView> {
+    assertTenantContextConsistency(input.tenantId, input.context);
     const tenantId = new Types.ObjectId(input.tenantId);
     const currentOrganization = await this.findActiveOrganization(tenantId, input.organizationId);
 
@@ -677,6 +706,7 @@ export class CrmService implements CrmServiceContract {
   }
 
   async deleteOrganization(input: DeleteCrmOrganizationInput): Promise<CrmOrganizationView> {
+    assertTenantContextConsistency(input.tenantId, input.context);
     const tenantId = new Types.ObjectId(input.tenantId);
     const organizationId = new Types.ObjectId(input.organizationId);
     const [activeContacts, activeOpportunities] = await Promise.all([
@@ -748,6 +778,7 @@ export class CrmService implements CrmServiceContract {
   }
 
   async createOpportunity(input: CreateCrmOpportunityInput): Promise<CrmOpportunityView> {
+    assertTenantContextConsistency(input.tenantId, input.context);
     const tenantId = new Types.ObjectId(input.tenantId);
 
     if (input.contactId) {
@@ -848,6 +879,7 @@ export class CrmService implements CrmServiceContract {
   }
 
   async updateOpportunity(input: UpdateCrmOpportunityInput): Promise<CrmOpportunityView> {
+    assertTenantContextConsistency(input.tenantId, input.context);
     const tenantId = new Types.ObjectId(input.tenantId);
 
     if (typeof input.patch.contactId !== 'undefined' && input.patch.contactId) {
@@ -928,6 +960,7 @@ export class CrmService implements CrmServiceContract {
   }
 
   async deleteOpportunity(input: DeleteCrmOpportunityInput): Promise<CrmOpportunityView> {
+    assertTenantContextConsistency(input.tenantId, input.context);
     const tenantId = new Types.ObjectId(input.tenantId);
     const deletedOpportunity = await CrmOpportunityModel.findOneAndUpdate(
       {
@@ -977,6 +1010,7 @@ export class CrmService implements CrmServiceContract {
   }
 
   async changeOpportunityStage(input: ChangeCrmOpportunityStageInput): Promise<CrmOpportunityView> {
+    assertTenantContextConsistency(input.tenantId, input.context);
     if (!CRM_OPPORTUNITY_STAGES.includes(input.stage)) {
       throw buildCrmError(
         ERROR_CODES.CRM_OPPORTUNITY_STAGE_INVALID,
@@ -1064,6 +1098,7 @@ export class CrmService implements CrmServiceContract {
   }
 
   async createActivity(input: CreateCrmActivityInput): Promise<CrmActivityView> {
+    assertTenantContextConsistency(input.tenantId, input.context);
     const tenantId = new Types.ObjectId(input.tenantId);
     await this.assertActivityReferences(tenantId, {
       contactId: input.contactId ?? null,

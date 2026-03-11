@@ -52,6 +52,30 @@ function buildInventoryError(
   });
 }
 
+function assertTenantContextConsistency(tenantId: string, context?: ExecutionContext): void {
+  const contextTenantId = context?.tenant?.tenantId;
+
+  if (!contextTenantId) {
+    return;
+  }
+
+  if (!Types.ObjectId.isValid(tenantId) || !Types.ObjectId.isValid(contextTenantId)) {
+    throw buildInventoryError(
+      ERROR_CODES.TENANT_SCOPE_MISMATCH,
+      'Tenant context does not match the requested tenant.',
+      HTTP_STATUS.BAD_REQUEST
+    );
+  }
+
+  if (new Types.ObjectId(tenantId).toString() !== new Types.ObjectId(contextTenantId).toString()) {
+    throw buildInventoryError(
+      ERROR_CODES.TENANT_SCOPE_MISMATCH,
+      'Tenant context does not match the requested tenant.',
+      HTTP_STATUS.BAD_REQUEST
+    );
+  }
+}
+
 function escapeRegexLiteral(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -169,6 +193,8 @@ export class InventoryService implements InventoryServiceContract {
   constructor(private readonly audit: AuditService = auditService) {}
 
   async createCategory(input: CreateInventoryCategoryInput): Promise<InventoryCategoryView> {
+    assertTenantContextConsistency(input.tenantId, input.context);
+
     try {
       const createdCategory = await InventoryCategoryModel.create({
         tenantId: new Types.ObjectId(input.tenantId),
@@ -238,6 +264,8 @@ export class InventoryService implements InventoryServiceContract {
   }
 
   async updateCategory(input: UpdateInventoryCategoryInput): Promise<InventoryCategoryView> {
+    assertTenantContextConsistency(input.tenantId, input.context);
+
     const tenantId = new Types.ObjectId(input.tenantId);
     const categoryId = new Types.ObjectId(input.categoryId);
     const updateData: Record<string, unknown> = {};
@@ -309,6 +337,8 @@ export class InventoryService implements InventoryServiceContract {
   }
 
   async deleteCategory(input: DeleteInventoryCategoryInput): Promise<InventoryCategoryView> {
+    assertTenantContextConsistency(input.tenantId, input.context);
+
     const tenantId = new Types.ObjectId(input.tenantId);
     const categoryId = new Types.ObjectId(input.categoryId);
     const activeItemsCount = await InventoryItemModel.countDocuments({
@@ -372,6 +402,8 @@ export class InventoryService implements InventoryServiceContract {
   }
 
   async createItem(input: CreateInventoryItemInput): Promise<InventoryItemView> {
+    assertTenantContextConsistency(input.tenantId, input.context);
+
     const tenantId = new Types.ObjectId(input.tenantId);
     const category = await InventoryCategoryModel.findOne({
       _id: new Types.ObjectId(input.categoryId),
@@ -487,6 +519,8 @@ export class InventoryService implements InventoryServiceContract {
   }
 
   async updateItem(input: UpdateInventoryItemInput): Promise<InventoryItemView> {
+    assertTenantContextConsistency(input.tenantId, input.context);
+
     const tenantId = new Types.ObjectId(input.tenantId);
     const itemId = new Types.ObjectId(input.itemId);
     const updateData: Record<string, unknown> = {};
@@ -585,6 +619,8 @@ export class InventoryService implements InventoryServiceContract {
   }
 
   async deleteItem(input: DeleteInventoryItemInput): Promise<InventoryItemView> {
+    assertTenantContextConsistency(input.tenantId, input.context);
+
     const deletedItem = await InventoryItemModel.findOneAndUpdate(
       {
         _id: new Types.ObjectId(input.itemId),
@@ -634,6 +670,8 @@ export class InventoryService implements InventoryServiceContract {
   async createStockMovement(
     input: CreateInventoryStockMovementInput
   ): Promise<InventoryStockMovementView> {
+    assertTenantContextConsistency(input.tenantId, input.context);
+
     const session = await mongoose.startSession();
     const tenantId = new Types.ObjectId(input.tenantId);
     const itemId = new Types.ObjectId(input.itemId);

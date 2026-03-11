@@ -10,20 +10,21 @@ import { AppError } from '@/infrastructure/errors/app-error';
 function createRuntimeAuthTestApp() {
   const service = {
     register: vi.fn().mockResolvedValue({
+      accepted: true,
       user: {
-        id: 'user-1',
-        email: 'john@example.com',
-        firstName: 'John',
-        lastName: 'Doe',
-        status: 'pending_verification',
-        isEmailVerified: false
-      },
-      verification: {
-        required: true,
-        expiresAt: '2026-03-08T00:00:00.000Z',
-        token: 'should-not-leak'
+        id: 'user-1'
       }
     }),
+    resendVerification: vi.fn().mockResolvedValue({
+      accepted: true,
+      debug: 'should-not-leak'
+    }),
+    forgotPassword: vi.fn().mockResolvedValue({
+      accepted: true,
+      debug: 'should-not-leak'
+    }),
+    resetPassword: vi.fn(),
+    changePassword: vi.fn(),
     login: vi.fn(),
     refresh: vi.fn(),
     logout: vi.fn(),
@@ -49,7 +50,7 @@ function createRuntimeAuthTestApp() {
 }
 
 describe('auth runtime contract', () => {
-  it('does not leak verification previews even if a service returns them accidentally', async () => {
+  it('does not leak registration internals even if a service returns them accidentally', async () => {
     const { app } = createRuntimeAuthTestApp();
     const response = await request(app).post('/api/v1/auth/register').send({
       email: 'john@example.com',
@@ -57,10 +58,33 @@ describe('auth runtime contract', () => {
       firstName: 'John'
     });
 
-    expect(response.status).toBe(201);
-    expect(response.body.data.verification).toEqual({
-      required: true,
-      expiresAt: '2026-03-08T00:00:00.000Z'
+    expect(response.status).toBe(202);
+    expect(response.body.data).toEqual({
+      accepted: true
+    });
+  });
+
+  it('does not leak resend-verification internals even if a service returns them accidentally', async () => {
+    const { app } = createRuntimeAuthTestApp();
+    const response = await request(app).post('/api/v1/auth/resend-verification').send({
+      email: 'john@example.com'
+    });
+
+    expect(response.status).toBe(202);
+    expect(response.body.data).toEqual({
+      accepted: true
+    });
+  });
+
+  it('does not leak forgot-password internals even if a service returns them accidentally', async () => {
+    const { app } = createRuntimeAuthTestApp();
+    const response = await request(app).post('/api/v1/auth/forgot-password').send({
+      email: 'john@example.com'
+    });
+
+    expect(response.status).toBe(202);
+    expect(response.body.data).toEqual({
+      accepted: true
     });
   });
 

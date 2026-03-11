@@ -95,3 +95,30 @@ Resultado ejecutable final:
 ## 6. Veredicto
 
 La Etapa 5 queda cerrada formalmente. La auditoria ya tiene semantica de entrega segura, soporte `tenant` y `platform`, y redaccion endurecida para habilitar Etapa 6 sin bloqueos abiertos.
+
+## 7. Re-cierre tecnico
+
+Fecha: 2026-03-10  
+Estado: Re-cierre aplicado por hardening de serializacion auditable y redaccion operacional.
+
+Se incorpora al cierre de Etapa 5:
+
+- `AuditService` ahora normaliza payloads a JSON serializable antes de redaccion y persistencia:
+  - soporte seguro para `Date`, `ObjectId`, `BigInt`, `Map`, `Set` y referencias circulares.
+  - deduplicacion de `changes.fields` y `tenant.effectiveRoleKeys` para evitar ruido operativo.
+- `AuditService` valida coherencia contractual de alcance:
+  - `scope=tenant` exige `tenantId`.
+  - `scope=platform` rechaza `tenantId`.
+  - ambos casos fallan cerrado con `TENANT_SCOPE_MISMATCH` (`400`).
+- Logger: ampliacion de redaccion para secretos adicionales de auth/settings:
+  - headers (`x-api-key`), credenciales de cambio de password y secretos operacionales (`clientSecret`, `privateKey`, `apiKey`, `smtpPassword`, etc.).
+- Cobertura de tests ampliada:
+  - `tests/unit/core/platform/audit/audit.service.test.ts`
+  - `tests/unit/infrastructure/logger/logger-redaction.test.ts`
+
+Validaciones ejecutadas:
+
+- `npm run openapi:validate`
+- `npm run build`
+- `npm run lint`
+- `npm run test` (`98` archivos, `268` tests en verde, `1` skipped)

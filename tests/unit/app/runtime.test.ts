@@ -22,6 +22,9 @@ describe('application runtime', () => {
       disconnectFromDatabase: async () => {
         events.push('disconnect');
       },
+      bootstrapPlatformSettings: async () => {
+        events.push('bootstrap-platform');
+      },
       listen: async () => {
         events.push('listen');
 
@@ -49,7 +52,7 @@ describe('application runtime', () => {
 
     await runtime.shutdown('SIGTERM');
 
-    expect(events).toEqual(['connect', 'listen', 'close', 'disconnect']);
+    expect(events).toEqual(['connect', 'bootstrap-platform', 'listen', 'close', 'disconnect']);
     expect(signalProcess.exitCode).toBe(0);
     expect(signalProcess.listenerCount('SIGTERM')).toBe(0);
     expect(infoLogs.some((message) => message.includes('scope=app.start'))).toBe(true);
@@ -73,6 +76,9 @@ describe('application runtime', () => {
         disconnectFromDatabase: async () => {
           events.push('disconnect');
         },
+        bootstrapPlatformSettings: async () => {
+          events.push('bootstrap-platform');
+        },
         listen: async () => {
           throw new Error('port busy');
         },
@@ -85,8 +91,42 @@ describe('application runtime', () => {
       })
     ).rejects.toThrow('port busy');
 
-    expect(events).toEqual(['connect', 'disconnect']);
+    expect(events).toEqual(['connect', 'bootstrap-platform', 'disconnect']);
     expect(errorLogs.some((message) => message.includes('scope=app.error'))).toBe(true);
     expect(errorLogs.some((message) => message.includes('port busy'))).toBe(true);
+  });
+
+  it('disconnects from the database and fails fast when platform settings bootstrap fails', async () => {
+    const events: string[] = [];
+    const errorLogs: string[] = [];
+    const listen = vi.fn();
+
+    await expect(
+      startApplication({
+        createApp: () => express(),
+        connectToDatabase: async () => {
+          events.push('connect');
+        },
+        disconnectFromDatabase: async () => {
+          events.push('disconnect');
+        },
+        bootstrapPlatformSettings: async () => {
+          events.push('bootstrap-platform');
+          throw new Error('platform settings unavailable');
+        },
+        listen,
+        logger: {
+          info: () => undefined,
+          error: (message) => {
+            errorLogs.push(message);
+          }
+        }
+      })
+    ).rejects.toThrow('platform settings unavailable');
+
+    expect(events).toEqual(['connect', 'bootstrap-platform', 'disconnect']);
+    expect(listen).not.toHaveBeenCalled();
+    expect(errorLogs.some((message) => message.includes('scope=app.error'))).toBe(true);
+    expect(errorLogs.some((message) => message.includes('platform settings unavailable'))).toBe(true);
   });
 });

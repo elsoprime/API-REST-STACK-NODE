@@ -68,6 +68,7 @@ Sin aprobacion explicita, no implementar.
 - Etapa 9 → CRM
 - Etapa 10 → HR
 - Etapa 11 → Hardening y go-live
+- Etapa 12 → Comunicaciones transaccionales (email delivery)
 
 ## Contratos globales obligatorios
 

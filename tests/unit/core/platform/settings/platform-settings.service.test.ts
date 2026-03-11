@@ -1,7 +1,9 @@
 import mongoose, { Types } from 'mongoose';
 
+import { HTTP_STATUS } from '@/constants/http';
 import { PlatformSettingsModel } from '@/core/platform/settings/models/platform-settings.model';
 import { PlatformSettingsService } from '@/core/platform/settings/services/platform-settings.service';
+import { ERROR_CODES } from '@/infrastructure/errors/error-codes';
 
 describe('PlatformSettingsService', () => {
   afterEach(() => {
@@ -266,5 +268,61 @@ describe('PlatformSettingsService', () => {
     });
 
     expect(settingsDocument.save).not.toHaveBeenCalled();
+  });
+
+  it('fails closed when a tenant-scoped execution context reaches platform settings', async () => {
+    const service = new PlatformSettingsService({
+      record: vi.fn()
+    } as never);
+    const findOneSpy = vi.spyOn(PlatformSettingsModel, 'findOne');
+    const startSessionSpy = vi.spyOn(mongoose, 'startSession');
+
+    const tenantContext = {
+      traceId: 'trace-tenant-context',
+      actor: {
+        kind: 'user' as const,
+        userId: new Types.ObjectId().toString(),
+        sessionId: new Types.ObjectId().toString(),
+        scope: ['platform:settings:update']
+      },
+      tenant: {
+        tenantId: new Types.ObjectId().toString()
+      }
+    };
+
+    await expect(
+      service.getSettings({
+        context: tenantContext
+      })
+    ).rejects.toMatchObject({
+      code: ERROR_CODES.TENANT_SCOPE_MISMATCH,
+      statusCode: HTTP_STATUS.BAD_REQUEST
+    });
+
+    await expect(
+      service.getSettingsSnapshot({
+        context: tenantContext
+      })
+    ).rejects.toMatchObject({
+      code: ERROR_CODES.TENANT_SCOPE_MISMATCH,
+      statusCode: HTTP_STATUS.BAD_REQUEST
+    });
+
+    await expect(
+      service.updateSettings({
+        patch: {
+          operations: {
+            maintenanceMode: true
+          }
+        },
+        context: tenantContext
+      })
+    ).rejects.toMatchObject({
+      code: ERROR_CODES.TENANT_SCOPE_MISMATCH,
+      statusCode: HTTP_STATUS.BAD_REQUEST
+    });
+
+    expect(findOneSpy).not.toHaveBeenCalled();
+    expect(startSessionSpy).not.toHaveBeenCalled();
   });
 });

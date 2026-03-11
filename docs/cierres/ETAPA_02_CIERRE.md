@@ -95,3 +95,15 @@ Cobertura funcional relevante:
 ## 7. Veredicto
 
 Con la evidencia disponible y con los findings de validacion de claims y revocacion efectiva de sesion corregidos, Etapa 2 queda formalmente cerrada. Se mantiene como prerequisito de go-live el cableado de adaptadores reales de delivery/provisioning en `production`.
+
+## 8. Re-cierre tecnico
+
+Fecha: 2026-03-10  
+Estado: Re-cierre aplicado por correccion de deuda tecnica en gestion de claves.
+
+Se incorpora al cierre de Etapa 2:
+
+- `forgot-password`, `reset-password` y `change-password` con contrato OpenAPI y cobertura de pruebas.
+- entrega de reset por canal externo (`PasswordResetDeliveryPort`) con template transaccional dedicado.
+- revocacion de sesiones segun contrato en reset/cambio de clave.
+- validaciones ejecutadas en verde: `docs:cierres:validate`, `openapi:validate`, `build`, `lint`, `test`.

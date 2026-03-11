@@ -73,6 +73,7 @@ Pruebas minimas:
 - `production` requiere cablear un adaptador real antes de go-live
 - el switch de tenant fija `activeTenantId` y `activeMembershipId` en `auth_sessions`
 - el switch reemite access token tenant-bound, pero no reemplaza la validacion por `X-Tenant-Id`
+- `POST /tenant/invitations/accept` es excepcion token-bound y no requiere `X-Tenant-Id`
 - `transfer ownership` solo puede ejecutarlo el owner actual hacia una membership activa del mismo tenant
 - `tenant.ownerUserId` es la fuente de verdad del ownership; `membership.roleKey` representa solo el rol base RBAC
 - los privilegios de owner se resuelven de forma efectiva cuando `membership.userId === tenant.ownerUserId`, sin exigir que la membership persista exactamente `tenant:owner`

@@ -100,3 +100,11 @@ Los endpoints platform-scoped autorizan contra permisos explicitados en `scope` 
 - Todo cierre exige tests automatizados
 - Los tests de tenant isolation, auth y guards no son opcionales
 - Las pruebas que dependan de transacciones corren sobre Mongo replica set
+
+## 10. Documentacion de etapas y cierres
+
+- La nomenclatura canonica de cierres sigue `ETAPA_{ID}_{TIPO}.md`
+- IDs validos: `M1`, `00..12`, `00_01`
+- Tipos validos: `CIERRE`, `REAPERTURA_TECNICA`, `EVIDENCIA_RELEASE`
+- Se prioriza actualizar documentacion existente sobre crear nuevos archivos
+- El historial de cierre/reapertura es append-only

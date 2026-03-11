@@ -68,6 +68,47 @@ EmailVerificationStatus:
       type: string
       format: date-time
       description: Expiration for the token delivered by the verification delivery channel.
+EmailVerificationDispatchAccepted:
+  type: object
+  required:
+    - accepted
+  properties:
+    accepted:
+      type: boolean
+      enum: [true]
+      description: The request was accepted. If the account is eligible, verification instructions will be dispatched through the secure delivery channel.
+ResendVerificationRequest:
+  type: object
+  required:
+    - email
+  properties:
+    email:
+      type: string
+      format: email
+ForgotPasswordRequest:
+  type: object
+  required:
+    - email
+  properties:
+    email:
+      type: string
+      format: email
+ResetPasswordRequest:
+  type: object
+  required:
+    - email
+    - token
+    - newPassword
+  properties:
+    email:
+      type: string
+      format: email
+    token:
+      type: string
+      minLength: 1
+    newPassword:
+      type: string
+      minLength: 8
 VerifyEmailRequest:
   type: object
   required:
@@ -180,6 +221,20 @@ LogoutSuccessResponse:
             type: string
     traceId:
       type: string
+EmailVerificationDispatchAcceptedResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      $ref: '#/EmailVerificationDispatchAccepted'
+    traceId:
+      type: string
 VerifyEmailSuccessResponse:
   type: object
   required:
@@ -271,5 +326,67 @@ DisableTwoFactorSuccessResponse:
         disabled:
           type: boolean
           enum: [true]
+    traceId:
+      type: string
+ChangePasswordRequest:
+  type: object
+  required:
+    - currentPassword
+    - newPassword
+  properties:
+    currentPassword:
+      type: string
+      minLength: 8
+    newPassword:
+      type: string
+      minLength: 8
+PasswordResetSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - reset
+        - revokedSessionIds
+      properties:
+        reset:
+          type: boolean
+          enum: [true]
+        revokedSessionIds:
+          type: array
+          items:
+            type: string
+    traceId:
+      type: string
+ChangePasswordSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - changed
+        - revokedSessionIds
+      properties:
+        changed:
+          type: boolean
+          enum: [true]
+        revokedSessionIds:
+          type: array
+          items:
+            type: string
     traceId:
       type: string

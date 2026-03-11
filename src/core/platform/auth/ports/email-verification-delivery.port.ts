@@ -1,6 +1,7 @@
 export interface EmailVerificationDeliveryPayload {
   userId: string;
   email: string;
+  firstName?: string | null;
   token: string;
   expiresAt: string;
 }

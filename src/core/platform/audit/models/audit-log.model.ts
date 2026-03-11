@@ -133,8 +133,7 @@ const auditLogSchema = new Schema(
     },
     sourceOutboxId: {
       type: Schema.Types.ObjectId,
-      ref: 'AuditOutbox',
-      default: null
+      ref: 'AuditOutbox'
     }
   },
   {
@@ -160,7 +159,17 @@ auditLogSchema.index({ 'tenant.tenantId': 1, createdAt: -1 });
 auditLogSchema.index({ scope: 1, createdAt: -1 });
 auditLogSchema.index({ action: 1, createdAt: -1 });
 auditLogSchema.index({ 'resource.type': 1, createdAt: -1 });
-auditLogSchema.index({ sourceOutboxId: 1 }, { unique: true, sparse: true });
+auditLogSchema.index(
+  { sourceOutboxId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      sourceOutboxId: {
+        $type: 'objectId'
+      }
+    }
+  }
+);
 
 export type AuditLogDocument = HydratedDocument<InferSchemaType<typeof auditLogSchema>>;
 

@@ -40,3 +40,17 @@ Condicion de desbloqueo:
 1. Resolver bloqueo de facturacion de la cuenta.
 2. Re-ejecutar workflow `staging-release-candidate-go-live`.
 3. Exigir `conclusion=success` en `smoke-and-restore`.
+
+## 5. Revalidacion local posterior
+
+Fecha: 2026-03-10
+
+- `npm run go-live:check` -> `OK` (incluye `build`, `lint`, `openapi:validate`, `test:smoke`, `test:restore`)
+- `npm run mongo:restore:up` -> `OK` (contenedor Mongo restore y init replica en estado healthy/start)
+- `npm run test:restore:mongodb:enabled` -> `OK` (`1 file, 1 test passed`)
+- `npm run mongo:restore:down` -> `OK` (entorno local de restore desmontado)
+
+Estado remoto del gate RC:
+
+- sin cambio respecto del run documentado (`failure` por facturacion)
+- veredicto global mantiene `NO-GO` hasta obtener evidencia verde en GitHub Actions

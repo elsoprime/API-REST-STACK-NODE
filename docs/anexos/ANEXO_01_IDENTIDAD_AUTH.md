@@ -57,6 +57,10 @@ No debe leer ni aceptar `REFRESH_TOKEN_COOKIE_NAME`.
 ## 5. Flujos obligatorios
 
 - register
+- resend verification
+- forgot password
+- reset password
+- change password autenticado
 - verify email
 - login
 - refresh con rotacion
@@ -86,7 +90,11 @@ Debe distinguir claramente:
 
 ## 8. Aclaraciones de implementacion
 
+- `register` es publico y responde un acknowledgement endurecido; no expone si el email existe, esta activo o sigue `pending_verification`
+- `resend-verification` existe como flujo publico explicito, responde generico y aplica cooldown/rate-limit por email normalizado e IP
+- las cuentas `pending_verification` no inician sesion y no se reciclan por un nuevo `register`; permanecen pendientes hasta verificar email o hasta un proceso operativo de limpieza fuera de este flujo
 - `verify-email` entrega su token por `EmailVerificationDeliveryPort`
+- `verify-email` acepta solo el token vigente mas reciente; tokens expirados, reemplazados o ya usados responden `AUTH_EMAIL_VERIFICATION_INVALID`
 - `2FA setup` entrega su secreto y `otpauthUrl` por `TwoFactorProvisioningPort`
 - `development` y `test` usan adaptadores `in-memory` inspeccionables por tests
 - `production` requiere cablear un adaptador real antes de go-live

@@ -72,3 +72,27 @@ La Etapa 10 queda cerrada con evidencia ejecutable de contrato, calidad y seguri
 - runtime HR implementado con tenant isolation, RBAC fino, CSRF en mutaciones y anticiclo jerarquico
 - redaccion de sensibles HR activa en auditoria
 - pruebas unit/integration HR y suite global en verde
+
+## 6. Reapertura tecnica y re-cierre
+
+Fecha: 2026-03-10  
+Estado: Re-cierre tecnico aplicado
+
+### 6.1 Motivo
+
+Se detecto deuda tecnica contractual en hardening tenant-scoped y evidencia CSRF/OpenAPI de mutaciones HR.
+
+### 6.2 Fix realizado
+
+- `hr.service` aplica fail-closed por mismatch entre `input.tenantId` y `context.tenant.tenantId` en mutaciones con `TENANT_SCOPE_MISMATCH` (`400`).
+- se agrego cobertura unitaria para mismatch de tenant context en operaciones mutables HR.
+- se agrego cobertura de integracion CSRF para `POST /api/v1/modules/hr/employees` en modo cookie-auth (caso rechazo y caso aceptado).
+- OpenAPI HR de mutaciones explicita la condicion de `X-CSRF-Token` para cookie-auth vs Bearer.
+
+### 6.3 Evidencia automatizada del re-cierre
+
+- `npm run docs:cierres:validate` ✅
+- `npm run openapi:validate` ✅
+- `npm run build` ✅
+- `npm run lint` ✅
+- `npm run test` ✅ (`98` archivos en verde, `1` skipped por feature flag de restore drill)

@@ -22,12 +22,13 @@ function getTenantContext(locals: Record<string, unknown>): TenantContext {
 
 export function createRequirePermissionMiddleware(
   permissionKey: string,
-  authorization: RbacServiceContract = rbacService
+  authorization: RbacServiceContract = rbacService,
+  options: { allowPlatformSuperAdmin?: boolean } = {}
 ): RequestHandler {
   return async (_req, res, next) => {
     try {
       const tenantContext = getTenantContext(res.locals as Record<string, unknown>);
-      await authorization.assertPermissionGranted(tenantContext.authorization, permissionKey);
+      await authorization.assertPermissionGranted(tenantContext.authorization, permissionKey, options);
       next();
     } catch (error) {
       next(error);

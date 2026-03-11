@@ -12,6 +12,10 @@ import { tokenService } from '@/core/platform/auth/services/token.service';
 function createAuthSessionHardeningApp() {
   const service = {
     register: vi.fn(),
+    resendVerification: vi.fn(),
+    forgotPassword: vi.fn(),
+    resetPassword: vi.fn(),
+    changePassword: vi.fn(),
     login: vi.fn(),
     refresh: vi.fn(),
     logout: vi.fn().mockResolvedValue({

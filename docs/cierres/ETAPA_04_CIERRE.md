@@ -79,3 +79,26 @@ Cobertura funcional relevante:
 ## 6. Veredicto
 
 La remediacion pre-Etapa 5 quedo completada y verificada. Etapa 4 recupera su cierre formal con ownership efectivo coherente, claims Mongo-backed fail-closed y frontera serializable lista para auditoria.
+
+## 7. Re-cierre tecnico
+
+Fecha: 2026-03-10  
+Estado: Re-cierre aplicado por hardening contractual de guards RBAC.
+
+Se incorpora al cierre de Etapa 4:
+
+- `requireRole` y `requirePermission` aceptan bypass opcional `allowPlatformSuperAdmin` con `default = false`.
+- el bypass de `platform:super_admin` queda bloqueado por defecto y solo habilitable por declaracion explicita del guard.
+- `assertPermissionGranted` valida coincidencia de `permission.scope` con `authorization.role.scope` para evitar escalamiento cross-scope.
+- pruebas contractuales nuevas:
+  - `tests/integration/rbac/rbac.super-admin-bypass.contract.test.ts`
+  - `tests/integration/rbac/rbac.tenant-role-resolution.contract.test.ts`
+- cobertura unitaria ampliada:
+  - `tests/unit/core/platform/rbac/rbac.service.test.ts`
+
+Validaciones ejecutadas:
+
+- `npm run openapi:validate`
+- `npm run build`
+- `npm run lint`
+- `npm run test`

@@ -18,6 +18,9 @@ import {
   type EmailVerificationDeliveryPort
 } from '@/core/platform/auth/ports/email-verification-delivery.port';
 import {
+  type PasswordResetDeliveryPort
+} from '@/core/platform/auth/ports/password-reset-delivery.port';
+import {
   type TwoFactorProvisioningPort
 } from '@/core/platform/auth/ports/two-factor-provisioning.port';
 import { passwordService, type PasswordService } from '@/core/platform/auth/services/password.service';
@@ -38,6 +41,12 @@ import {
   type ConfirmTwoFactorInput,
   type ConfirmTwoFactorResult,
   type DisableTwoFactorResult,
+  type EmailVerificationDispatchResult,
+  type ForgotPasswordInput,
+  type ResetPasswordInput,
+  type PasswordResetResult,
+  type ChangePasswordInput,
+  type ChangePasswordResult,
   type LoginInput,
   type LogoutInput,
   type LogoutAllInput,
@@ -46,7 +55,7 @@ import {
   type RefreshBrowserInput,
   type RefreshHeadlessInput,
   type RegisterInput,
-  type RegisterResult,
+  type ResendVerificationInput,
   type SetupTwoFactorInput,
   type SetupTwoFactorResult,
   type TwoFactorChallengeInput,
@@ -101,6 +110,23 @@ function generateOpaqueToken(): string {
   return randomBytes(24).toString('base64url');
 }
 
+function buildEmailVerificationDispatchResult(): EmailVerificationDispatchResult {
+  return {
+    accepted: true
+  };
+}
+
+function hasEmailVerificationCooldown(
+  securityRecord: Pick<UserSecurityDocument, 'emailVerificationLastSentAt'>
+): boolean {
+  return Boolean(
+    securityRecord.emailVerificationLastSentAt &&
+      securityRecord.emailVerificationLastSentAt.getTime() +
+        AUTH_SECURITY_POLICY.EMAIL_VERIFICATION_RESEND_COOLDOWN_MS >
+        Date.now()
+  );
+}
+
 function isAccountLocked(securityRecord: Pick<UserSecurityDocument, 'lockoutUntil'>): boolean {
   return Boolean(securityRecord.lockoutUntil && securityRecord.lockoutUntil.getTime() > Date.now());
 }
@@ -149,18 +175,17 @@ export class AuthService implements AuthServiceContract {
     private readonly twoFactorProvisioning: TwoFactorProvisioningPort =
       authDeliveryRegistry.twoFactorProvisioningPort,
     private readonly audit: AuditService = auditService,
-    private readonly platformScopeGrants: PlatformScopeGrantServiceContract = platformScopeGrantService
+    private readonly platformScopeGrants: PlatformScopeGrantServiceContract = platformScopeGrantService,
+    private readonly passwordResetDelivery: PasswordResetDeliveryPort =
+      authDeliveryRegistry.passwordResetDeliveryPort
   ) {}
 
-  async register(input: RegisterInput): Promise<RegisterResult> {
-    const existingUser = await UserModel.findOne({ email: input.email.toLowerCase() }).lean();
+  async register(input: RegisterInput): Promise<EmailVerificationDispatchResult> {
+    const normalizedEmail = input.email.toLowerCase();
+    const existingUser = await UserModel.findOne({ email: normalizedEmail }).lean();
 
     if (existingUser) {
-      throw buildAuthError(
-        ERROR_CODES.AUTH_EMAIL_ALREADY_EXISTS,
-        'Email already registered',
-        HTTP_STATUS.CONFLICT
-      );
+      return buildEmailVerificationDispatchResult();
     }
 
     const verificationToken = generateOpaqueToken();
@@ -177,7 +202,7 @@ export class AuthService implements AuthServiceContract {
         const [createdUser] = await UserModel.create(
           [
             {
-              email: input.email.toLowerCase(),
+              email: normalizedEmail,
               firstName: input.firstName,
               lastName: input.lastName ?? null,
               status: 'pending_verification'
@@ -195,7 +220,8 @@ export class AuthService implements AuthServiceContract {
               passwordHash,
               isEmailVerified: false,
               emailVerificationTokenHash: verificationTokenHash,
-              emailVerificationExpiresAt: verificationExpiresAt
+              emailVerificationExpiresAt: verificationExpiresAt,
+              emailVerificationLastSentAt: null
             }
           ],
           { session }
@@ -233,20 +259,352 @@ export class AuthService implements AuthServiceContract {
       await this.emailVerificationDelivery.deliver({
         userId: registeredUser.id,
         email: registeredUser.email,
+        firstName: registeredUser.firstName,
         token: verificationToken,
         expiresAt: toIsoDateString(verificationExpiresAt)
       });
 
-      return {
-        user: registeredUser,
-        verification: {
-          required: true,
-          expiresAt: toIsoDateString(verificationExpiresAt)
+      await UserSecurityModel.updateOne(
+        {
+          userId: ensureObjectId(registeredUser.id)
+        },
+        {
+          $set: {
+            emailVerificationLastSentAt: new Date()
+          }
         }
-      };
+      );
+
+      return buildEmailVerificationDispatchResult();
     } finally {
       await session.endSession();
     }
+  }
+
+  async resendVerification(
+    input: ResendVerificationInput
+  ): Promise<EmailVerificationDispatchResult> {
+    const normalizedEmail = input.email.toLowerCase();
+    const user = await UserModel.findOne({ email: normalizedEmail });
+
+    if (!user) {
+      return buildEmailVerificationDispatchResult();
+    }
+
+    const securityRecord = await UserSecurityModel.findOne({ userId: user._id });
+
+    if (
+      !securityRecord ||
+      user.status !== 'pending_verification' ||
+      securityRecord.isEmailVerified ||
+      hasEmailVerificationCooldown(securityRecord)
+    ) {
+      return buildEmailVerificationDispatchResult();
+    }
+
+    const previousTokenHash = securityRecord.emailVerificationTokenHash;
+    const previousExpiresAt = securityRecord.emailVerificationExpiresAt;
+    const previousLastSentAt = securityRecord.emailVerificationLastSentAt;
+    const verificationToken = generateOpaqueToken();
+    const verificationExpiresAt = new Date(
+      Date.now() + AUTH_SECURITY_POLICY.EMAIL_VERIFICATION_TOKEN_TTL_MS
+    );
+
+    securityRecord.emailVerificationTokenHash = this.tokens.hashToken(verificationToken);
+    securityRecord.emailVerificationExpiresAt = verificationExpiresAt;
+    await securityRecord.save();
+
+    try {
+      await this.emailVerificationDelivery.deliver({
+        userId: user._id.toString(),
+        email: user.email,
+        firstName: user.firstName,
+        token: verificationToken,
+        expiresAt: toIsoDateString(verificationExpiresAt)
+      });
+    } catch (error) {
+      securityRecord.emailVerificationTokenHash = previousTokenHash;
+      securityRecord.emailVerificationExpiresAt = previousExpiresAt;
+      securityRecord.emailVerificationLastSentAt = previousLastSentAt;
+      await securityRecord.save();
+
+      throw error;
+    }
+
+    securityRecord.emailVerificationLastSentAt = new Date();
+    const session = await mongoose.startSession();
+
+    try {
+      await session.withTransaction(async () => {
+        await securityRecord.save({ session });
+
+        await this.recordAuditLog(
+          {
+            context: input.context,
+            action: 'auth.verification_resent',
+            resource: {
+              type: 'user',
+              id: user._id.toString()
+            },
+            severity: 'info',
+            changes: {
+              after: {
+                email: user.email,
+                status: user.status,
+                isEmailVerified: false
+              }
+            }
+          },
+          { session }
+        );
+      });
+    } finally {
+      await session.endSession();
+    }
+
+    return buildEmailVerificationDispatchResult();
+  }
+
+  async forgotPassword(
+    input: ForgotPasswordInput
+  ): Promise<EmailVerificationDispatchResult> {
+    const normalizedEmail = input.email.toLowerCase();
+    const user = await UserModel.findOne({ email: normalizedEmail });
+
+    if (!user) {
+      return buildEmailVerificationDispatchResult();
+    }
+
+    const securityRecord = await UserSecurityModel.findOne({ userId: user._id });
+
+    if (
+      !securityRecord ||
+      !securityRecord.isEmailVerified ||
+      user.status !== 'active'
+    ) {
+      return buildEmailVerificationDispatchResult();
+    }
+
+    const previousTokenHash = securityRecord.passwordResetTokenHash;
+    const previousExpiresAt = securityRecord.passwordResetExpiresAt;
+    const resetToken = generateOpaqueToken();
+    const resetExpiresAt = new Date(
+      Date.now() + AUTH_SECURITY_POLICY.PASSWORD_RESET_TOKEN_TTL_MS
+    );
+
+    securityRecord.passwordResetTokenHash = this.tokens.hashToken(resetToken);
+    securityRecord.passwordResetExpiresAt = resetExpiresAt;
+    await securityRecord.save();
+
+    try {
+      await this.passwordResetDelivery.deliver({
+        userId: user._id.toString(),
+        email: user.email,
+        firstName: user.firstName,
+        token: resetToken,
+        expiresAt: toIsoDateString(resetExpiresAt)
+      });
+    } catch {
+      securityRecord.passwordResetTokenHash = previousTokenHash;
+      securityRecord.passwordResetExpiresAt = previousExpiresAt;
+      await securityRecord.save();
+
+      return buildEmailVerificationDispatchResult();
+    }
+
+    const session = await mongoose.startSession();
+
+    try {
+      await session.withTransaction(async () => {
+        await this.recordAuditLog(
+          {
+            context: input.context,
+            action: 'auth.password_reset.requested',
+            resource: {
+              type: 'user',
+              id: user._id.toString()
+            },
+            severity: 'warning'
+          },
+          { session }
+        );
+      });
+    } finally {
+      await session.endSession();
+    }
+
+    return buildEmailVerificationDispatchResult();
+  }
+
+  async resetPassword(input: ResetPasswordInput): Promise<PasswordResetResult> {
+    const normalizedEmail = input.email.toLowerCase();
+    const user = await UserModel.findOne({ email: normalizedEmail });
+
+    if (!user) {
+      throw buildAuthError(
+        ERROR_CODES.AUTH_PASSWORD_RESET_INVALID,
+        'Invalid password reset token',
+        HTTP_STATUS.BAD_REQUEST
+      );
+    }
+
+    const securityRecord = await UserSecurityModel.findOne({ userId: user._id });
+
+    if (!securityRecord || !securityRecord.passwordResetExpiresAt || !securityRecord.passwordResetTokenHash) {
+      throw buildAuthError(
+        ERROR_CODES.AUTH_PASSWORD_RESET_INVALID,
+        'Invalid password reset token',
+        HTTP_STATUS.BAD_REQUEST
+      );
+    }
+
+    const tokenIsValid =
+      securityRecord.passwordResetExpiresAt.getTime() > Date.now() &&
+      securityRecord.passwordResetTokenHash === this.tokens.hashToken(input.token) &&
+      securityRecord.isEmailVerified &&
+      user.status === 'active';
+
+    if (!tokenIsValid) {
+      throw buildAuthError(
+        ERROR_CODES.AUTH_PASSWORD_RESET_INVALID,
+        'Invalid password reset token',
+        HTTP_STATUS.BAD_REQUEST
+      );
+    }
+
+    const nextPasswordHash = await this.passwords.hash(input.newPassword);
+    const activeSessions = await AuthSessionModel.find({
+      userId: user._id,
+      status: AUTH_SESSION_STATUS.ACTIVE
+    });
+    const revokedSessionIds = activeSessions.map((session) => session._id.toString());
+    const transactionSession = await mongoose.startSession();
+
+    try {
+      await transactionSession.withTransaction(async () => {
+        securityRecord.passwordHash = nextPasswordHash;
+        securityRecord.passwordResetTokenHash = null;
+        securityRecord.passwordResetExpiresAt = null;
+        securityRecord.failedLoginAttempts = 0;
+        securityRecord.lockoutUntil = null;
+        await securityRecord.save({ session: transactionSession });
+
+        const revokedAt = new Date();
+
+        for (const authSession of activeSessions) {
+          authSession.status = AUTH_SESSION_STATUS.REVOKED;
+          authSession.revokedAt = revokedAt;
+          await authSession.save({ session: transactionSession });
+        }
+
+        await this.recordAuditLog(
+          {
+            context: input.context,
+            action: 'auth.password_reset.completed',
+            resource: {
+              type: 'user',
+              id: user._id.toString()
+            },
+            severity: 'warning',
+            changes: {
+              after: {
+                revokedSessionIds
+              }
+            }
+          },
+          { session: transactionSession }
+        );
+      });
+    } finally {
+      await transactionSession.endSession();
+    }
+
+    return {
+      reset: true,
+      revokedSessionIds
+    };
+  }
+
+  async changePassword(input: ChangePasswordInput): Promise<ChangePasswordResult> {
+    const securityRecord = await this.loadUserSecurityRecord(input.userId);
+    const currentPasswordMatches = await this.passwords.verify(
+      input.currentPassword,
+      securityRecord.passwordHash
+    );
+
+    if (!currentPasswordMatches) {
+      throw buildAuthError(
+        ERROR_CODES.AUTH_PASSWORD_CHANGE_CURRENT_INVALID,
+        'Current password is invalid',
+        HTTP_STATUS.UNAUTHORIZED
+      );
+    }
+
+    const nextPasswordMatchesCurrent = await this.passwords.verify(
+      input.newPassword,
+      securityRecord.passwordHash
+    );
+
+    if (nextPasswordMatchesCurrent) {
+      throw buildAuthError(
+        ERROR_CODES.AUTH_PASSWORD_CHANGE_REUSED,
+        'New password must be different from the current password',
+        HTTP_STATUS.CONFLICT
+      );
+    }
+
+    const nextPasswordHash = await this.passwords.hash(input.newPassword);
+    const activeSessions = await AuthSessionModel.find({
+      userId: ensureObjectId(input.userId),
+      status: AUTH_SESSION_STATUS.ACTIVE
+    });
+    const sessionsToRevoke = activeSessions.filter(
+      (session) => session._id.toString() !== input.sessionId
+    );
+    const revokedSessionIds = sessionsToRevoke.map((session) => session._id.toString());
+    const transactionSession = await mongoose.startSession();
+
+    try {
+      await transactionSession.withTransaction(async () => {
+        securityRecord.passwordHash = nextPasswordHash;
+        securityRecord.passwordResetTokenHash = null;
+        securityRecord.passwordResetExpiresAt = null;
+        await securityRecord.save({ session: transactionSession });
+
+        const revokedAt = new Date();
+
+        for (const authSession of sessionsToRevoke) {
+          authSession.status = AUTH_SESSION_STATUS.REVOKED;
+          authSession.revokedAt = revokedAt;
+          await authSession.save({ session: transactionSession });
+        }
+
+        await this.recordAuditLog(
+          {
+            context: input.context,
+            action: 'auth.password_change',
+            resource: {
+              type: 'user',
+              id: input.userId
+            },
+            severity: 'warning',
+            changes: {
+              after: {
+                revokedSessionIds
+              }
+            }
+          },
+          { session: transactionSession }
+        );
+      });
+    } finally {
+      await transactionSession.endSession();
+    }
+
+    return {
+      changed: true,
+      revokedSessionIds
+    };
   }
 
   async verifyEmail(input: VerifyEmailInput): Promise<VerifyEmailResult> {
@@ -288,12 +646,14 @@ export class AuthService implements AuthServiceContract {
     securityRecord.isEmailVerified = true;
     securityRecord.emailVerificationTokenHash = null;
     securityRecord.emailVerificationExpiresAt = null;
+    securityRecord.emailVerificationLastSentAt = null;
     user.status = 'active';
     const session = await mongoose.startSession();
 
     try {
       await session.withTransaction(async () => {
-        await Promise.all([securityRecord.save({ session }), user.save({ session })]);
+        await securityRecord.save({ session });
+        await user.save({ session });
 
         await this.recordAuditLog(
           {
@@ -595,13 +955,11 @@ export class AuthService implements AuthServiceContract {
       await transactionSession.withTransaction(async () => {
         const revokedAt = new Date();
 
-        await Promise.all(
-          activeSessions.map(async (session) => {
-            session.status = AUTH_SESSION_STATUS.REVOKED;
-            session.revokedAt = revokedAt;
-            await session.save({ session: transactionSession });
-          })
-        );
+        for (const session of activeSessions) {
+          session.status = AUTH_SESSION_STATUS.REVOKED;
+          session.revokedAt = revokedAt;
+          await session.save({ session: transactionSession });
+        }
 
         await this.recordAuditLog(
           {

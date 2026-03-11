@@ -54,6 +54,7 @@ post:
     - name: X-CSRF-Token
       in: header
       required: false
+      description: Required when authenticating with access token cookie; not required for Bearer auth.
       schema:
         type: string
   requestBody:

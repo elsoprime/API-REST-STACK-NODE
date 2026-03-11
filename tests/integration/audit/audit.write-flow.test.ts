@@ -115,9 +115,7 @@ describe('audit write flow', () => {
       status: 'active',
       roleKey: 'tenant:owner'
     } as never);
-    const findPendingInvitation = vi.spyOn(InvitationModel, 'findOne').mockReturnValue({
-      lean: vi.fn().mockResolvedValue(null)
-    } as never);
+    const findPendingInvitation = vi.spyOn(InvitationModel, 'findOne').mockResolvedValue(null as never);
     vi.spyOn(mongoose, 'startSession').mockResolvedValue(sessionMock as never);
     const createInvitation = vi
       .spyOn(InvitationModel, 'create')

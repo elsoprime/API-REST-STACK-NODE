@@ -106,3 +106,25 @@ Registro posterior al cierre:
 - Decision arquitectonica asociada: [ADR-014_EMAIL_DELIVERY_PROVIDERS_AND_TEMPLATES.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/adrs/ADR-014_EMAIL_DELIVERY_PROVIDERS_AND_TEMPLATES.md)
 
 Este registro no reabre la Etapa 11 ni modifica su veredicto de cierre.
+
+## 8. Reapertura tecnica y re-cierre
+
+Fecha: 2026-03-10  
+Estado: Re-cierre tecnico aplicado (`NO-GO` remoto vigente)
+
+### 8.1 Motivo
+
+Se revalido la etapa para confirmar estado real de gates go-live y reducir deuda tecnica documental en checklist/evidencia.
+
+### 8.2 Fix realizado
+
+- se ejecuto gate integral `npm run go-live:check` en verde local.
+- se ejecuto restore Mongo real en entorno local con `npm run mongo:restore:up` + `npm run test:restore:mongodb:enabled` en verde.
+- se actualizaron checklists de etapa y evidencia release con fecha y resultados reales.
+- se mantiene explicitamente el estado `NO-GO` por falta de evidencia remota verde en workflow RC.
+
+### 8.3 Evidencia automatizada del re-cierre
+
+- `npm run go-live:check` ✅
+- `npm run test:restore:mongodb:enabled` ✅
+- `npm run docs:cierres:validate` ✅
