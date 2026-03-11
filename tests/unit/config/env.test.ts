@@ -21,11 +21,22 @@ describe('env configuration validation', () => {
     'CSRF_COOKIE_NAME',
     'CORS_ORIGINS',
     'GO_LIVE_ENFORCE_PROD_DELIVERY_ADAPTERS',
-    'AUTH_EMAIL_VERIFICATION_DELIVERY_WEBHOOK_URL',
+    'EMAIL_PROVIDER',
+    'EMAIL_FROM',
+    'EMAIL_FROM_NAME',
+    'AUTH_VERIFY_EMAIL_URL',
+    'AUTH_RESET_PASSWORD_URL',
+    'TENANT_INVITATION_ACCEPT_URL',
+    'EMAIL_MAILPIT_SMTP_HOST',
+    'EMAIL_MAILPIT_SMTP_PORT',
+    'EMAIL_RESEND_API_KEY',
+    'EMAIL_RESEND_API_BASE_URL',
+    'EMAIL_DELIVERY_TIMEOUT_MS',
     'AUTH_TWO_FACTOR_PROVISIONING_WEBHOOK_URL',
-    'TENANT_INVITATION_DELIVERY_WEBHOOK_URL',
     'DELIVERY_WEBHOOK_AUTH_TOKEN',
-    'DELIVERY_WEBHOOK_TIMEOUT_MS'
+    'DELIVERY_WEBHOOK_TIMEOUT_MS',
+    'BILLING_PROVIDER',
+    'BILLING_WEBHOOK_SECRET'
   ] as const;
 
   const snapshotEnvironment = (): Record<string, string | undefined> =>
@@ -59,10 +70,10 @@ describe('env configuration validation', () => {
     }
   });
 
-  it('rejects delivery webhook URLs that are not http or https', async () => {
+  it('rejects 2FA delivery webhook URLs that are not http or https', async () => {
     const originalEnvironment = snapshotEnvironment();
 
-    process.env.AUTH_EMAIL_VERIFICATION_DELIVERY_WEBHOOK_URL = 'ftp://delivery.example.com/email';
+    process.env.AUTH_TWO_FACTOR_PROVISIONING_WEBHOOK_URL = 'ftp://delivery.example.com/2fa';
 
     try {
       await expect(import(envModulePath)).rejects.toThrow('Invalid environment variables');
@@ -71,16 +82,58 @@ describe('env configuration validation', () => {
     }
   });
 
-  it('requires https delivery webhook URLs in production', async () => {
+  it('requires https delivery URLs in production', async () => {
     const originalEnvironment = snapshotEnvironment();
 
     process.env.NODE_ENV = 'production';
-    process.env.AUTH_EMAIL_VERIFICATION_DELIVERY_WEBHOOK_URL = 'http://delivery.example.com/email';
+    process.env.EMAIL_PROVIDER = 'resend';
+    process.env.BILLING_PROVIDER = 'stripe';
+    process.env.BILLING_WEBHOOK_SECRET = 'change_this_prod_webhook_secret';
+    process.env.AUTH_VERIFY_EMAIL_URL = 'http://app.example.com/auth/verify-email';
+    process.env.AUTH_RESET_PASSWORD_URL = 'https://app.example.com/auth/reset-password';
     process.env.AUTH_TWO_FACTOR_PROVISIONING_WEBHOOK_URL = 'https://delivery.example.com/2fa';
-    process.env.TENANT_INVITATION_DELIVERY_WEBHOOK_URL = 'https://delivery.example.com/invitations';
+    process.env.TENANT_INVITATION_ACCEPT_URL = 'https://app.example.com/tenant/invitations/accept';
+    process.env.EMAIL_RESEND_API_BASE_URL = 'https://api.resend.com';
 
     try {
       await expect(import(envModulePath)).rejects.toThrow('must use https:// in production');
+    } finally {
+      restoreEnvironment(originalEnvironment);
+    }
+  });
+
+  it('rejects Mailpit as the production email provider', async () => {
+    const originalEnvironment = snapshotEnvironment();
+
+    process.env.NODE_ENV = 'production';
+    process.env.EMAIL_PROVIDER = 'mailpit';
+    process.env.BILLING_PROVIDER = 'stripe';
+    process.env.BILLING_WEBHOOK_SECRET = 'change_this_prod_webhook_secret';
+    process.env.AUTH_VERIFY_EMAIL_URL = 'https://app.example.com/auth/verify-email';
+    process.env.AUTH_RESET_PASSWORD_URL = 'https://app.example.com/auth/reset-password';
+    process.env.TENANT_INVITATION_ACCEPT_URL = 'https://app.example.com/tenant/invitations/accept';
+    process.env.AUTH_TWO_FACTOR_PROVISIONING_WEBHOOK_URL = 'https://delivery.example.com/2fa';
+
+    try {
+      await expect(import(envModulePath)).rejects.toThrow('EMAIL_PROVIDER must be resend in production');
+    } finally {
+      restoreEnvironment(originalEnvironment);
+    }
+  });
+
+  it('rejects non-stripe billing provider in production', async () => {
+    const originalEnvironment = snapshotEnvironment();
+
+    process.env.NODE_ENV = 'production';
+    process.env.EMAIL_PROVIDER = 'resend';
+    process.env.BILLING_PROVIDER = 'simulated';
+    process.env.BILLING_WEBHOOK_SECRET = 'change_this_prod_webhook_secret';
+    process.env.AUTH_VERIFY_EMAIL_URL = 'https://app.example.com/auth/verify-email';
+    process.env.AUTH_RESET_PASSWORD_URL = 'https://app.example.com/auth/reset-password';
+    process.env.TENANT_INVITATION_ACCEPT_URL = 'https://app.example.com/tenant/invitations/accept';
+
+    try {
+      await expect(import(envModulePath)).rejects.toThrow('BILLING_PROVIDER must be stripe in production');
     } finally {
       restoreEnvironment(originalEnvironment);
     }

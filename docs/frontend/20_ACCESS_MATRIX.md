@@ -1,8 +1,8 @@
 # Matriz de Acceso Frontend
 
-Version: 1.5.0
+Version: 1.6.0
 Estado: Activo
-Ultima actualizacion: 2026-03-10
+Ultima actualizacion: 2026-03-11
 
 ## 1. Proposito
 
@@ -45,6 +45,11 @@ Definir la relacion exacta entre rutas UI, endpoints backend, permisos y restric
 | Tenant settings read | `/app/settings/tenant` | `GET /api/v1/tenant/settings` | Requerida | Si | `tenant:settings:read` | N/A | Carga singleton |
 | Tenant settings update | `/app/settings/tenant` | `PATCH /api/v1/tenant/settings` | Requerida | Si | `tenant:settings:update` | N/A | Refetch runtime efectivo |
 | Tenant settings effective | `/app/settings/tenant/effective` | `GET /api/v1/tenant/settings/effective` | Requerida | Si | `tenant:settings:read` | N/A | Fuente para plan/modulos/features |
+| Billing planes | `/app/settings/billing` | `GET /api/v1/billing/plans` | Requerida | No | Sesion autenticada | N/A | Catalogo para seleccion de plan |
+| Billing checkout session | `/app/settings/billing` | `POST /api/v1/billing/checkout/session` | Requerida | Si | `tenant:settings:update` | N/A | Inicia checkout; requiere CSRF en cookie-auth |
+| Tenant subscription assign | `/app/settings/billing` | `PATCH /api/v1/tenant/subscription` | Requerida | Si | `tenant:settings:update` (runtime owner) | N/A | Asigna/cambia plan y modulos del tenant |
+| Tenant subscription cancel | `/app/settings/billing` | `DELETE /api/v1/tenant/subscription` | Requerida | Si | `tenant:settings:update` (runtime owner) | N/A | Cancela plan y limpia modulos activos |
+| Billing webhooks provider | N/A UI (sistema) | `POST /api/v1/billing/webhooks/provider` | System-to-system | No | N/A | N/A | Endpoint exclusivo backend/provider; no consumo FE |
 | Platform settings read | `/app/settings/platform` | `GET /api/v1/platform/settings` | Requerida | No | `platform:settings:read` | N/A | Solo usuarios platform-scoped |
 | Platform settings update | `/app/settings/platform` | `PATCH /api/v1/platform/settings` | Requerida | No | `platform:settings:update` | N/A | CSRF en cookie-auth |
 | Auditoria tenant | `/app/audit` | `GET /api/v1/audit` | Requerida | Si | `tenant:audit:read` | N/A | Filtros + paginacion |

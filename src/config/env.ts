@@ -26,6 +26,18 @@ const goLiveEnforceProdDeliveryAdaptersDefaultsByEnv = {
   production: true
 } as const satisfies Record<AppEnvironment, boolean>;
 
+const emailProviderDefaultsByEnv = {
+  development: 'mailpit',
+  test: 'mailpit',
+  production: 'resend'
+} as const satisfies Record<AppEnvironment, 'mailpit' | 'resend'>;
+
+const billingProviderDefaultsByEnv = {
+  development: 'simulated',
+  test: 'simulated',
+  production: 'stripe'
+} as const satisfies Record<AppEnvironment, 'simulated' | 'stripe'>;
+
 const runtimeNodeEnv = nodeEnvSchema.parse(process.env.NODE_ENV);
 
 const optionalHttpUrlSchema = z.preprocess(
@@ -89,13 +101,28 @@ const envSchema = z.object({
   CORS_ORIGINS: z.string().min(1),
   LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error']).default('info'),
   LOG_PRETTY: z.enum(['true', 'false']).transform((value) => value === 'true'),
-  GO_LIVE_ENFORCE_PROD_DELIVERY_ADAPTERS: z.enum(['true', 'false']).transform((value) => value === 'true')
+  GO_LIVE_ENFORCE_PROD_DELIVERY_ADAPTERS: z
+    .enum(['true', 'false'])
+    .transform((value) => value === 'true')
     .default(String(goLiveEnforceProdDeliveryAdaptersDefaultsByEnv[runtimeNodeEnv]) as 'true' | 'false'),
-  AUTH_EMAIL_VERIFICATION_DELIVERY_WEBHOOK_URL: optionalHttpUrlSchema,
+  EMAIL_PROVIDER: z
+    .enum(['mailpit', 'resend'])
+    .default(emailProviderDefaultsByEnv[runtimeNodeEnv]),
+  EMAIL_FROM: z.string().trim().email(),
+  EMAIL_FROM_NAME: optionalStringSchema,
+  AUTH_VERIFY_EMAIL_URL: z.string().url(),
+  AUTH_RESET_PASSWORD_URL: z.string().url(),
+  TENANT_INVITATION_ACCEPT_URL: z.string().url(),
+  EMAIL_MAILPIT_SMTP_HOST: z.string().trim().min(1).default('127.0.0.1'),
+  EMAIL_MAILPIT_SMTP_PORT: z.coerce.number().int().positive().default(1025),
+  EMAIL_RESEND_API_KEY: optionalStringSchema,
+  EMAIL_RESEND_API_BASE_URL: z.string().url().default('https://api.resend.com'),
+  EMAIL_DELIVERY_TIMEOUT_MS: z.coerce.number().int().positive().default(5000),
   AUTH_TWO_FACTOR_PROVISIONING_WEBHOOK_URL: optionalHttpUrlSchema,
-  TENANT_INVITATION_DELIVERY_WEBHOOK_URL: optionalHttpUrlSchema,
   DELIVERY_WEBHOOK_AUTH_TOKEN: optionalStringSchema,
   DELIVERY_WEBHOOK_TIMEOUT_MS: z.coerce.number().int().positive().default(5000),
+  BILLING_PROVIDER: z.enum(['simulated', 'stripe']).default(billingProviderDefaultsByEnv[runtimeNodeEnv]),
+  BILLING_WEBHOOK_SECRET: z.string().min(16).default('dev-billing-webhook-secret'),
   DB_CONNECT_MAX_RETRIES: z.coerce
     .number()
     .int()
@@ -119,16 +146,42 @@ if (!parsedEnv.success) {
 const parsedAndValidatedEnv = parsedEnv.data;
 
 if (parsedAndValidatedEnv.NODE_ENV === 'production') {
+  if (parsedAndValidatedEnv.EMAIL_PROVIDER !== 'resend') {
+    throw new Error(
+      `Invalid environment variables: ${JSON.stringify({
+        EMAIL_PROVIDER: ['EMAIL_PROVIDER must be resend in production']
+      })}`
+    );
+  }
+
+  if (parsedAndValidatedEnv.BILLING_PROVIDER !== 'stripe') {
+    throw new Error(
+      `Invalid environment variables: ${JSON.stringify({
+        BILLING_PROVIDER: ['BILLING_PROVIDER must be stripe in production']
+      })}`
+    );
+  }
+
+  if (parsedAndValidatedEnv.BILLING_WEBHOOK_SECRET === 'dev-billing-webhook-secret') {
+    throw new Error(
+      `Invalid environment variables: ${JSON.stringify({
+        BILLING_WEBHOOK_SECRET: ['BILLING_WEBHOOK_SECRET must be customized in production']
+      })}`
+    );
+  }
+
   const nonHttpsDeliveryKeys = [
-    ['AUTH_EMAIL_VERIFICATION_DELIVERY_WEBHOOK_URL', parsedAndValidatedEnv.AUTH_EMAIL_VERIFICATION_DELIVERY_WEBHOOK_URL],
+    ['AUTH_VERIFY_EMAIL_URL', parsedAndValidatedEnv.AUTH_VERIFY_EMAIL_URL],
+    ['AUTH_RESET_PASSWORD_URL', parsedAndValidatedEnv.AUTH_RESET_PASSWORD_URL],
+    ['TENANT_INVITATION_ACCEPT_URL', parsedAndValidatedEnv.TENANT_INVITATION_ACCEPT_URL],
     ['AUTH_TWO_FACTOR_PROVISIONING_WEBHOOK_URL', parsedAndValidatedEnv.AUTH_TWO_FACTOR_PROVISIONING_WEBHOOK_URL],
-    ['TENANT_INVITATION_DELIVERY_WEBHOOK_URL', parsedAndValidatedEnv.TENANT_INVITATION_DELIVERY_WEBHOOK_URL]
+    ['EMAIL_RESEND_API_BASE_URL', parsedAndValidatedEnv.EMAIL_RESEND_API_BASE_URL]
   ].filter(([, value]) => typeof value === 'string' && value.startsWith('http://'));
 
   if (nonHttpsDeliveryKeys.length > 0) {
     throw new Error(
       `Invalid environment variables: ${JSON.stringify({
-        deliveryWebhookUrls: nonHttpsDeliveryKeys.map(([key]) => `${key} must use https:// in production`)
+        deliveryUrls: nonHttpsDeliveryKeys.map(([key]) => `${key} must use https:// in production`)
       })}`
     );
   }

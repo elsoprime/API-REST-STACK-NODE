@@ -1,8 +1,8 @@
 # Dependencias Frontend del Backend
 
-Version: 1.2.0
+Version: 1.4.0
 Estado: Activo
-Ultima actualizacion: 2026-03-10
+Ultima actualizacion: 2026-03-11
 
 ## 1. Proposito
 
@@ -30,6 +30,11 @@ Centralizar bloqueos reales de frontend que dependen de contrato o runtime backe
 | BE-FE-001 | Forgot password | Cerrada (backend disponible) | `POST /api/v1/auth/forgot-password` en OpenAPI |
 | BE-FE-002 | Reset password | Cerrada (backend disponible) | `POST /api/v1/auth/reset-password` en OpenAPI |
 | BE-FE-007 | Change password autenticado | Cerrada (backend disponible) | `POST /api/v1/auth/change-password` en OpenAPI/runtime |
+| BE-FE-008 | Tenant settings effective bootstrap de platform settings | Cerrada (backend disponible) | Bootstrap explicito en startup + `GET /api/v1/tenant/settings/effective` estable en runtime |
+| BE-FE-009 | Billing plans catalog | Cerrada (backend disponible) | `GET /api/v1/billing/plans` en OpenAPI/runtime |
+| BE-FE-010 | Checkout session tenant-scoped | Cerrada (backend disponible) | `POST /api/v1/billing/checkout/session` en OpenAPI/runtime |
+| BE-FE-011 | Billing webhook provider | Cerrada (backend disponible) | `POST /api/v1/billing/webhooks/provider` en OpenAPI/runtime |
+| BE-FE-012 | Tenant subscription assign/cancel | Cerrada (backend disponible) | `PATCH/DELETE /api/v1/tenant/subscription` en OpenAPI/runtime |
 
 ## 5. Detalle de vigentes
 

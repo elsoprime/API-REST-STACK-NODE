@@ -48,9 +48,12 @@ import {
   type SwitchActiveTenantInput,
   type SwitchActiveTenantResult,
   type TenantServiceContract,
+  type TenantSubscriptionResult,
   type TenantView,
   type TransferOwnershipInput,
-  type TransferOwnershipResult
+  type TransferOwnershipResult,
+  type AssignTenantSubscriptionInput,
+  type CancelTenantSubscriptionInput
 } from '@/core/tenant/types/tenant.types';
 
 function ensureObjectId(id: string): Types.ObjectId {
@@ -479,23 +482,58 @@ export class TenantService implements TenantServiceContract {
       'Only the tenant owner can manage invitations'
     );
 
+    const roleKey = input.roleKey ?? TENANT_ROLE_KEYS.MEMBER;
+    await this.assertInvitationRoleResolvable(roleKey, tenant._id.toString());
     const normalizedEmail = input.email.trim().toLowerCase();
     const existingPendingInvitation = await InvitationModel.findOne({
       tenantId: tenant._id,
       email: normalizedEmail,
       status: INVITATION_STATUS.PENDING
-    }).lean();
+    });
 
     if (existingPendingInvitation) {
-      throw buildTenantError(
-        ERROR_CODES.TENANT_ACCESS_DENIED,
-        'A pending invitation already exists for this email',
-        HTTP_STATUS.CONFLICT
-      );
-    }
+      const token = generateOpaqueToken();
+      const expiresAt = new Date(Date.now() + TENANT_POLICY.INVITATION_TTL_MS);
 
-    const roleKey = input.roleKey ?? TENANT_ROLE_KEYS.MEMBER;
-    await this.assertInvitationRoleResolvable(roleKey, tenant._id.toString());
+      existingPendingInvitation.roleKey = roleKey;
+      existingPendingInvitation.tokenHash = this.tokens.hashToken(token);
+      existingPendingInvitation.expiresAt = expiresAt;
+      await existingPendingInvitation.save();
+
+      await this.invitationDelivery.deliver({
+        tenantId: tenant._id.toString(),
+        email: normalizedEmail,
+        tenantName: tenant.name,
+        token,
+        roleKey,
+        expiresAt: toIsoDateString(expiresAt)
+      });
+      await this.recordAuditLog({
+        context: input.context,
+        tenant: {
+          tenantId: tenant._id.toString(),
+          roleKey: actorMembership.roleKey,
+          isOwner: isCurrentTenantOwner(tenant, input.userId)
+        },
+        action: 'tenant.invitation.resent',
+        resource: {
+          type: 'tenant_invitation',
+          id: existingPendingInvitation._id.toString()
+        },
+        severity: 'info',
+        changes: {
+          after: {
+            email: normalizedEmail,
+            roleKey,
+            status: existingPendingInvitation.status
+          }
+        }
+      });
+
+      return {
+        invitation: toInvitationView(existingPendingInvitation.toObject())
+      };
+    }
 
     const token = generateOpaqueToken();
     const expiresAt = new Date(Date.now() + TENANT_POLICY.INVITATION_TTL_MS);
@@ -556,6 +594,7 @@ export class TenantService implements TenantServiceContract {
       await this.invitationDelivery.deliver({
         tenantId: tenant._id.toString(),
         email: normalizedEmail,
+        tenantName: tenant.name,
         token,
         roleKey: createdInvitation.roleKey,
         expiresAt: toIsoDateString(expiresAt)
@@ -778,6 +817,10 @@ export class TenantService implements TenantServiceContract {
       throw buildTenantError(ERROR_CODES.TENANT_NOT_FOUND, 'Tenant not found', HTTP_STATUS.NOT_FOUND);
     }
 
+    if (tenant.status !== TENANT_STATUS.ACTIVE) {
+      throw buildTenantError(ERROR_CODES.TENANT_INACTIVE, 'Tenant is not active', HTTP_STATUS.FORBIDDEN);
+    }
+
     if (!actorMembership || actorMembership.status !== MEMBERSHIP_STATUS.ACTIVE) {
       throw buildTenantError(
         ERROR_CODES.TENANT_MEMBERSHIP_REQUIRED,
@@ -873,6 +916,10 @@ export class TenantService implements TenantServiceContract {
 
     if (!tenant) {
       throw buildTenantError(ERROR_CODES.TENANT_NOT_FOUND, 'Tenant not found', HTTP_STATUS.NOT_FOUND);
+    }
+
+    if (tenant.status !== TENANT_STATUS.ACTIVE) {
+      throw buildTenantError(ERROR_CODES.TENANT_INACTIVE, 'Tenant is not active', HTTP_STATUS.FORBIDDEN);
     }
 
     if (!currentOwnerMembership || currentOwnerMembership.status !== MEMBERSHIP_STATUS.ACTIVE) {
@@ -974,6 +1021,172 @@ export class TenantService implements TenantServiceContract {
     }
   }
 
+  async assignSubscription(input: AssignTenantSubscriptionInput): Promise<TenantSubscriptionResult> {
+    const [tenant, membership, resolvedPlan] = await Promise.all([
+      TenantModel.findById(input.tenantId),
+      MembershipModel.findOne({
+        tenantId: ensureObjectId(input.tenantId),
+        userId: ensureObjectId(input.userId)
+      }),
+      this.authorization.resolvePlan(input.planId)
+    ]);
+
+    if (!tenant) {
+      throw buildTenantError(ERROR_CODES.TENANT_NOT_FOUND, 'Tenant not found', HTTP_STATUS.NOT_FOUND);
+    }
+
+    if (tenant.status !== TENANT_STATUS.ACTIVE) {
+      throw buildTenantError(ERROR_CODES.TENANT_INACTIVE, 'Tenant is not active', HTTP_STATUS.FORBIDDEN);
+    }
+
+    this.assertCurrentOwner(
+      tenant,
+      membership,
+      input.userId,
+      'Only the tenant owner can update tenant subscription'
+    );
+
+    if (!resolvedPlan) {
+      throw buildTenantError(
+        ERROR_CODES.RBAC_PLAN_DENIED,
+        'Plan could not be resolved for tenant subscription update',
+        HTTP_STATUS.BAD_REQUEST
+      );
+    }
+
+    const session = await mongoose.startSession();
+
+    try {
+      await session.withTransaction(async () => {
+        const previousPlanId = tenant.planId ?? null;
+        const previousActiveModuleKeys = [...(tenant.activeModuleKeys ?? [])];
+
+        tenant.planId = resolvedPlan.key;
+        tenant.activeModuleKeys = [...resolvedPlan.allowedModuleKeys];
+        await tenant.save({ session });
+
+        await this.recordAuditLog(
+          {
+            context: input.context,
+            tenant: {
+              tenantId: tenant._id.toString(),
+              membershipId: membership?._id.toString(),
+              roleKey: membership?.roleKey,
+              isOwner: true
+            },
+            action: 'tenant.subscription.assign',
+            resource: {
+              type: 'tenant',
+              id: tenant._id.toString()
+            },
+            severity: 'warning',
+            changes: {
+              before: {
+                planId: previousPlanId,
+                activeModuleKeys: previousActiveModuleKeys
+              },
+              after: {
+                planId: tenant.planId,
+                activeModuleKeys: tenant.activeModuleKeys
+              },
+              fields: ['planId', 'activeModuleKeys']
+            }
+          },
+          { session }
+        );
+      });
+
+      return {
+        tenant: toTenantView(tenant.toObject()),
+        subscription: {
+          planId: tenant.planId ?? null,
+          activeModuleKeys: [...tenant.activeModuleKeys],
+          status: 'activated'
+        }
+      };
+    } finally {
+      await session.endSession();
+    }
+  }
+
+  async cancelSubscription(input: CancelTenantSubscriptionInput): Promise<TenantSubscriptionResult> {
+    const [tenant, membership] = await Promise.all([
+      TenantModel.findById(input.tenantId),
+      MembershipModel.findOne({
+        tenantId: ensureObjectId(input.tenantId),
+        userId: ensureObjectId(input.userId)
+      })
+    ]);
+
+    if (!tenant) {
+      throw buildTenantError(ERROR_CODES.TENANT_NOT_FOUND, 'Tenant not found', HTTP_STATUS.NOT_FOUND);
+    }
+
+    if (tenant.status !== TENANT_STATUS.ACTIVE) {
+      throw buildTenantError(ERROR_CODES.TENANT_INACTIVE, 'Tenant is not active', HTTP_STATUS.FORBIDDEN);
+    }
+
+    this.assertCurrentOwner(
+      tenant,
+      membership,
+      input.userId,
+      'Only the tenant owner can cancel tenant subscription'
+    );
+
+    const session = await mongoose.startSession();
+
+    try {
+      await session.withTransaction(async () => {
+        const previousPlanId = tenant.planId ?? null;
+        const previousActiveModuleKeys = [...(tenant.activeModuleKeys ?? [])];
+
+        tenant.planId = null;
+        tenant.activeModuleKeys = [];
+        await tenant.save({ session });
+
+        await this.recordAuditLog(
+          {
+            context: input.context,
+            tenant: {
+              tenantId: tenant._id.toString(),
+              membershipId: membership?._id.toString(),
+              roleKey: membership?.roleKey,
+              isOwner: true
+            },
+            action: 'tenant.subscription.cancel',
+            resource: {
+              type: 'tenant',
+              id: tenant._id.toString()
+            },
+            severity: 'warning',
+            changes: {
+              before: {
+                planId: previousPlanId,
+                activeModuleKeys: previousActiveModuleKeys
+              },
+              after: {
+                planId: tenant.planId,
+                activeModuleKeys: tenant.activeModuleKeys
+              },
+              fields: ['planId', 'activeModuleKeys']
+            }
+          },
+          { session }
+        );
+      });
+
+      return {
+        tenant: toTenantView(tenant.toObject()),
+        subscription: {
+          planId: null,
+          activeModuleKeys: [],
+          status: 'canceled'
+        }
+      };
+    } finally {
+      await session.endSession();
+    }
+  }
   private async assertMemberLimitNotReached(
     tenantId: string,
     session: mongoose.ClientSession
@@ -1074,3 +1287,6 @@ export class TenantService implements TenantServiceContract {
 }
 
 export const tenantService = new TenantService();
+
+
+

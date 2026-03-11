@@ -1,8 +1,8 @@
 # Guia de Mocking Frontend
 
-Version: 1.1.0
+Version: 1.2.0
 Estado: Activo
-Ultima actualizacion: 2026-03-10
+Ultima actualizacion: 2026-03-11
 
 ## 1. Proposito
 
@@ -29,6 +29,7 @@ src/mocks/
     auth.handlers.ts
     tenant.handlers.ts
     settings.handlers.ts
+    billing.handlers.ts
     audit.handlers.ts
     inventory.handlers.ts
     crm.handlers.ts
@@ -36,12 +37,14 @@ src/mocks/
   fixtures/
     users.fixture.ts
     tenants.fixture.ts
+    billing.fixture.ts
     inventory.fixture.ts
     crm.fixture.ts
     hr.fixture.ts
   scenarios/
     auth.scenario.ts
     tenant.scenario.ts
+    billing.scenario.ts
     inventory.scenario.ts
   browser.ts
   server.ts
@@ -91,6 +94,14 @@ src/mocks/
 - Lectura empleados permitida
 - Compensacion denegada (`RBAC_PERMISSION_DENIED`)
 - Jerarquia ciclica (`HR_EMPLOYEE_HIERARCHY_CYCLE`)
+
+### 5.6 Billing y Provisioning
+
+- `GET /api/v1/billing/plans`: catalogo de planes.
+- `POST /api/v1/billing/checkout/session`: exito (`201`) y error de validacion/permisos.
+- `PATCH /api/v1/tenant/subscription`: asignacion/cambio de plan.
+- `DELETE /api/v1/tenant/subscription`: cancelacion y limpieza de modulos.
+- `POST /api/v1/billing/webhooks/provider`: webhook con firma valida e invalida para flujos dev.
 
 ## 6. Contrato de envelope en mocks
 

@@ -1,0 +1,41 @@
+post:
+  tags:
+    - Billing
+  summary: Create a checkout session for the active tenant and selected plan
+  operationId: createCheckoutSession
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - name: X-Tenant-Id
+      in: header
+      required: true
+      schema:
+        type: string
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      description: Required when authenticating with access token cookie; not required for Bearer auth.
+      schema:
+        type: string
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../../components/schemas/billing.yaml#/CreateCheckoutSessionRequest
+  responses:
+    '201':
+      description: Checkout session created
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/billing.yaml#/CreateCheckoutSessionSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '404':
+      $ref: ../../components/responses/_index.yaml#/GenericError

@@ -1,0 +1,17 @@
+get:
+  tags:
+    - Billing
+  summary: List available plans for checkout and provisioning
+  operationId: listBillingPlans
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  responses:
+    '200':
+      description: Plan catalog
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/billing.yaml#/BillingPlanCatalogSuccessResponse
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError

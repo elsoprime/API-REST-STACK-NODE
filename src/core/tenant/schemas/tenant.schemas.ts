@@ -35,3 +35,7 @@ export const revokeInvitationSchema = z.object({
 export const transferOwnershipSchema = z.object({
   targetUserId: objectIdSchema
 });
+
+export const assignTenantSubscriptionSchema = z.object({
+  planId: z.string().trim().min(1)
+});

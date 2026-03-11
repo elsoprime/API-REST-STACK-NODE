@@ -1,8 +1,8 @@
 # Estandar del Cliente API Frontend
 
-Version: 1.1.0
+Version: 1.2.0
 Estado: Activo
-Ultima actualizacion: 2026-03-10
+Ultima actualizacion: 2026-03-11
 
 ## 1. Proposito
 
@@ -27,6 +27,8 @@ Definir un estandar unico de cliente HTTP para todo el frontend: autenticacion, 
 - `/api/v1/tenant/invitations`
 - `/api/v1/tenant/invitations/revoke`
 - `/api/v1/tenant/transfer-ownership`
+- `/api/v1/tenant/subscription`
+- `/api/v1/billing/checkout/session`
 
 ### 3.2 Excepciones tenant-bound sin `X-Tenant-Id`
 
@@ -40,6 +42,11 @@ Definir un estandar unico de cliente HTTP para todo el frontend: autenticacion, 
 - `/api/v1/tenant`
 - `/api/v1/tenant/mine`
 - `/api/v1/platform/settings`
+- `/api/v1/billing/plans`
+
+Nota:
+
+- `/api/v1/billing/webhooks/provider` es endpoint `system-to-system` y no debe ser llamado desde cliente frontend.
 
 ## 4. Contratos de entrada y salida sugeridos
 
@@ -100,7 +107,9 @@ function isTenantScoped(path: string): boolean {
     path.startsWith('/api/v1/modules/') ||
     path === '/api/v1/tenant/invitations' ||
     path === '/api/v1/tenant/invitations/revoke' ||
-    path === '/api/v1/tenant/transfer-ownership'
+    path === '/api/v1/tenant/transfer-ownership' ||
+    path === '/api/v1/tenant/subscription' ||
+    path === '/api/v1/billing/checkout/session'
   );
 }
 

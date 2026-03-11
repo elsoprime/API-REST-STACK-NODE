@@ -1,8 +1,8 @@
 # Guia de Implementacion Frontend V2 (API -> Frontend)
 
-Version: 2.0.0
+Version: 2.1.0
 Estado: Activo
-Ultima actualizacion: 2026-03-10
+Ultima actualizacion: 2026-03-11
 
 ## 1. Objetivo
 
@@ -14,7 +14,7 @@ Esta guia reemplaza como referencia principal a `_deprecated/90_INTEGRATION_PLAN
 
 ### 2.1 Alcance
 
-- Incluye integracion FE para Auth, Tenant, Tenant Settings, Platform Settings, Audit, Inventory, CRM y HR.
+- Incluye integracion FE para Auth, Tenant, Billing/Provisioning, Tenant Settings, Platform Settings, Audit, Inventory, CRM y HR.
 - Incluye reglas de cliente HTTP, seguridad, errores, cache, testing y cierre.
 - No define UX visual detallada ni sistema de diseno.
 
@@ -190,6 +190,8 @@ const response = await apiClient.request({
 | POST | `/api/v1/tenant/invitations/accept` | Si | No | Condicional | 200,400,401,403,404,409 |
 | POST | `/api/v1/tenant/invitations/revoke` | Si | Si | Condicional | 200,400,401,403,404,409 |
 | POST | `/api/v1/tenant/transfer-ownership` | Si | Si | Condicional | 200,400,401,403,404,409 |
+| PATCH | `/api/v1/tenant/subscription` | Si | Si | Condicional | 200,400,401,403,404 |
+| DELETE | `/api/v1/tenant/subscription` | Si | Si | Condicional | 200,401,403,404 |
 
 ### Ejemplo de implementacion (switch tenant)
 
@@ -212,7 +214,39 @@ await bootstrapTenantRuntime(tenantId);
 - Limpiar cache tenant-scoped al cambiar tenant.
 - Tratar `TENANT_OWNER_REQUIRED` y `TENANT_MEMBER_LIMIT_REACHED` como errores de negocio, sin retry automatico.
 
-## 4.4 Tenant Settings
+## 4.4 Billing y Provisioning
+
+### Casos de uso principales
+
+- Consultar catalogo de planes disponibles.
+- Crear checkout session para pago real/simulado.
+- Asignar/cambiar/cancelar suscripcion del tenant.
+- Reflejar cambio de plan/modulos/features en runtime efectivo.
+
+### Casos de uso secundarios
+
+- Procesamiento idempotente de webhooks de provider.
+- Flujo de estados `pending -> paid -> activated`.
+- Recuperacion de checkout fallido o cancelado.
+
+### Endpoints
+
+| Metodo | Endpoint | Auth | X-Tenant-Id | X-CSRF-Token | Status |
+|---|---|---|---|---|---|
+| GET | `/api/v1/billing/plans` | Si | No | No | 200,401 |
+| POST | `/api/v1/billing/checkout/session` | Si | Si | Condicional | 201,400,401,403,404 |
+| POST | `/api/v1/billing/webhooks/provider` | No (system-to-system) | No | No | 200,401 |
+| PATCH | `/api/v1/tenant/subscription` | Si | Si | Condicional | 200,400,401,403,404 |
+| DELETE | `/api/v1/tenant/subscription` | Si | Si | Condicional | 200,401,403,404 |
+
+### Validaciones FE obligatorias
+
+- No llamar `billing/webhooks/provider` desde UI; solo backend/provider.
+- Tratar `checkout/session` como estado intermedio hasta recibir webhook o asignacion directa.
+- Tras `PATCH/DELETE /tenant/subscription`, invalidar cache tenant-scoped y refetch de `tenant/settings/effective`.
+- Si runtime llega incompleto o nulo, degradar a estado seguro sin romper render.
+
+## 4.5 Tenant Settings
 
 ### Casos de uso principales
 
@@ -248,8 +282,9 @@ await queryClient.invalidateQueries({ queryKey: ['tenant', tenantId, 'settings',
 
 - Siempre usar `tenant/settings/effective` para guardas de modulo/plan/features en shell.
 - Evitar inferencias locales de permisos por plan sin backend.
+- Si `GET /api/v1/tenant/settings/effective` responde `GEN_INTERNAL_ERROR`, tratarlo como incidente backend de inicializacion (startup bootstrap de platform settings), sin retry en loop desde frontend.
 
-## 4.5 Platform Settings
+## 4.6 Platform Settings
 
 ### Casos de uso
 
@@ -266,7 +301,7 @@ await queryClient.invalidateQueries({ queryKey: ['tenant', tenantId, 'settings',
 
 - Pantallas solo para usuarios con permisos `platform:settings:read/update`.
 
-## 4.6 Audit
+## 4.7 Audit
 
 ### Casos de uso
 
@@ -283,7 +318,7 @@ await queryClient.invalidateQueries({ queryKey: ['tenant', tenantId, 'settings',
 - Persistir filtros en URL.
 - Mantener `traceId` visible para soporte en errores.
 
-## 4.7 Inventory
+## 4.8 Inventory
 
 ### Casos de uso principales
 
@@ -330,7 +365,7 @@ await apiClient.request({
 - En `INV_STOCK_CONFLICT`: rollback de estado optimista y refetch.
 - En `INV_STOCK_UNDERFLOW`: bloqueo UX y guia de correccion, sin retry.
 
-## 4.8 CRM
+## 4.9 CRM
 
 ### Casos de uso principales
 
@@ -364,7 +399,7 @@ await apiClient.request({
 - Mapear `CRM_OPPORTUNITY_STAGE_TRANSITION_INVALID` a UX accionable (sin retry).
 - Refetch de counters tras mutaciones CRM.
 
-## 4.9 HR
+## 4.10 HR
 
 ### Casos de uso principales
 
@@ -396,6 +431,7 @@ await apiClient.request({
 | Sesion autenticada | Todos excepto Health/Auth publico | Sin sesion valida no iniciar flujos de negocio |
 | Tenant activo | Tenant Settings, Audit, Inventory, CRM, HR | Sin tenant activo, bloquear rutas tenant-scoped |
 | Runtime efectivo (`tenant/settings/effective`) | Shell, guardas de modulos, navegacion | Fuente unica para habilitar/ocultar modulos y features |
+| Provisioning billing (`checkout/session`, `tenant/subscription`) | Shell, tenant settings effective, modulos | Todo cambio de plan requiere refetch runtime efectivo antes de habilitar modulos/features |
 | Permisos RBAC efectivos | Tenant, Settings, Audit, Inventory, CRM, HR | Frontend solo sugiere acceso; backend es autoridad |
 | Politica de errores por `error.code` | Todos | UX y acciones definidas por codigo, no por texto libre |
 
@@ -477,6 +513,21 @@ Validaciones:
 - Manejo de conflictos de dominio (`INV_STOCK_CONFLICT`, stage invalid, jerarquia HR, etc.).
 - Invalidaciones de cache por modulo.
 
+#### Etapa 2.4 Billing + Provisioning
+
+Tareas:
+
+1. Pantalla de planes y checkout (`GET /billing/plans`, `POST /billing/checkout/session`).
+2. Acciones de suscripcion (`PATCH/DELETE /tenant/subscription`).
+3. Sincronizacion automatica de runtime efectivo luego de cambios de plan.
+4. Manejo UX para estados `pending`, `paid`, `activated`, `failed`, `canceled`.
+
+Validaciones:
+
+- Ninguna llamada UI directa a `billing/webhooks/provider`.
+- Reconciliacion de runtime efectiva tras cada mutacion de provisioning.
+- Manejo robusto cuando runtime venga incompleto (no crash de UI).
+
 ## Fase 3: Optimizacion
 
 ### Objetivo
@@ -547,5 +598,4 @@ Mapeo obligatorio inicial:
 - [ ] Flujos E2E criticos en verde.
 - [ ] Dependencias backend reales actualizadas (sin falsos positivos).
 - [ ] Documentacion frontend sincronizada con OpenAPI y runtime actual.
-
 

@@ -15,6 +15,12 @@ paths:
     $ref: ./paths/auth/login-browser.yaml
   /api/v1/auth/login/headless:
     $ref: ./paths/auth/login-headless.yaml
+  /api/v1/auth/resend-verification:
+    $ref: ./paths/auth/resend-verification.yaml
+  /api/v1/auth/forgot-password:
+    $ref: ./paths/auth/forgot-password.yaml
+  /api/v1/auth/reset-password:
+    $ref: ./paths/auth/reset-password.yaml
   /api/v1/auth/verify-email:
     $ref: ./paths/auth/verify-email.yaml
   /api/v1/auth/refresh/browser:
@@ -29,12 +35,20 @@ paths:
     $ref: ./paths/auth/2fa/disable.yaml
   /api/v1/auth/recovery-codes/regenerate:
     $ref: ./paths/auth/recovery-codes/regenerate.yaml
+  /api/v1/auth/change-password:
+    $ref: ./paths/auth/change-password.yaml
   /api/v1/auth/logout:
     $ref: ./paths/auth/logout.yaml
   /api/v1/auth/logout-all:
     $ref: ./paths/auth/logout-all.yaml
   /api/v1/audit:
     $ref: ./paths/audit/list.yaml
+  /api/v1/billing/plans:
+    $ref: ./paths/billing/plans.yaml
+  /api/v1/billing/checkout/session:
+    $ref: ./paths/billing/checkout-session.yaml
+  /api/v1/billing/webhooks/provider:
+    $ref: ./paths/billing/webhooks-provider.yaml
   /api/v1/platform/settings:
     $ref: ./paths/platform/settings.yaml
   /api/v1/tenant:
@@ -55,6 +69,8 @@ paths:
     $ref: ./paths/tenant/settings.yaml
   /api/v1/tenant/settings/effective:
     $ref: ./paths/tenant/settings-effective.yaml
+  /api/v1/tenant/subscription:
+    $ref: ./paths/tenant/subscription.yaml
   /api/v1/modules/inventory/categories:
     $ref: ./paths/modules/inventory-categories.yaml
   /api/v1/modules/inventory/categories/{categoryId}:
@@ -100,3 +116,4 @@ components:
     $ref: ./components/parameters/_index.yaml
   securitySchemes:
     $ref: ./components/securitySchemes/_index.yaml
+

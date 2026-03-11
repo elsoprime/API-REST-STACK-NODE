@@ -1,8 +1,8 @@
 # Matriz de Deprecacion Documental Frontend
 
-Version: 1.1.0
+Version: 1.2.0
 Estado: Activo
-Ultima actualizacion: 2026-03-10
+Ultima actualizacion: 2026-03-11
 
 ## 1. Objetivo
 
@@ -19,16 +19,16 @@ Clasificar la documentacion de `docs/frontend/*` para eliminar ruido, conservar 
 | Documento | Estado | Motivo | Accion |
 |---|---|---|---|
 | `README.md` | Vigente | Indice oficial de `docs/frontend` | Mantener y actualizar referencia principal a V2 |
-| `10_IMPLEMENTATION_GUIDE_V2.md` | Vigente | Nueva guia principal por fases y etapas | Fuente principal para ejecucion FE |
+| `10_IMPLEMENTATION_GUIDE_V2.md` | Vigente | Guia principal por fases y etapas, incluyendo billing/provisioning | Fuente principal para ejecucion FE |
 | `_deprecated/90_INTEGRATION_PLAN_V1.md` | Deprecado controlado | Referencias historicas y rol superado por V2 | Mantener en `_deprecated` con redireccion a V2 |
-| `20_ACCESS_MATRIX.md` | Vigente con correccion | Tiene seccion desalineada con OpenAPI actual | Corregir cobertura de endpoints y mantener como matriz de acceso |
-| `30_API_CLIENT_STANDARD.md` | Vigente con correccion | Requiere precision de excepciones tenant/token-bound | Ajustar reglas de headers y consumo por ruta |
-| `40_STATE_AND_CACHE_POLICY.md` | Vigente | Base solida de aislamiento tenant/cache | Mantener |
+| `20_ACCESS_MATRIX.md` | Vigente | Matriz alineada con OpenAPI vigente, incluyendo billing/provisioning | Mantener sincronizada por cambios de contrato |
+| `30_API_CLIENT_STANDARD.md` | Vigente | Reglas de headers y clasificacion de rutas actualizadas | Mantener y validar contra cliente real |
+| `40_STATE_AND_CACHE_POLICY.md` | Vigente | Base de aislamiento tenant/cache actualizada con provisioning | Mantener |
 | `50_ERROR_CATALOG.md` | Vigente con correccion | Faltaban codigos de password reset/change | Completar codigos y acciones UX |
-| `60_MOCKING_GUIDE.md` | Vigente | Alineado con OpenAPI y MSW | Mantener |
-| `70_E2E_CRITICAL_FLOWS.md` | Vigente | Flujos criticos claros para release gate | Mantener |
-| `80_BACKEND_DEPENDENCIES.md` | Vigente con correccion | Tenia bloqueos ya resueltos por backend | Actualizar estado de dependencias |
-| `90_DOD_CHECKLIST.md` | Vigente | Criterios claros de cierre y calidad | Mantener |
+| `60_MOCKING_GUIDE.md` | Vigente | Incluye escenarios de billing/provisioning en MSW | Mantener |
+| `70_E2E_CRITICAL_FLOWS.md` | Vigente | Flujos criticos incluyen provisioning billing | Mantener |
+| `80_BACKEND_DEPENDENCIES.md` | Vigente | Dependencias cerradas/abiertas actualizadas | Mantener trazabilidad |
+| `90_DOD_CHECKLIST.md` | Vigente | Criterios de cierre incluyen billing/provisioning | Mantener |
 
 ## 4. Inconsistencias detectadas y tratamiento
 
@@ -52,6 +52,11 @@ Corregir menciones de ausencia para:
 - `POST /api/v1/auth/forgot-password`
 - `POST /api/v1/auth/reset-password`
 - `POST /api/v1/auth/change-password`
+- `GET /api/v1/billing/plans`
+- `POST /api/v1/billing/checkout/session`
+- `POST /api/v1/billing/webhooks/provider`
+- `PATCH /api/v1/tenant/subscription`
+- `DELETE /api/v1/tenant/subscription`
 
 ### 4.3 Dependencias que siguen realmente abiertas
 

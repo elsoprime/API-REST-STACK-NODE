@@ -1,0 +1,28 @@
+post:
+  tags:
+    - Billing
+  summary: Process provider webhook events for checkout and provisioning lifecycle
+  operationId: processBillingProviderWebhook
+  parameters:
+    - name: X-Billing-Signature
+      in: header
+      required: true
+      schema:
+        type: string
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../../components/schemas/billing.yaml#/BillingWebhookEvent
+  responses:
+    '200':
+      description: Webhook event processed
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/billing.yaml#/BillingWebhookProcessSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError

@@ -1,8 +1,8 @@
 # Definition of Done Frontend
 
-Version: 1.1.0
+Version: 1.2.0
 Estado: Activo
-Ultima actualizacion: 2026-03-10
+Ultima actualizacion: 2026-03-11
 
 ## 1. Proposito
 
@@ -64,6 +64,14 @@ Checklist:
 - [ ] Compensacion get/update.
 - [ ] Ocultamiento de datos sensibles por permisos.
 - [ ] Manejo de jerarquia invalida/ciclica.
+
+### 4.4 Billing y Provisioning
+
+- [ ] Catalogo de planes (`GET /api/v1/billing/plans`) integrado.
+- [ ] Checkout session (`POST /api/v1/billing/checkout/session`) con estado UX claro.
+- [ ] Suscripcion tenant (`PATCH/DELETE /api/v1/tenant/subscription`) integrada.
+- [ ] Runtime efectivo refetch e invalidacion de cache tras cambios de plan.
+- [ ] UI robusta ante runtime incompleto o nulo (sin crashes de render).
 
 ## 5. DoD de seguridad y compliance
 

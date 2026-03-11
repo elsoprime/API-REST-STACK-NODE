@@ -1,8 +1,8 @@
 # Flujos E2E Criticos Frontend
 
-Version: 1.3.0
+Version: 1.4.0
 Estado: Activo
-Ultima actualizacion: 2026-03-10
+Ultima actualizacion: 2026-03-11
 
 ## 1. Proposito
 
@@ -19,6 +19,8 @@ Definir la suite E2E minima para proteger flujos de negocio criticos y evitar re
 - Usuario C: sin tenants
 - Tenant T2 para validar aislamiento
 - Datos seed para Inventory, CRM y HR en T1
+- Catalogo seed de billing plans (`starter`, `growth`, `enterprise`)
+- Payloads de webhook billing (paid/failed/canceled) + firma valida para entorno dev
 
 ## 4. Flujos criticos obligatorios
 
@@ -88,6 +90,28 @@ Criterio de aceptacion:
 Criterio de aceptacion:
 
 - El singleton se actualiza sin perder contexto tenant y el runtime queda consistente en UI.
+
+### E2E-04D Billing provisioning + runtime efectivo
+
+1. Abrir `/app/settings/billing`.
+2. Cargar `GET /api/v1/billing/plans`.
+3. Crear checkout (`POST /api/v1/billing/checkout/session`) para plan objetivo.
+4. Simular procesamiento webhook paid (backend/system path).
+5. Verificar refetch de `GET /api/v1/tenant/settings/effective`.
+
+Criterio de aceptacion:
+
+- El flujo termina en estado activated y el runtime refleja plan/modulos/features esperados.
+
+### E2E-04E Cancelacion de suscripcion
+
+1. Con tenant con plan activo, ejecutar `DELETE /api/v1/tenant/subscription`.
+2. Verificar refetch de runtime efectivo.
+3. Verificar bloqueo de modulos dependientes de plan.
+
+Criterio de aceptacion:
+
+- El tenant queda sin plan activo y la UI no muestra modulos no habilitados.
 
 ### E2E-05 Guardas por permisos
 
@@ -177,11 +201,11 @@ Criterio de aceptacion:
 
 ### 5.1 Pull Request
 
-- E2E-01, E2E-03, E2E-04, E2E-05, E2E-11
+- E2E-01, E2E-03, E2E-04, E2E-04D, E2E-05, E2E-11
 
 ### 5.2 Pre-release / staging
 
-- Todos los casos E2E-01 a E2E-12
+- Todos los casos E2E-01 a E2E-12 + E2E-04D/E2E-04E
 
 ## 6. Evidencia requerida por corrida
 

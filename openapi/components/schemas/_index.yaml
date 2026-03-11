@@ -8,6 +8,14 @@ LoginRequest:
   $ref: ./auth.yaml#/LoginRequest
 EmailVerificationStatus:
   $ref: ./auth.yaml#/EmailVerificationStatus
+EmailVerificationDispatchAccepted:
+  $ref: ./auth.yaml#/EmailVerificationDispatchAccepted
+ResendVerificationRequest:
+  $ref: ./auth.yaml#/ResendVerificationRequest
+ForgotPasswordRequest:
+  $ref: ./auth.yaml#/ForgotPasswordRequest
+ResetPasswordRequest:
+  $ref: ./auth.yaml#/ResetPasswordRequest
 VerifyEmailRequest:
   $ref: ./auth.yaml#/VerifyEmailRequest
 SetupTwoFactor:
@@ -16,12 +24,16 @@ ConfirmTwoFactorRequest:
   $ref: ./auth.yaml#/ConfirmTwoFactorRequest
 TwoFactorChallengeRequest:
   $ref: ./auth.yaml#/TwoFactorChallengeRequest
+ChangePasswordRequest:
+  $ref: ./auth.yaml#/ChangePasswordRequest
 BrowserAuthSuccessResponse:
   $ref: ./auth.yaml#/BrowserAuthSuccessResponse
 HeadlessAuthSuccessResponse:
   $ref: ./auth.yaml#/HeadlessAuthSuccessResponse
 LogoutSuccessResponse:
   $ref: ./auth.yaml#/LogoutSuccessResponse
+EmailVerificationDispatchAcceptedResponse:
+  $ref: ./auth.yaml#/EmailVerificationDispatchAcceptedResponse
 VerifyEmailSuccessResponse:
   $ref: ./auth.yaml#/VerifyEmailSuccessResponse
 SetupTwoFactorSuccessResponse:
@@ -32,6 +44,10 @@ RegenerateRecoveryCodesSuccessResponse:
   $ref: ./auth.yaml#/RegenerateRecoveryCodesSuccessResponse
 DisableTwoFactorSuccessResponse:
   $ref: ./auth.yaml#/DisableTwoFactorSuccessResponse
+PasswordResetSuccessResponse:
+  $ref: ./auth.yaml#/PasswordResetSuccessResponse
+ChangePasswordSuccessResponse:
+  $ref: ./auth.yaml#/ChangePasswordSuccessResponse
 HealthResponse:
   $ref: ./success.yaml#/HealthResponse
 Tenant:
@@ -188,3 +204,23 @@ CrmActivityListSuccessResponse:
   $ref: ./crm.yaml#/CrmActivityListSuccessResponse
 CrmCountersSuccessResponse:
   $ref: ./crm.yaml#/CrmCountersSuccessResponse
+BillingPlan:
+  $ref: ./billing.yaml#/BillingPlan
+BillingCheckoutSession:
+  $ref: ./billing.yaml#/BillingCheckoutSession
+BillingWebhookEvent:
+  $ref: ./billing.yaml#/BillingWebhookEvent
+CreateCheckoutSessionRequest:
+  $ref: ./billing.yaml#/CreateCheckoutSessionRequest
+AssignTenantSubscriptionRequest:
+  $ref: ./billing.yaml#/AssignTenantSubscriptionRequest
+TenantSubscription:
+  $ref: ./billing.yaml#/TenantSubscription
+BillingPlanCatalogSuccessResponse:
+  $ref: ./billing.yaml#/BillingPlanCatalogSuccessResponse
+CreateCheckoutSessionSuccessResponse:
+  $ref: ./billing.yaml#/CreateCheckoutSessionSuccessResponse
+BillingWebhookProcessSuccessResponse:
+  $ref: ./billing.yaml#/BillingWebhookProcessSuccessResponse
+TenantSubscriptionSuccessResponse:
+  $ref: ./billing.yaml#/TenantSubscriptionSuccessResponse

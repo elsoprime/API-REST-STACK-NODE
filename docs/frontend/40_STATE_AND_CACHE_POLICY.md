@@ -1,8 +1,8 @@
 # Politica de Estado y Cache Frontend
 
-Version: 1.1.0  
+Version: 1.2.0  
 Estado: Activo  
-Ultima actualizacion: 2026-03-09
+Ultima actualizacion: 2026-03-11
 
 ## 1. Proposito
 
@@ -67,6 +67,9 @@ Ejemplos:
 - `platform:settings`
 - `tenant:<id>:settings`
 - `tenant:<id>:settings:effective`
+- `tenant:<id>:billing:checkout`
+- `tenant:<id>:subscription`
+- `billing:plans`
 - `tenant:<id>:audit:list:<filtersHash>`
 - `tenant:<id>:inventory:items:<filtersHash>`
 - `tenant:<id>:crm:counters`
@@ -83,6 +86,9 @@ Implementacion vigente:
   - `["platform", "tenant", "mine"]`
   - `["tenant", tenantId, "settings"]`
   - `["tenant", tenantId, "settings", "effective"]`
+  - `["billing", "plans"]`
+  - `["tenant", tenantId, "billing", "checkout"]`
+  - `["tenant", tenantId, "subscription"]`
 - `src/lib/query/tenant-cache.ts`
   - limpieza tenant-scoped del tenant previo en switch
   - invalidacion central de `settings` y `settings:effective` tras update
@@ -97,6 +103,8 @@ Implementacion vigente:
 | Logout / logout-all | `session`, `tenant`, `ui.lastTraceId` | Todo cache | Volver a login |
 | Tenant switch exito | `tenant.activeTenantId`, `tenant.activeMembership`, `tenant.effectiveRuntime` | Todo `tenant:<oldTenantId>:*` | Cargar contexto del nuevo tenant y reconstruir runtime efectivo |
 | Update tenant settings | `tenant.effectiveRuntime` | `tenant:<id>:settings`, `tenant:<id>:settings:effective` | Refetch despues de guardar y resincronizar shell/runtime |
+| Create checkout session | `tenant.effectiveRuntime` (pendiente) | `tenant:<id>:billing:checkout` | Esperar webhook/assign y no habilitar modulos por anticipado |
+| Assign/cancel tenant subscription | `tenant.effectiveRuntime`, `tenant.activeTenant` | `tenant:<id>:subscription`, `tenant:<id>:settings:effective`, `platform:tenant:mine` | Refetch runtime efectivo y refrescar shell del tenant activo |
 | Update platform settings | Ningun tenant local inmediato (depende de UI) | `platform:settings`, `tenant:<id>:settings:effective` | Refetch runtime efectivo visible |
 | Mutacion inventory | Estado de modulo inventory | Keys inventory del tenant activo | Mantener consistencia de stock |
 | Mutacion CRM | Estado de modulo crm | Keys CRM del tenant activo + counters | Refetch counters |
