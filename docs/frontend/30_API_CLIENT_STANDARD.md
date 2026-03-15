@@ -1,8 +1,8 @@
 # Estandar del Cliente API Frontend
 
-Version: 1.2.0
+Version: 1.3.0
 Estado: Activo
-Ultima actualizacion: 2026-03-11
+Ultima actualizacion: 2026-03-13
 
 ## 1. Proposito
 
@@ -16,6 +16,7 @@ Definir un estandar unico de cliente HTTP para todo el frontend: autenticacion, 
 4. Errores se normalizan al envelope global (`success=false`, `error`, `traceId`).
 5. Solo un intento de refresh automatico por request.
 6. `traceId` debe registrarse para soporte/observabilidad.
+7. Rutas platform-scoped deben usar cliente platform-only (sin `X-Tenant-Id` y sin token tenant-scoped).
 
 ## 3. Clasificacion de rutas para headers
 
@@ -43,6 +44,21 @@ Definir un estandar unico de cliente HTTP para todo el frontend: autenticacion, 
 - `/api/v1/tenant/mine`
 - `/api/v1/platform/settings`
 - `/api/v1/billing/plans`
+
+### 3.4 Policy de scope (obligatoria)
+
+- `tenantClient`:
+  - aplica a rutas tenant-scoped
+  - requiere `tenantId`
+  - puede usar token tenant-scoped
+- `platformClient`:
+  - aplica a rutas platform-scoped
+  - no envia `X-Tenant-Id`
+  - no debe usar token tenant-scoped (por ejemplo, token emitido tras `tenant/switch`)
+
+Regla dura:
+
+- No hacer fallback automatico entre scopes.
 
 Nota:
 
@@ -205,3 +221,45 @@ async function request<T>(input: {
 - [ ] `X-Tenant-Id` y `X-CSRF-Token` se inyectan automaticamente.
 - [ ] Manejo de refresh `401` implementado y probado.
 - [ ] Normalizacion de errores y captura de `traceId` implementadas.
+- [ ] Existe separacion explicita `tenantClient` / `platformClient`.
+- [ ] `platformClient` bloquea envio de `X-Tenant-Id`.
+- [ ] `tenantClient` bloquea requests tenant-scoped sin `tenantId`.
+
+## 10. Addendum Scope Split (2026-03-13)
+
+### 10.1 Motivacion
+
+Se detecto `TENANT_SCOPE_MISMATCH` al consumir `/api/v1/platform/settings` con contexto tenant-scoped.
+
+### 10.2 Implementacion recomendada
+
+```ts
+type ApiScope = 'tenant' | 'platform';
+
+function resolveScope(path: string): ApiScope {
+  if (path.startsWith('/api/v1/platform/')) return 'platform';
+  return isTenantScoped(path) ? 'tenant' : 'platform';
+}
+
+function buildRequest(input: { path: string; tenantId?: string; token?: string }) {
+  const scope = resolveScope(input.path);
+  const headers = new Headers();
+
+  if (scope === 'tenant') {
+    if (!input.tenantId) throw new Error('tenantId required for tenant-scoped path');
+    headers.set('X-Tenant-Id', input.tenantId);
+  }
+
+  if (scope === 'platform' && headers.has('X-Tenant-Id')) {
+    throw new Error('X-Tenant-Id is forbidden for platform-scoped path');
+  }
+
+  return { scope, headers };
+}
+```
+
+### 10.3 Resultado esperado
+
+- `tenantClient` atiende rutas tenant-scoped.
+- `platformClient` atiende rutas platform-scoped.
+- se reduce error funcional por mezcla de contextos.

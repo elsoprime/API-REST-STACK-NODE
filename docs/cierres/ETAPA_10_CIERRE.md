@@ -1,4 +1,4 @@
-# Cierre Etapa 10
+﻿# Cierre Etapa 10
 
 Fecha: 2026-03-08  
 Estado: Cerrada (validada)
@@ -21,12 +21,12 @@ Incluye:
 
 Activos documentales y contractuales publicados en este borrador:
 
-- [ADR_HR_PRIVACIDAD_Y_ACCESO.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/adrs/ADR_HR_PRIVACIDAD_Y_ACCESO.md)
-- [hr.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/components/schemas/hr.yaml)
-- [hr-employees.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/paths/modules/hr-employees.yaml)
-- [hr-employee-by-id.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/paths/modules/hr-employee-by-id.yaml)
-- [hr-compensation-by-employee.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/paths/modules/hr-compensation-by-employee.yaml)
-- [openapi.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/openapi.yaml)
+- [ADR_HR_PRIVACIDAD_Y_ACCESO.md](..\adrs\ADR_HR_PRIVACIDAD_Y_ACCESO.md)
+- [hr.yaml](..\..\openapi\components\schemas\hr.yaml)
+- [hr-employees.yaml](..\..\openapi\paths\modules\hr-employees.yaml)
+- [hr-employee-by-id.yaml](..\..\openapi\paths\modules\hr-employee-by-id.yaml)
+- [hr-compensation-by-employee.yaml](..\..\openapi\paths\modules\hr-compensation-by-employee.yaml)
+- [openapi.yaml](..\..\openapi\openapi.yaml)
 
 Implementacion runtime completada:
 
@@ -91,8 +91,9 @@ Se detecto deuda tecnica contractual en hardening tenant-scoped y evidencia CSRF
 
 ### 6.3 Evidencia automatizada del re-cierre
 
-- `npm run docs:cierres:validate` ✅
-- `npm run openapi:validate` ✅
-- `npm run build` ✅
-- `npm run lint` ✅
-- `npm run test` ✅ (`98` archivos en verde, `1` skipped por feature flag de restore drill)
+- `npm run docs:cierres:validate` âœ…
+- `npm run openapi:validate` âœ…
+- `npm run build` âœ…
+- `npm run lint` âœ…
+- `npm run test` âœ… (`98` archivos en verde, `1` skipped por feature flag de restore drill)
+

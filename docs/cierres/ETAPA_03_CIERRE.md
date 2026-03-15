@@ -1,4 +1,4 @@
-# Cierre Etapa 3
+﻿# Cierre Etapa 3
 
 Fecha: 2026-03-07  
 Estado: Cierre formal aprobado
@@ -7,11 +7,11 @@ Estado: Cierre formal aprobado
 
 Se consideran cubiertos los entregables de Etapa 3 definidos en:
 
-- [PLAN_MAESTRO.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/PLAN_MAESTRO.md)
-- [CONTRATOS_TRANSVERSALES.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/arquitectura/CONTRATOS_TRANSVERSALES.md)
-- [ANEXO_02_TENANT_MEMBERSHIPS.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/anexos/ANEXO_02_TENANT_MEMBERSHIPS.md)
-- [ADR-007_TENANT_INVITATION_DELIVERY_PORT.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/adrs/ADR-007_TENANT_INVITATION_DELIVERY_PORT.md)
-- [CRITERIOS_DE_CIERRE.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/checklists/CRITERIOS_DE_CIERRE.md)
+- [PLAN_MAESTRO.md](..\PLAN_MAESTRO.md)
+- [CONTRATOS_TRANSVERSALES.md](..\arquitectura\CONTRATOS_TRANSVERSALES.md)
+- [ANEXO_02_TENANT_MEMBERSHIPS.md](..\anexos\ANEXO_02_TENANT_MEMBERSHIPS.md)
+- [ADR-007_TENANT_INVITATION_DELIVERY_PORT.md](..\adrs\ADR-007_TENANT_INVITATION_DELIVERY_PORT.md)
+- [CRITERIOS_DE_CIERRE.md](..\checklists\CRITERIOS_DE_CIERRE.md)
 
 Incluye:
 
@@ -31,20 +31,20 @@ Incluye:
 
 Archivos principales implementados:
 
-- [tenant.service.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/core/tenant/services/tenant.service.ts)
-- [tenant.controller.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/core/tenant/controllers/tenant.controller.ts)
-- [tenant.routes.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/core/tenant/routes/tenant.routes.ts)
-- [tenant.types.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/core/tenant/types/tenant.types.ts)
-- [tenant.schemas.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/core/tenant/schemas/tenant.schemas.ts)
-- [tenant.model.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/core/tenant/models/tenant.model.ts)
-- [membership.model.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/core/tenant/models/membership.model.ts)
-- [invitation.model.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/core/tenant/models/invitation.model.ts)
-- [resolveTenantContext.middleware.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/infrastructure/middleware/resolveTenantContext.middleware.ts)
-- [tenant-invitation-delivery.port.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/core/tenant/ports/tenant-invitation-delivery.port.ts)
-- [tenant-invitation.registry.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/infrastructure/tenant/tenant-invitation.registry.ts)
-- [tenant-invitation-delivery.memory.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/infrastructure/tenant/tenant-invitation-delivery.memory.ts)
-- [auth-session.model.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/core/platform/auth/models/auth-session.model.ts)
-- [auth.service.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/core/platform/auth/services/auth.service.ts)
+- [tenant.service.ts](..\..\src\core\tenant\services\tenant.service.ts)
+- [tenant.controller.ts](..\..\src\core\tenant\controllers\tenant.controller.ts)
+- [tenant.routes.ts](..\..\src\core\tenant\routes\tenant.routes.ts)
+- [tenant.types.ts](..\..\src\core\tenant\types\tenant.types.ts)
+- [tenant.schemas.ts](..\..\src\core\tenant\schemas\tenant.schemas.ts)
+- [tenant.model.ts](..\..\src\core\tenant\models\tenant.model.ts)
+- [membership.model.ts](..\..\src\core\tenant\models\membership.model.ts)
+- [invitation.model.ts](..\..\src\core\tenant\models\invitation.model.ts)
+- [resolveTenantContext.middleware.ts](..\..\src\infrastructure\middleware\resolveTenantContext.middleware.ts)
+- [tenant-invitation-delivery.port.ts](..\..\src\core\tenant\ports\tenant-invitation-delivery.port.ts)
+- [tenant-invitation.registry.ts](..\..\src\infrastructure\tenant\tenant-invitation.registry.ts)
+- [tenant-invitation-delivery.memory.ts](..\..\src\infrastructure\tenant\tenant-invitation-delivery.memory.ts)
+- [auth-session.model.ts](..\..\src\core\platform\auth\models\auth-session.model.ts)
+- [auth.service.ts](..\..\src\core\platform\auth\services\auth.service.ts)
 
 ## 3. Evidencia automatizada
 
@@ -56,24 +56,24 @@ Comandos verificados:
 
 Cobertura funcional relevante:
 
-- create/list/switch/transfer ownership: [tenant.routes.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/integration/tenant/tenant.routes.test.ts)
-- create/accept/revoke invitation: [invitations.routes.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/integration/tenant/invitations.routes.test.ts)
-- invitacion expirada y revocada: [invitations.failures.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/integration/tenant/invitations.failures.test.ts)
-- doble aceptacion concurrente con conflicto estable: [invitations.concurrent.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/integration/tenant/invitations.concurrent.test.ts)
-- switch bloqueado por sesion revocada o expirada: [tenant-session-hardening.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/integration/tenant/tenant-session-hardening.test.ts)
-- aislamiento cross-tenant y membership suspendida: [tenant-isolation.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/integration/tenant/tenant-isolation.test.ts)
-- servicio tenant y ownership transfer: [tenant.service.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/unit/core/tenant/tenant.service.test.ts)
-- middleware `resolveTenantContext`: [resolveTenantContext.middleware.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/unit/infrastructure/middleware/resolveTenantContext.middleware.test.ts)
+- create/list/switch/transfer ownership: [tenant.routes.test.ts](..\..\tests\integration\tenant\tenant.routes.test.ts)
+- create/accept/revoke invitation: [invitations.routes.test.ts](..\..\tests\integration\tenant\invitations.routes.test.ts)
+- invitacion expirada y revocada: [invitations.failures.test.ts](..\..\tests\integration\tenant\invitations.failures.test.ts)
+- doble aceptacion concurrente con conflicto estable: [invitations.concurrent.test.ts](..\..\tests\integration\tenant\invitations.concurrent.test.ts)
+- switch bloqueado por sesion revocada o expirada: [tenant-session-hardening.test.ts](..\..\tests\integration\tenant\tenant-session-hardening.test.ts)
+- aislamiento cross-tenant y membership suspendida: [tenant-isolation.test.ts](..\..\tests\integration\tenant\tenant-isolation.test.ts)
+- servicio tenant y ownership transfer: [tenant.service.test.ts](..\..\tests\unit\core\tenant\tenant.service.test.ts)
+- middleware `resolveTenantContext`: [resolveTenantContext.middleware.test.ts](..\..\tests\unit\infrastructure\middleware\resolveTenantContext.middleware.test.ts)
 
 ## 4. Evidencia de contrato
 
-- OpenAPI validado desde [openapi.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/openapi.yaml)
-- create tenant documentado en [create-tenant.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/paths/tenant/create-tenant.yaml)
-- list my tenants documentado en [list-my-tenants.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/paths/tenant/list-my-tenants.yaml)
-- switch de tenant documentado en [switch-active-tenant.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/paths/tenant/switch-active-tenant.yaml)
-- invitaciones documentadas en [create.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/paths/tenant/invitations/create.yaml), [accept.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/paths/tenant/invitations/accept.yaml) y [revoke.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/paths/tenant/invitations/revoke.yaml)
-- transfer de ownership documentado en [transfer-ownership.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/paths/tenant/transfer-ownership.yaml)
-- schemas tenant alineados en [tenant.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/components/schemas/tenant.yaml)
+- OpenAPI validado desde [openapi.yaml](..\..\openapi\openapi.yaml)
+- create tenant documentado en [create-tenant.yaml](..\..\openapi\paths\tenant\create-tenant.yaml)
+- list my tenants documentado en [list-my-tenants.yaml](..\..\openapi\paths\tenant\list-my-tenants.yaml)
+- switch de tenant documentado en [switch-active-tenant.yaml](..\..\openapi\paths\tenant\switch-active-tenant.yaml)
+- invitaciones documentadas en [create.yaml](..\..\openapi\paths\tenant\invitations\create.yaml), [accept.yaml](..\..\openapi\paths\tenant\invitations\accept.yaml) y [revoke.yaml](..\..\openapi\paths\tenant\invitations\revoke.yaml)
+- transfer de ownership documentado en [transfer-ownership.yaml](..\..\openapi\paths\tenant\transfer-ownership.yaml)
+- schemas tenant alineados en [tenant.yaml](..\..\openapi\components\schemas\tenant.yaml)
 
 ## 5. Comportamiento por entorno
 
@@ -113,3 +113,4 @@ Validaciones ejecutadas:
 - `npm run build`
 - `npm run lint`
 - `npm run test`
+

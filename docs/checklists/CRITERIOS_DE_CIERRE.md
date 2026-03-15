@@ -13,10 +13,12 @@ Toda etapa necesita evidencia en cuatro capas:
 
 - `npm run build` verde
 - `npm run test` verde
+- `npm run test:coverage` verde
 - `npm run openapi:validate` verde
 - documento de cierre publicado en `docs/cierres/`
 - evidencia de criterios funcionales de la etapa
 - evidencia de comportamiento por entorno cuando aplique
+- gate de coverage activo en CI con umbrales minimos definidos
 
 ## Nomenclatura de etapas y cierres
 
@@ -49,6 +51,15 @@ Regla operativa de reapertura/re-cierre:
 - si una etapa cerrada presenta deuda tecnica, registrar `Reapertura tecnica` con fecha y motivo
 - al completar los fix, registrar `Re-cierre` con fecha y evidencia automatizada
 - usar `ETAPA_XX_REAPERTURA_TECNICA.md` solo cuando ya exista o cuando el volumen requiera separacion formal
+
+### Reaperturas por auditoria de integracion
+
+Cuando una auditoria transversal detecta brechas en multiples etapas:
+
+- documentar una `REAPERTURA_TECNICA` por cada etapa impactada
+- referenciar un plan unico de remediacion para el orden de ejecucion
+- mantener criterio de re-cierre con evidencia automatizada por etapa
+- no cerrar narrativamente: el re-cierre requiere gates en verde y trazabilidad de cambios
 
 ## Evidencia minima por tipo
 
@@ -108,3 +119,4 @@ Go-Live requiere:
 - restore probado
 - runbook vigente
 - observabilidad minima operativa
+

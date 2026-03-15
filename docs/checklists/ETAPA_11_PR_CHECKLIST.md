@@ -20,11 +20,11 @@ Fecha de validacion local: 2026-03-10.
 
 ## 3. Checklist operacional
 
-- [x] runbook actualizado: [RUNBOOK_GO_LIVE.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/operaciones/RUNBOOK_GO_LIVE.md)
-- [x] guia local de drill Mongo disponible: [MONGO_LOCAL_RESTORE_DRILL.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/operaciones/MONGO_LOCAL_RESTORE_DRILL.md)
-- [x] evidencia de cierre actualizada: [ETAPA_11_CIERRE.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/cierres/ETAPA_11_CIERRE.md)
+- [x] runbook actualizado: [RUNBOOK_GO_LIVE.md](..\operaciones\RUNBOOK_GO_LIVE.md)
+- [x] guia local de drill Mongo disponible: [MONGO_LOCAL_RESTORE_DRILL.md](..\operaciones\MONGO_LOCAL_RESTORE_DRILL.md)
+- [x] evidencia de cierre actualizada: [ETAPA_11_CIERRE.md](..\cierres\ETAPA_11_CIERRE.md)
 - [ ] pipeline de release candidate/staging ejecutando smoke + restore:
-  - [staging-release-candidate-go-live.yml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/.github/workflows/staging-release-candidate-go-live.yml)
+  - [staging-release-candidate-go-live.yml](..\..\.github\workflows\staging-release-candidate-go-live.yml)
 
 ## 4. Riesgos residuales
 
@@ -36,3 +36,4 @@ Fecha de validacion local: 2026-03-10.
 ## 5. Criterio de merge
 
 La PR solo se aprueba si los checklists tecnico y operacional quedan completos y sin riesgos criticos abiertos.
+

@@ -1,4 +1,4 @@
-# Cierre Etapa 8
+﻿# Cierre Etapa 8
 
 Fecha: 2026-03-08  
 Estado: Cierre formal aprobado
@@ -20,26 +20,26 @@ Incluye:
 
 Archivos principales:
 
-- [inventory.types.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/modules/inventory/types/inventory.types.ts)
-- [inventory-category.model.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/modules/inventory/models/inventory-category.model.ts)
-- [inventory-item.model.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/modules/inventory/models/inventory-item.model.ts)
-- [inventory-stock-movement.model.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/modules/inventory/models/inventory-stock-movement.model.ts)
-- [inventory.schemas.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/modules/inventory/schemas/inventory.schemas.ts)
-- [inventory.service.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/modules/inventory/services/inventory.service.ts)
-- [inventory.controller.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/modules/inventory/controllers/inventory.controller.ts)
-- [inventory.routes.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/modules/inventory/routes/inventory.routes.ts)
-- [modules.routes.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/modules/routes/modules.routes.ts)
-- [router.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/app/router.ts)
-- [app.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/config/app.ts)
-- [error-codes.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/infrastructure/errors/error-codes.ts)
-- [inventory.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/components/schemas/inventory.yaml)
-- [inventory-categories.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/paths/modules/inventory-categories.yaml)
-- [inventory-category-by-id.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/paths/modules/inventory-category-by-id.yaml)
-- [inventory-items.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/paths/modules/inventory-items.yaml)
-- [inventory-item-by-id.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/paths/modules/inventory-item-by-id.yaml)
-- [inventory-stock-movements.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/paths/modules/inventory-stock-movements.yaml)
-- [inventory-alerts-low-stock.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/paths/modules/inventory-alerts-low-stock.yaml)
-- [openapi.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/openapi.yaml)
+- [inventory.types.ts](..\..\src\modules\inventory\types\inventory.types.ts)
+- [inventory-category.model.ts](..\..\src\modules\inventory\models\inventory-category.model.ts)
+- [inventory-item.model.ts](..\..\src\modules\inventory\models\inventory-item.model.ts)
+- [inventory-stock-movement.model.ts](..\..\src\modules\inventory\models\inventory-stock-movement.model.ts)
+- [inventory.schemas.ts](..\..\src\modules\inventory\schemas\inventory.schemas.ts)
+- [inventory.service.ts](..\..\src\modules\inventory\services\inventory.service.ts)
+- [inventory.controller.ts](..\..\src\modules\inventory\controllers\inventory.controller.ts)
+- [inventory.routes.ts](..\..\src\modules\inventory\routes\inventory.routes.ts)
+- [modules.routes.ts](..\..\src\modules\routes\modules.routes.ts)
+- [router.ts](..\..\src\app\router.ts)
+- [app.ts](..\..\src\config\app.ts)
+- [error-codes.ts](..\..\src\infrastructure\errors\error-codes.ts)
+- [inventory.yaml](..\..\openapi\components\schemas\inventory.yaml)
+- [inventory-categories.yaml](..\..\openapi\paths\modules\inventory-categories.yaml)
+- [inventory-category-by-id.yaml](..\..\openapi\paths\modules\inventory-category-by-id.yaml)
+- [inventory-items.yaml](..\..\openapi\paths\modules\inventory-items.yaml)
+- [inventory-item-by-id.yaml](..\..\openapi\paths\modules\inventory-item-by-id.yaml)
+- [inventory-stock-movements.yaml](..\..\openapi\paths\modules\inventory-stock-movements.yaml)
+- [inventory-alerts-low-stock.yaml](..\..\openapi\paths\modules\inventory-alerts-low-stock.yaml)
+- [openapi.yaml](..\..\openapi\openapi.yaml)
 
 ## 3. Evidencia automatizada
 
@@ -52,10 +52,10 @@ Comandos verificados:
 
 Cobertura funcional minima:
 
-- reglas de servicio para conflictos y movimiento transaccional: [inventory.service.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/unit/modules/inventory/inventory.service.test.ts)
-- contrato HTTP y guards RBAC del modulo: [inventory.routes.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/integration/inventory/inventory.routes.test.ts)
-- consulta historica de movimientos: [inventory.stock-history.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/integration/inventory/inventory.stock-history.test.ts)
-- aislamiento tenant ante mismatch de scope: [inventory.isolation.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/integration/inventory/inventory.isolation.test.ts)
+- reglas de servicio para conflictos y movimiento transaccional: [inventory.service.test.ts](..\..\tests\unit\modules\inventory\inventory.service.test.ts)
+- contrato HTTP y guards RBAC del modulo: [inventory.routes.test.ts](..\..\tests\integration\inventory\inventory.routes.test.ts)
+- consulta historica de movimientos: [inventory.stock-history.test.ts](..\..\tests\integration\inventory\inventory.stock-history.test.ts)
+- aislamiento tenant ante mismatch de scope: [inventory.isolation.test.ts](..\..\tests\integration\inventory\inventory.isolation.test.ts)
 
 ## 4. Evidencia de contrato
 
@@ -109,3 +109,4 @@ Validaciones ejecutadas:
 - `npm run build`
 - `npm run lint`
 - `npm run test` (`98` archivos, `278` tests en verde, `1` skipped)
+

@@ -1,6 +1,6 @@
-# ANEXO 03
+﻿# ANEXO 03
 
-## Seguridad, RBAC, Planes y Auditoria · Etapas 4 y 5
+## Seguridad, RBAC, Planes y Auditoria Â· Etapas 4 y 5
 
 Prerequisito: Etapa 3 cerrada.
 
@@ -47,7 +47,7 @@ La auditoria usa `AuditContext`, no `Request`.
 Base contractual cerrada:
 
 - ownership efectivo ya queda resuelto en Etapa 4 y no debe reintroducirse como excepcion ad-hoc en auditoria
-- `AuditContext` queda formalizado en [ADR-009_AUDIT_CONTEXT.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/adrs/ADR-009_AUDIT_CONTEXT.md)
+- `AuditContext` queda formalizado en [ADR-009_AUDIT_CONTEXT.md](..\adrs\ADR-009_AUDIT_CONTEXT.md)
 
 Campos minimos:
 
@@ -73,3 +73,4 @@ Reglas:
 - bypass accidental de `platform:super_admin`
 - auditoria acoplada a Express
 - fuga de secretos en `before/after`
+

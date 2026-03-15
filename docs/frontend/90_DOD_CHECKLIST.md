@@ -1,8 +1,8 @@
-# Definition of Done Frontend
+﻿# Definition of Done Frontend
 
-Version: 1.2.0
+Version: 1.3.0
 Estado: Activo
-Ultima actualizacion: 2026-03-11
+Ultima actualizacion: 2026-03-13
 
 ## 1. Proposito
 
@@ -104,3 +104,31 @@ Rechazar PR frontend si:
 - No maneja errores de dominio relevantes.
 - No incluye evidencia minima de testing.
 
+
+## 9. DoD Scope Split (2026-03-13)
+
+- [x] Cliente API separado por scope (	enantApiRequest y platformApiRequest).
+- [x] Guardas de mezcla de contexto (TENANT_SCOPE_MISMATCH) en cliente API.
+- [x] Servicios tenant migrados a cliente tenant-scoped.
+- [x] Servicios platform migrados a cliente platform-scoped.
+- [x] Tests de scope agregados y en verde.
+- [x] Evidencia de smoke en vivo documentada (docs/cierres/ETAPA_FE_SCOPE_SPLIT_QA_2026-03-13.md).
+
+
+## 10. DoD Billing UX Activation (2026-03-13)
+
+- [x] Flujo guiado visible en `/app/settings/billing` (plan -> checkout -> activacion).
+- [x] Accion de activacion bloqueada sin `checkoutSessionId` valido del plan seleccionado.
+- [x] Verificacion explicita de activacion via refetch `tenant/mine` + `tenant/settings/effective`.
+- [x] Mensajeria UX separa estado intermedio de checkout y estado final activado.
+- [x] Sin llamadas UI a `POST /api/v1/billing/webhooks/provider`.
+- [x] Evidencia QA registrada en `docs/cierres/ETAPA_FE_SCOPE_SPLIT_QA_2026-03-13.md`.
+
+## 11. DoD ciclo suscripcion (activar/cancelar/reactivar) - 2026-03-13
+
+- [x] Cancelar suscripcion invalida checkout previo en UI.
+- [x] Reactivacion requiere checkout nuevo (no reuse de `checkoutSessionId`).
+- [x] Verificacion de reactivacion usa runtime efectivo para confirmar estado final.
+- [x] Dashboard bloquea acciones de modulos cuando no estan activos por runtime/suscripcion.
+- [x] Sidebar no expone audit como siempre activo sin plan.
+- [x] E2E del ciclo completo en verde (`tests/e2e/billing-cycle.spec.ts`).

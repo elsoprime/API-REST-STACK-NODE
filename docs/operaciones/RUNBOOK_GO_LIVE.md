@@ -1,4 +1,4 @@
-# Runbook Go-Live (Etapa 11)
+﻿# Runbook Go-Live (Etapa 11)
 
 ## 1. Objetivo
 
@@ -82,7 +82,7 @@ ENABLE_MONGODB_RESTORE_DRILL=true npm run test:restore:mongodb
 
 Flujo local reproducible:
 
-- ver [MONGO_LOCAL_RESTORE_DRILL.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/operaciones/MONGO_LOCAL_RESTORE_DRILL.md)
+- ver [MONGO_LOCAL_RESTORE_DRILL.md](.\MONGO_LOCAL_RESTORE_DRILL.md)
 
 El drill valida:
 
@@ -111,4 +111,5 @@ Validaciones ejecutadas para consolidacion de salida tecnica:
 Nota operativa:
 
 - Este bloque registra evidencia de un corte especifico y no reemplaza el criterio permanente del runbook.
+
 

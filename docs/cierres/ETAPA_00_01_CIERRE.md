@@ -1,4 +1,4 @@
-# Cierre Etapa 0-1
+﻿# Cierre Etapa 0-1
 
 Fecha: 2026-03-07  
 Estado: Cierre formal aprobado
@@ -7,10 +7,10 @@ Estado: Cierre formal aprobado
 
 Se consideran cubiertos los entregables de Etapa 0 y Etapa 1 definidos en:
 
-- [PLAN_MAESTRO.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/PLAN_MAESTRO.md)
-- [ANEXO_00_FUNDACIONES.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/anexos/ANEXO_00_FUNDACIONES.md)
-- [ENTORNOS_Y_RESILIENCIA.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/arquitectura/ENTORNOS_Y_RESILIENCIA.md)
-- [CRITERIOS_DE_CIERRE.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/checklists/CRITERIOS_DE_CIERRE.md)
+- [PLAN_MAESTRO.md](..\PLAN_MAESTRO.md)
+- [ANEXO_00_FUNDACIONES.md](..\anexos\ANEXO_00_FUNDACIONES.md)
+- [ENTORNOS_Y_RESILIENCIA.md](..\arquitectura\ENTORNOS_Y_RESILIENCIA.md)
+- [CRITERIOS_DE_CIERRE.md](..\checklists\CRITERIOS_DE_CIERRE.md)
 
 Incluye:
 
@@ -27,18 +27,18 @@ Incluye:
 
 Archivos principales implementados:
 
-- [server.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/app/server.ts)
-- [runtime.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/app/runtime.ts)
-- [env.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/config/env.ts)
-- [load-env.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/config/load-env.ts)
-- [connection.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/infrastructure/database/connection.ts)
-- [logger.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/infrastructure/logger/logger.ts)
-- [errorHandler.middleware.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/infrastructure/middleware/errorHandler.middleware.ts)
-- [validateBody.middleware.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/infrastructure/middleware/validateBody.middleware.ts)
-- [validateQuery.middleware.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/infrastructure/middleware/validateQuery.middleware.ts)
-- [rateLimiter.middleware.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/infrastructure/middleware/rateLimiter.middleware.ts)
-- [baseDocument.plugin.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/infrastructure/database/plugins/baseDocument.plugin.ts)
-- [build-success.util.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/core/shared/utils/build-success.util.ts)
+- [server.ts](..\..\src\app\server.ts)
+- [runtime.ts](..\..\src\app\runtime.ts)
+- [env.ts](..\..\src\config\env.ts)
+- [load-env.ts](..\..\src\config\load-env.ts)
+- [connection.ts](..\..\src\infrastructure\database\connection.ts)
+- [logger.ts](..\..\src\infrastructure\logger\logger.ts)
+- [errorHandler.middleware.ts](..\..\src\infrastructure\middleware\errorHandler.middleware.ts)
+- [validateBody.middleware.ts](..\..\src\infrastructure\middleware\validateBody.middleware.ts)
+- [validateQuery.middleware.ts](..\..\src\infrastructure\middleware\validateQuery.middleware.ts)
+- [rateLimiter.middleware.ts](..\..\src\infrastructure\middleware\rateLimiter.middleware.ts)
+- [baseDocument.plugin.ts](..\..\src\infrastructure\database\plugins\baseDocument.plugin.ts)
+- [build-success.util.ts](..\..\src\core\shared\utils\build-success.util.ts)
 
 ## 3. Evidencia automatizada
 
@@ -50,21 +50,21 @@ Comandos verificados:
 
 Cobertura funcional relevante:
 
-- health: [health.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/integration/health.test.ts)
-- error envelope 404/500: [errors.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/integration/errors.test.ts)
-- validacion real de env: [env.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/unit/config/env.test.ts)
-- carga de entorno y `DOTENV_CONFIG_PATH`: [load-env.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/unit/config/load-env.test.ts)
-- fail-fast en `production` por DB critica: [startup-fail-fast.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/unit/app/startup-fail-fast.test.ts)
-- graceful shutdown: [runtime.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/unit/app/runtime.test.ts)
-- retries acotados y degradacion DB: [connection.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/unit/infrastructure/database/connection.test.ts)
-- rate limiter funcional: [rateLimiter.middleware.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/unit/infrastructure/middleware/rateLimiter.middleware.test.ts)
-- success helpers: [build-success.util.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/unit/core/shared/utils/build-success.util.test.ts)
+- health: [health.test.ts](..\..\tests\integration\health.test.ts)
+- error envelope 404/500: [errors.test.ts](..\..\tests\integration\errors.test.ts)
+- validacion real de env: [env.test.ts](..\..\tests\unit\config\env.test.ts)
+- carga de entorno y `DOTENV_CONFIG_PATH`: [load-env.test.ts](..\..\tests\unit\config\load-env.test.ts)
+- fail-fast en `production` por DB critica: [startup-fail-fast.test.ts](..\..\tests\unit\app\startup-fail-fast.test.ts)
+- graceful shutdown: [runtime.test.ts](..\..\tests\unit\app\runtime.test.ts)
+- retries acotados y degradacion DB: [connection.test.ts](..\..\tests\unit\infrastructure\database\connection.test.ts)
+- rate limiter funcional: [rateLimiter.middleware.test.ts](..\..\tests\unit\infrastructure\middleware\rateLimiter.middleware.test.ts)
+- success helpers: [build-success.util.test.ts](..\..\tests\unit\core\shared\utils\build-success.util.test.ts)
 
 ## 4. Evidencia de contrato
 
-- `GET /health` documentado en [health.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/paths/health.yaml)
-- schema de error alineado en [error.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/components/schemas/error.yaml)
-- OpenAPI validado desde [openapi.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/openapi.yaml)
+- `GET /health` documentado en [health.yaml](..\..\openapi\paths\health.yaml)
+- schema de error alineado en [error.yaml](..\..\openapi\components\schemas\error.yaml)
+- OpenAPI validado desde [openapi.yaml](..\..\openapi\openapi.yaml)
 - envelope de exito disponible en runtime mediante `buildSuccess()` y `buildPaginatedSuccess()`
 
 ## 5. Comportamiento por entorno
@@ -103,3 +103,4 @@ Evidencia:
 - `npm run build` en verde
 - `npm run lint` en verde
 - `npm run test` en verde
+

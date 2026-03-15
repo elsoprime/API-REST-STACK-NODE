@@ -1,10 +1,10 @@
-# Plan Maestro
+﻿# Plan Maestro
 
-## API-REST-STACK-NODE · SaaS Core Engine V3
+## API-REST-STACK-NODE Â· SaaS Core Engine V3
 
-Version: 2.0.0  
+Version: 2.1.0
 Estado: Activo  
-Ultima revision: 2026-03-10
+Ultima revision: 2026-03-12
 
 ## 1. Proposito
 
@@ -26,13 +26,14 @@ Su objetivo no es describir una vision aspiracional, sino dejar una base ejecuta
 
 ## 3. Fuente de verdad documental
 
-- Referencia central: [PLAN_MAESTRO.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/PLAN_MAESTRO.md)
-- Contratos transversales: [CONTRATOS_TRANSVERSALES.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/arquitectura/CONTRATOS_TRANSVERSALES.md)
-- Estructura objetivo del repo: [ESTRUCTURA_REPO_OBJETIVO.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/arquitectura/ESTRUCTURA_REPO_OBJETIVO.md)
-- Bootstrap real del repo: [ETAPA_-1_BOOTSTRAP.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/arquitectura/ETAPA_-1_BOOTSTRAP.md)
-- Politica operativa: [ENTORNOS_Y_RESILIENCIA.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/arquitectura/ENTORNOS_Y_RESILIENCIA.md)
-- Criterios de cierre: [CRITERIOS_DE_CIERRE.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/checklists/CRITERIOS_DE_CIERRE.md)
-- ADRs: [ADRs.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/adrs/ADRs.md)
+- Referencia central: [PLAN_MAESTRO.md](.\PLAN_MAESTRO.md)
+- Plan de remediacion Integracion REPO: [PLAN_REMEDIACION_INTEGRACION_REPO.md](.\PLAN_REMEDIACION_INTEGRACION_REPO.md)
+- Contratos transversales: [CONTRATOS_TRANSVERSALES.md](.\arquitectura\CONTRATOS_TRANSVERSALES.md)
+- Estructura objetivo del repo: [ESTRUCTURA_REPO_OBJETIVO.md](.\arquitectura\ESTRUCTURA_REPO_OBJETIVO.md)
+- Bootstrap real del repo: [ETAPA_-1_BOOTSTRAP.md](.\arquitectura\ETAPA_-1_BOOTSTRAP.md)
+- Politica operativa: [ENTORNOS_Y_RESILIENCIA.md](.\arquitectura\ENTORNOS_Y_RESILIENCIA.md)
+- Criterios de cierre: [CRITERIOS_DE_CIERRE.md](.\checklists\CRITERIOS_DE_CIERRE.md)
+- ADRs: [ADRs.md](.\adrs\ADRs.md)
 
 Los anexos de `docs/anexos/` desarrollan cada bloque funcional, pero no pueden contradecir este documento ni los contratos transversales.
 
@@ -326,4 +327,20 @@ Prerequisito minimo:
 
 ## 10. Regla de cierre
 
-Ninguna etapa se considera cerrada por narrativa. Solo se cierra con evidencia definida en [CRITERIOS_DE_CIERRE.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/checklists/CRITERIOS_DE_CIERRE.md).
+Ninguna etapa se considera cerrada por narrativa. Solo se cierra con evidencia definida en [CRITERIOS_DE_CIERRE.md](.\checklists\CRITERIOS_DE_CIERRE.md).
+
+
+## 11. Remediacion Integracion REPO (2026-03-12)
+
+Orden de ejecucion adoptado para cerrar hallazgos del informe de auditoria de integracion:
+
+1. Gobernanza y baseline (ADRs + reaperturas + gates en verde).
+2. Ciclo de vida tenant/suscripcion con activacion condicionada a pago.
+3. Hardening de webhooks (firma nativa, anti-replay e idempotencia).
+4. RBAC granular en inventory y rol tenant:admin.
+5. Hardening operativo (CORS efectivo, rate limit distribuido, observabilidad de billing).
+6. Re-cierre formal con evidencia automatizada y acoplamiento FE/API.
+
+Fuente de ejecucion detallada: [PLAN_REMEDIACION_INTEGRACION_REPO.md](.\PLAN_REMEDIACION_INTEGRACION_REPO.md).
+
+

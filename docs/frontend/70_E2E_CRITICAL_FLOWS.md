@@ -20,7 +20,8 @@ Definir la suite E2E minima para proteger flujos de negocio criticos y evitar re
 - Tenant T2 para validar aislamiento
 - Datos seed para Inventory, CRM y HR en T1
 - Catalogo seed de billing plans (`starter`, `growth`, `enterprise`)
-- Payloads de webhook billing (paid/failed/canceled) + firma valida para entorno dev
+- Payloads de webhook billing (paid/failed/canceled) + `X-Billing-Signature` valida y `X-Billing-Timestamp` dentro de tolerancia para entorno dev
+- Casos negativos de webhook: firma invalida y timestamp vencido para validacion backend/system path
 
 ## 4. Flujos criticos obligatorios
 
@@ -96,7 +97,7 @@ Criterio de aceptacion:
 1. Abrir `/app/settings/billing`.
 2. Cargar `GET /api/v1/billing/plans`.
 3. Crear checkout (`POST /api/v1/billing/checkout/session`) para plan objetivo.
-4. Simular procesamiento webhook paid (backend/system path).
+4. Simular procesamiento webhook paid (backend/system path) con firma y timestamp validos.
 5. Verificar refetch de `GET /api/v1/tenant/settings/effective`.
 
 Criterio de aceptacion:

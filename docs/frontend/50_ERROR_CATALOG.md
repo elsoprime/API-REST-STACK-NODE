@@ -1,8 +1,8 @@
 # Catalogo de Errores Frontend
 
-Version: 1.2.0  
+Version: 1.3.0  
 Estado: Activo  
-Ultima actualizacion: 2026-03-10
+Ultima actualizacion: 2026-03-13
 
 ## 1. Proposito
 
@@ -69,7 +69,7 @@ Nota operativa tenant settings:
 | Codigo | Clave i18n sugerida | Mensaje UX base | Accion usuario | Retry |
 |---|---|---|---|---|
 | `TENANT_HEADER_REQUIRED` | `tenant.headerRequired` | Falta contexto de tenant activo. | Seleccionar tenant y reintentar. | No |
-| `TENANT_SCOPE_MISMATCH` | `tenant.scopeMismatch` | El tenant activo no coincide con la sesion. | Hacer switch tenant correcto. | No |
+| `TENANT_SCOPE_MISMATCH` | `tenant.scopeMismatch` | El scope del request no coincide con la sesion/token actual. | Si es ruta tenant, rehacer switch tenant. Si es ruta platform, usar `platformClient` sin contexto tenant-scoped. | No |
 | `TENANT_NOT_FOUND` | `tenant.notFound` | Tenant no encontrado. | Volver a selector tenant. | No |
 | `TENANT_INACTIVE` | `tenant.inactive` | El tenant esta inactivo. | Contactar administrador del tenant. | No |
 | `TENANT_MEMBERSHIP_REQUIRED` | `tenant.membershipRequired` | No tienes membresia activa en este tenant. | Solicitar acceso. | No |
@@ -82,6 +82,11 @@ Nota operativa tenant settings:
 | `TENANT_INVITATION_EXPIRED` | `tenant.invitationExpired` | Invitacion expirada. | Solicitar nueva invitacion. | No |
 | `TENANT_INVITATION_REVOKED` | `tenant.invitationRevoked` | Invitacion revocada. | Solicitar nueva invitacion. | No |
 | `TENANT_INVITATION_ALREADY_ACCEPTED` | `tenant.invitationAccepted` | Invitacion ya utilizada. | Continuar a selector tenant. | No |
+
+Nota operativa de scope:
+- `TENANT_SCOPE_MISMATCH` en `/api/v1/platform/settings` indica mezcla de contexto.
+- No hacer retry ciego.
+- Cambiar a cliente/sesion platform-only y registrar `traceId`.
 
 ### 4.4 RBAC y politicas
 
