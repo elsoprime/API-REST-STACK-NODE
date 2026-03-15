@@ -110,6 +110,23 @@ function parseDateInput(
   return parsed;
 }
 
+function parseObjectIdInput(value: string, fieldName: string): Types.ObjectId {
+  const normalized = value.trim();
+  if (!Types.ObjectId.isValid(normalized)) {
+    throw buildHrError(ERROR_CODES.VALIDATION_ERROR, `${fieldName} is invalid`, HTTP_STATUS.BAD_REQUEST);
+  }
+
+  return new Types.ObjectId(normalized);
+}
+
+function requireNonEmptyText(value: string, fieldName: string): string {
+  const normalized = value.trim();
+  if (normalized.length === 0) {
+    throw buildHrError(ERROR_CODES.VALIDATION_ERROR, `${fieldName} is required`, HTTP_STATUS.BAD_REQUEST);
+  }
+
+  return normalized;
+}
 function validateEmployeeLaborDates(input: {
   startDate: Date;
   endDate?: Date | null;
@@ -250,7 +267,10 @@ export class HrService implements HrServiceContract {
 
   async createEmployee(input: CreateHrEmployeeInput): Promise<HrEmployeeView> {
     assertTenantContextConsistency(input.tenantId, input.context);
-    const tenantId = new Types.ObjectId(input.tenantId);
+    const tenantId = parseObjectIdInput(input.tenantId, 'tenantId');
+    const employeeCode = requireNonEmptyText(input.employeeCode, 'employeeCode');
+    const firstName = requireNonEmptyText(input.firstName, 'firstName');
+    const lastName = requireNonEmptyText(input.lastName, 'lastName');
     const startDate = parseDateInput(input.startDate, 'startDate', { required: true });
     if (!startDate) {
       throw buildHrError(ERROR_CODES.VALIDATION_ERROR, 'startDate is required', HTTP_STATUS.BAD_REQUEST);
@@ -271,10 +291,10 @@ export class HrService implements HrServiceContract {
     try {
       const createdEmployee = await HrEmployeeModel.create({
         tenantId,
-        employeeCode: input.employeeCode.trim(),
-        normalizedEmployeeCode: normalizeEmployeeCode(input.employeeCode),
-        firstName: input.firstName.trim(),
-        lastName: input.lastName.trim(),
+        employeeCode,
+        normalizedEmployeeCode: normalizeEmployeeCode(employeeCode),
+        firstName,
+        lastName,
         workEmail: input.workEmail ?? null,
         personalEmail: input.personalEmail ?? null,
         phone: input.phone ?? null,
@@ -324,8 +344,15 @@ export class HrService implements HrServiceContract {
   }
 
   async listEmployees(input: ListHrEmployeesInput): Promise<ListHrEmployeesResult> {
+    if (!Number.isInteger(input.page) || input.page < 1) {
+      throw buildHrError(ERROR_CODES.VALIDATION_ERROR, 'page is invalid', HTTP_STATUS.BAD_REQUEST);
+    }
+    if (!Number.isInteger(input.limit) || input.limit < 1) {
+      throw buildHrError(ERROR_CODES.VALIDATION_ERROR, 'limit is invalid', HTTP_STATUS.BAD_REQUEST);
+    }
+
     const query: Record<string, unknown> = {
-      tenantId: new Types.ObjectId(input.tenantId),
+      tenantId: parseObjectIdInput(input.tenantId, 'tenantId'),
       isActive: true
     };
 
@@ -365,7 +392,7 @@ export class HrService implements HrServiceContract {
   }
 
   async getEmployee(input: GetHrEmployeeInput): Promise<HrEmployeeView> {
-    const employee = await this.findActiveEmployee(new Types.ObjectId(input.tenantId), input.employeeId);
+    const employee = await this.findActiveEmployee(parseObjectIdInput(input.tenantId, 'tenantId'), input.employeeId);
     if (!employee) {
       throw buildHrError(ERROR_CODES.HR_EMPLOYEE_NOT_FOUND, 'HR employee not found', HTTP_STATUS.NOT_FOUND);
     }
@@ -375,8 +402,8 @@ export class HrService implements HrServiceContract {
 
   async updateEmployee(input: UpdateHrEmployeeInput): Promise<HrEmployeeView> {
     assertTenantContextConsistency(input.tenantId, input.context);
-    const tenantId = new Types.ObjectId(input.tenantId);
-    const employeeId = new Types.ObjectId(input.employeeId);
+    const tenantId = parseObjectIdInput(input.tenantId, 'tenantId');
+    const employeeId = parseObjectIdInput(input.employeeId, 'employeeId');
 
     if (input.patch.managerId && input.patch.managerId === input.employeeId) {
       throw buildHrError(
@@ -426,14 +453,15 @@ export class HrService implements HrServiceContract {
 
     const updateData: Record<string, unknown> = {};
     if (typeof input.patch.employeeCode === 'string') {
-      updateData.employeeCode = input.patch.employeeCode.trim();
-      updateData.normalizedEmployeeCode = normalizeEmployeeCode(input.patch.employeeCode);
+      const employeeCode = requireNonEmptyText(input.patch.employeeCode, 'employeeCode');
+      updateData.employeeCode = employeeCode;
+      updateData.normalizedEmployeeCode = normalizeEmployeeCode(employeeCode);
     }
     if (typeof input.patch.firstName === 'string') {
-      updateData.firstName = input.patch.firstName.trim();
+      updateData.firstName = requireNonEmptyText(input.patch.firstName, 'firstName');
     }
     if (typeof input.patch.lastName === 'string') {
-      updateData.lastName = input.patch.lastName.trim();
+      updateData.lastName = requireNonEmptyText(input.patch.lastName, 'lastName');
     }
     if (typeof input.patch.workEmail !== 'undefined') {
       updateData.workEmail = input.patch.workEmail;
@@ -524,8 +552,8 @@ export class HrService implements HrServiceContract {
 
   async deleteEmployee(input: DeleteHrEmployeeInput): Promise<HrEmployeeView> {
     assertTenantContextConsistency(input.tenantId, input.context);
-    const tenantId = new Types.ObjectId(input.tenantId);
-    const employeeId = new Types.ObjectId(input.employeeId);
+    const tenantId = parseObjectIdInput(input.tenantId, 'tenantId');
+    const employeeId = parseObjectIdInput(input.employeeId, 'employeeId');
 
     const activeReports = await HrEmployeeModel.countDocuments({
       tenantId,
@@ -598,11 +626,14 @@ export class HrService implements HrServiceContract {
   }
 
   async getCompensation(input: GetHrCompensationInput): Promise<HrCompensationView> {
-    await this.assertEmployeeExists(new Types.ObjectId(input.tenantId), input.employeeId);
+    const tenantId = parseObjectIdInput(input.tenantId, 'tenantId');
+    const employeeId = parseObjectIdInput(input.employeeId, 'employeeId');
+
+    await this.assertEmployeeExists(tenantId, employeeId.toString());
 
     const compensation = await HrCompensationModel.findOne({
-      tenantId: new Types.ObjectId(input.tenantId),
-      employeeId: new Types.ObjectId(input.employeeId),
+      tenantId,
+      employeeId,
       isActive: true
     }).lean();
 
@@ -619,8 +650,8 @@ export class HrService implements HrServiceContract {
 
   async updateCompensation(input: UpdateHrCompensationInput): Promise<HrCompensationView> {
     assertTenantContextConsistency(input.tenantId, input.context);
-    const tenantId = new Types.ObjectId(input.tenantId);
-    const employeeId = new Types.ObjectId(input.employeeId);
+    const tenantId = parseObjectIdInput(input.tenantId, 'tenantId');
+    const employeeId = parseObjectIdInput(input.employeeId, 'employeeId');
 
     if (typeof input.patch.salaryAmount === 'number' && input.patch.salaryAmount < 0) {
       throw buildHrError(
@@ -630,7 +661,7 @@ export class HrService implements HrServiceContract {
       );
     }
 
-    await this.assertEmployeeExists(tenantId, input.employeeId);
+    await this.assertEmployeeExists(tenantId, employeeId.toString());
 
     const existingCompensation = await HrCompensationModel.findOne({
       tenantId,
@@ -749,7 +780,7 @@ export class HrService implements HrServiceContract {
     deletedAt?: Date | null;
   } | null> {
     return HrEmployeeModel.findOne({
-      _id: new Types.ObjectId(employeeId),
+      _id: parseObjectIdInput(employeeId, 'employeeId'),
       tenantId,
       isActive: true
     }).lean();
@@ -768,7 +799,7 @@ export class HrService implements HrServiceContract {
       return null;
     }
 
-    const managerObjectId = new Types.ObjectId(input.managerId);
+    const managerObjectId = parseObjectIdInput(input.managerId, 'managerId');
     if (input.employeeId && managerObjectId.equals(input.employeeId)) {
       throw buildHrError(
         ERROR_CODES.HR_EMPLOYEE_HIERARCHY_CYCLE,
@@ -841,7 +872,7 @@ export class HrService implements HrServiceContract {
 
       currentManagerId =
         typeof currentManager.managerId === 'string'
-          ? new Types.ObjectId(currentManager.managerId)
+          ? parseObjectIdInput(currentManager.managerId, 'managerId')
           : currentManager.managerId;
     }
   }
@@ -877,3 +908,4 @@ export class HrService implements HrServiceContract {
 }
 
 export const hrService = new HrService();
+

@@ -412,4 +412,55 @@ describe('crm routes', () => {
     expect(response.body.error.code).toBe('RBAC_PERMISSION_DENIED');
     expect(service.createContact).not.toHaveBeenCalled();
   });
+  it('rejects invalid contactId route params with validation contract', async () => {
+    const tenantId = new Types.ObjectId();
+    const membershipId = new Types.ObjectId();
+    const userId = new Types.ObjectId();
+    const service = {
+      createContact: vi.fn(),
+      listContacts: vi.fn(),
+      getContact: vi.fn(),
+      updateContact: vi.fn(),
+      deleteContact: vi.fn(),
+      createOrganization: vi.fn(),
+      listOrganizations: vi.fn(),
+      getOrganization: vi.fn(),
+      updateOrganization: vi.fn(),
+      deleteOrganization: vi.fn(),
+      createOpportunity: vi.fn(),
+      listOpportunities: vi.fn(),
+      getOpportunity: vi.fn(),
+      updateOpportunity: vi.fn(),
+      deleteOpportunity: vi.fn(),
+      changeOpportunityStage: vi.fn(),
+      createActivity: vi.fn(),
+      listActivities: vi.fn(),
+      getCounters: vi.fn()
+    };
+    const app = createCrmTestApp(service);
+
+    vi.spyOn(TenantModel, 'findById').mockResolvedValue({
+      _id: tenantId,
+      status: 'active',
+      ownerUserId: new Types.ObjectId(),
+      planId: 'plan:growth',
+      activeModuleKeys: ['inventory', 'crm']
+    } as never);
+    vi.spyOn(MembershipModel, 'findOne').mockResolvedValue({
+      _id: membershipId,
+      userId,
+      status: 'active',
+      roleKey: 'tenant:member'
+    } as never);
+
+    const response = await request(app)
+      .get('/api/v1/modules/crm/contacts/not-an-object-id')
+      .set('Authorization', 'Bearer ' + buildAccessToken(userId.toString()))
+      .set(APP_CONFIG.TENANT_ID_HEADER, tenantId.toString());
+
+    expect(response.status).toBe(400);
+    expect(response.body.error.code).toBe('GEN_VALIDATION_ERROR');
+    expect(service.getContact).not.toHaveBeenCalled();
+  });
 });
+

@@ -1,10 +1,10 @@
-# ANEXO 00
+﻿# ANEXO 00
 
 ## Fundaciones, Bootstrap y Etapas 0-1
 
-Prerequisito: [ETAPA_-1_BOOTSTRAP.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/arquitectura/ETAPA_-1_BOOTSTRAP.md) cerrada.
+Prerequisito: [ETAPA_-1_BOOTSTRAP.md](..\arquitectura\ETAPA_-1_BOOTSTRAP.md) cerrada.
 
-Politica operativa aplicable: [ENTORNOS_Y_RESILIENCIA.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/arquitectura/ENTORNOS_Y_RESILIENCIA.md)
+Politica operativa aplicable: [ENTORNOS_Y_RESILIENCIA.md](..\arquitectura\ENTORNOS_Y_RESILIENCIA.md)
 
 ## 1. Decisiones cerradas
 
@@ -92,7 +92,7 @@ Si el runtime usa una variable no validada por Zod, la etapa no cierra.
 - `servers` debe usar base root del host, no `/api/v1` duro para todo
 - `GET /health` se documenta fuera de la version de negocio
 - los paths de negocio se documentan bajo `/api/v1/...`
-- el schema de error debe coincidir con [CONTRATOS_TRANSVERSALES.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/arquitectura/CONTRATOS_TRANSVERSALES.md)
+- el schema de error debe coincidir con [CONTRATOS_TRANSVERSALES.md](..\arquitectura\CONTRATOS_TRANSVERSALES.md)
 
 ## 8. Testing base
 
@@ -117,3 +117,4 @@ Las pruebas minimas de Etapas 0-1 son:
 - OpenAPI no alineada con runtime
 - comportamiento ambiguo por entorno
 - fallos de conexion sin politica definida
+

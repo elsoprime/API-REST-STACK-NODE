@@ -1,9 +1,21 @@
-export const TENANT_STATUS = {
+﻿export const TENANT_STATUS = {
   ACTIVE: 'active',
   SUSPENDED: 'suspended'
 } as const;
 
 export type TenantStatus = (typeof TENANT_STATUS)[keyof typeof TENANT_STATUS];
+
+export const TENANT_SUBSCRIPTION_STATUS = {
+  PENDING: 'pending',
+  ACTIVE: 'active',
+  GRACE: 'grace',
+  SUSPENDED: 'suspended',
+  CANCELED: 'canceled',
+  REACTIVATED: 'reactivated'
+} as const;
+
+export type TenantSubscriptionStatus =
+  (typeof TENANT_SUBSCRIPTION_STATUS)[keyof typeof TENANT_SUBSCRIPTION_STATUS];
 
 export const MEMBERSHIP_STATUS = {
   ACTIVE: 'active',
@@ -23,12 +35,17 @@ export type InvitationStatus = (typeof INVITATION_STATUS)[keyof typeof INVITATIO
 
 export const TENANT_ROLE_KEYS = {
   OWNER: 'tenant:owner',
+  ADMIN: 'tenant:admin',
   MEMBER: 'tenant:member'
 } as const;
 
 export type TenantRoleKey = (typeof TENANT_ROLE_KEYS)[keyof typeof TENANT_ROLE_KEYS];
 
-export const TENANT_ROLE_VALUES = [TENANT_ROLE_KEYS.OWNER, TENANT_ROLE_KEYS.MEMBER] as const;
+export const TENANT_ROLE_VALUES = [
+  TENANT_ROLE_KEYS.OWNER,
+  TENANT_ROLE_KEYS.ADMIN,
+  TENANT_ROLE_KEYS.MEMBER
+] as const;
 
 export function isTenantRoleKey(value: string): value is TenantRoleKey {
   return TENANT_ROLE_VALUES.includes(value as TenantRoleKey);

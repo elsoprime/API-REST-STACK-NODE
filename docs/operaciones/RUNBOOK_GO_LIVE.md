@@ -1,4 +1,4 @@
-# Runbook Go-Live (Etapa 11)
+﻿# Runbook Go-Live (Etapa 11)
 
 ## 1. Objetivo
 
@@ -21,6 +21,8 @@ Ejecutar despliegues y rollback de forma segura, agnostica a infraestructura, pr
   - `TENANT_INVITATION_ACCEPT_URL`
   - `EMAIL_RESEND_API_KEY`
   - `AUTH_TWO_FACTOR_PROVISIONING_WEBHOOK_URL`
+  - `BILLING_WEBHOOK_SECRET` custom
+  - `REDIS_URL`
   - en `production`, las URLs de delivery deben usar `https://`
 
 ## 3. Preflight obligatorio
@@ -52,6 +54,9 @@ El preflight falla si:
 - `data.checks.productionDeliveryAdapters=true` en `production`
 - rutas criticas no devuelven `404`
 - trazabilidad con `traceId` en headers/respuestas
+- una respuesta representativa bajo `/api/v1/*` expone `Content-Security-Policy`, `X-Content-Type-Options` y `X-Frame-Options`
+- el header `x-powered-by` no aparece en respuestas de la API
+- no existen warnings persistentes `rate_limiter.redis.fallback` en logs del release
 
 ## 6. Rollback
 
@@ -77,7 +82,7 @@ ENABLE_MONGODB_RESTORE_DRILL=true npm run test:restore:mongodb
 
 Flujo local reproducible:
 
-- ver [MONGO_LOCAL_RESTORE_DRILL.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/operaciones/MONGO_LOCAL_RESTORE_DRILL.md)
+- ver [MONGO_LOCAL_RESTORE_DRILL.md](.\MONGO_LOCAL_RESTORE_DRILL.md)
 
 El drill valida:
 
@@ -92,3 +97,19 @@ El drill valida:
 - `/health` reporta `ready=false` de forma persistente
 - errores `5xx` sostenidos en flujos criticos
 - redaccion/auditoria no cumplen contrato
+## 9. Evidencia de gates (corte 2026-03-15)
+
+Validaciones ejecutadas para consolidacion de salida tecnica:
+
+- `npm run lint` -> OK
+- `npm run build` -> OK
+- `npm run test` -> OK
+- `npm run test:coverage` -> OK
+- `npm run openapi:validate` -> OK
+- `npm run docs:cierres:validate` -> OK
+
+Nota operativa:
+
+- Este bloque registra evidencia de un corte especifico y no reemplaza el criterio permanente del runbook.
+
+

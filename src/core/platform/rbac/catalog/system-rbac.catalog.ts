@@ -74,6 +74,36 @@ const SYSTEM_PERMISSION_DEFINITIONS: PermissionDefinition[] = [
     moduleKey: 'inventory'
   },
   {
+    key: 'tenant:modules:inventory:read',
+    scope: 'tenant',
+    description: 'Read inventory resources.',
+    moduleKey: 'inventory'
+  },
+  {
+    key: 'tenant:modules:inventory:create',
+    scope: 'tenant',
+    description: 'Create inventory resources.',
+    moduleKey: 'inventory'
+  },
+  {
+    key: 'tenant:modules:inventory:update',
+    scope: 'tenant',
+    description: 'Update inventory resources.',
+    moduleKey: 'inventory'
+  },
+  {
+    key: 'tenant:modules:inventory:delete',
+    scope: 'tenant',
+    description: 'Delete inventory resources.',
+    moduleKey: 'inventory'
+  },
+  {
+    key: 'tenant:modules:inventory:stock:write',
+    scope: 'tenant',
+    description: 'Register inventory stock movements.',
+    moduleKey: 'inventory'
+  },
+  {
     key: 'tenant:modules:crm:use',
     scope: 'tenant',
     description: 'Use the CRM module.',
@@ -175,6 +205,46 @@ const SYSTEM_ROLE_DEFINITIONS: RoleDefinition[] = [
       'tenant:settings:update',
       'tenant:ownership:transfer',
       'tenant:modules:inventory:use',
+      'tenant:modules:inventory:read',
+      'tenant:modules:inventory:create',
+      'tenant:modules:inventory:update',
+      'tenant:modules:inventory:delete',
+      'tenant:modules:inventory:stock:write',
+      'tenant:modules:crm:use',
+      'tenant:modules:hr:use',
+      'tenant:crm:read',
+      'tenant:crm:write',
+      'tenant:crm:delete',
+      'tenant:crm:stage:update',
+      'tenant:hr:employee:read',
+      'tenant:hr:employee:write',
+      'tenant:hr:employee:delete',
+      'tenant:hr:personal:read',
+      'tenant:hr:compensation:read',
+      'tenant:hr:compensation:update'
+    ]
+  },
+  {
+    key: 'tenant:admin',
+    name: 'Tenant Admin',
+    description: 'System tenant admin role with delegated operational management.',
+    scope: 'tenant',
+    tenantId: null,
+    isSystem: true,
+    hierarchyLevel: 150,
+    permissions: [
+      'tenant:memberships:read',
+      'tenant:invitations:create',
+      'tenant:invitations:revoke',
+      'tenant:audit:read',
+      'tenant:settings:read',
+      'tenant:settings:update',
+      'tenant:modules:inventory:use',
+      'tenant:modules:inventory:read',
+      'tenant:modules:inventory:create',
+      'tenant:modules:inventory:update',
+      'tenant:modules:inventory:delete',
+      'tenant:modules:inventory:stock:write',
       'tenant:modules:crm:use',
       'tenant:modules:hr:use',
       'tenant:crm:read',
@@ -201,6 +271,7 @@ const SYSTEM_ROLE_DEFINITIONS: RoleDefinition[] = [
       'tenant:memberships:read',
       'tenant:settings:read',
       'tenant:modules:inventory:use',
+      'tenant:modules:inventory:read',
       'tenant:modules:crm:use',
       'tenant:modules:hr:use',
       'tenant:crm:read',
@@ -208,7 +279,6 @@ const SYSTEM_ROLE_DEFINITIONS: RoleDefinition[] = [
     ]
   }
 ];
-
 const SYSTEM_MODULE_DEFINITIONS: ModuleDefinition[] = [
   {
     key: 'inventory',

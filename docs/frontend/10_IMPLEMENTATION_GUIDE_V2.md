@@ -1,8 +1,8 @@
 # Guia de Implementacion Frontend V2 (API -> Frontend)
 
-Version: 2.1.0
+Version: 2.2.0
 Estado: Activo
-Ultima actualizacion: 2026-03-11
+Ultima actualizacion: 2026-03-13
 
 ## 1. Objetivo
 
@@ -84,6 +84,32 @@ No enviar `X-Tenant-Id` en estas rutas aunque sean tenant-bound por token/body:
 - No duplicar cliente HTTP por modulo.
 - No persistir tokens en `localStorage` o `sessionStorage` en browser mode.
 - Todo error de backend debe mapearse por `error.code`.
+
+### 3.5 Scope split obligatorio (tenant vs platform)
+
+Implementar dos clientes API explicitos:
+
+- `tenantClient`:
+  - rutas tenant-scoped
+  - inyecta `X-Tenant-Id`
+  - puede operar con token tenant-scoped (emitido tras `tenant/switch`)
+- `platformClient`:
+  - rutas platform-scoped (`/api/v1/platform/*`)
+  - prohibe `X-Tenant-Id`
+  - debe operar con token/sesion no tenant-scoped
+
+Reglas:
+
+- no usar fallback automatico de un scope a otro
+- no reintentar automaticamente un request platform con contexto tenant
+- ante `TENANT_SCOPE_MISMATCH`, forzar cambio explicito de contexto
+
+Flujo recomendado:
+
+1. login/refresh base
+2. bootstrap de tenant (si aplica) con `tenant/switch`
+3. usar `tenantClient` para modulo tenant
+4. usar `platformClient` para modulo platform
 
 ## 4. Mapa de API por modulo (casos de uso y endpoints)
 

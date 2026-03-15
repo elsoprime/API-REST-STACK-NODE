@@ -1,11 +1,15 @@
 import { type NextFunction, type Request, type Response } from 'express';
 
 import { HTTP_STATUS } from '@/constants/http';
+import { type AuthContext } from '@/core/platform/auth/types/auth.types';
+import { type BillingServiceContract } from '@/core/platform/billing/types/billing.types';
 import { createExecutionContext } from '@/core/platform/context/services/execution-context.factory';
 import { buildSuccess } from '@/core/shared/utils/build-success.util';
-import { type AuthContext } from '@/core/platform/auth/types/auth.types';
 import { type TenantContext } from '@/core/tenant/types/tenant.types';
-import { type BillingServiceContract } from '@/core/platform/billing/types/billing.types';
+
+interface RawBodyRequest extends Request {
+  rawBody?: string;
+}
 
 function getTraceId(res: Response): string {
   return typeof res.locals.traceId === 'string' ? res.locals.traceId : 'unknown';
@@ -30,6 +34,21 @@ function getExecutionContext(res: Response) {
 function getWebhookSignature(req: Request): string | null {
   const value = req.header('X-Billing-Signature')?.trim();
   return value && value.length > 0 ? value : null;
+}
+
+function getWebhookTimestamp(req: Request): string | null {
+  const value = req.header('X-Billing-Timestamp')?.trim();
+  return value && value.length > 0 ? value : null;
+}
+
+function getRawWebhookBody(req: Request): string | null {
+  const rawBody = (req as RawBodyRequest).rawBody;
+
+  if (typeof rawBody !== 'string') {
+    return null;
+  }
+
+  return rawBody.length > 0 ? rawBody : null;
 }
 
 export function createBillingController(service: BillingServiceContract) {
@@ -65,6 +84,8 @@ export function createBillingController(service: BillingServiceContract) {
       try {
         const result = await service.processProviderWebhook({
           signature: getWebhookSignature(req),
+          timestamp: getWebhookTimestamp(req),
+          rawBody: getRawWebhookBody(req),
           payload: req.body,
           context: createExecutionContext({
             traceId: getTraceId(res),

@@ -43,5 +43,7 @@ process.env.EMAIL_DELIVERY_TIMEOUT_MS ??= '5000';
 process.env.DELIVERY_WEBHOOK_TIMEOUT_MS ??= '5000';
 process.env.BILLING_PROVIDER ??= 'simulated';
 process.env.BILLING_WEBHOOK_SECRET ??= 'dev-billing-webhook-secret';
+process.env.BILLING_WEBHOOK_TOLERANCE_SECONDS ??= '300';
 process.env.DB_CONNECT_MAX_RETRIES ??= '0';
 process.env.DB_CONNECT_RETRY_DELAY_MS ??= '250';
+

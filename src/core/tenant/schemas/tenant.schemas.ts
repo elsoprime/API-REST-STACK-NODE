@@ -1,4 +1,4 @@
-import { z } from 'zod';
+﻿import { z } from 'zod';
 
 import { TENANT_ROLE_VALUES } from '@/constants/tenant';
 
@@ -37,5 +37,6 @@ export const transferOwnershipSchema = z.object({
 });
 
 export const assignTenantSubscriptionSchema = z.object({
-  planId: z.string().trim().min(1)
+  planId: z.string().trim().min(1),
+  checkoutSessionId: objectIdSchema
 });

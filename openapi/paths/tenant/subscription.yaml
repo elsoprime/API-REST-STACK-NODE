@@ -1,7 +1,7 @@
 patch:
   tags:
     - Tenant
-  summary: Assign or change tenant subscription plan and activate modules
+  summary: Assign tenant subscription plan after paid checkout validation
   operationId: assignTenantSubscription
   security:
     - bearerAuth: []

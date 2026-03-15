@@ -1,4 +1,4 @@
-# Cierre Etapa 9
+﻿# Cierre Etapa 9
 
 Fecha: 2026-03-08  
 Estado: Cierre formal aprobado
@@ -23,20 +23,20 @@ Incluye:
 
 Archivos principales:
 
-- [crm.types.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/modules/crm/types/crm.types.ts)
-- [crm-contact.model.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/modules/crm/models/crm-contact.model.ts)
-- [crm-organization.model.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/modules/crm/models/crm-organization.model.ts)
-- [crm-opportunity.model.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/modules/crm/models/crm-opportunity.model.ts)
-- [crm-activity.model.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/modules/crm/models/crm-activity.model.ts)
-- [crm-counter.model.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/modules/crm/models/crm-counter.model.ts)
-- [crm-dedup.service.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/modules/crm/services/crm-dedup.service.ts)
-- [crm.service.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/modules/crm/services/crm.service.ts)
-- [crm.controller.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/modules/crm/controllers/crm.controller.ts)
-- [crm.routes.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/modules/crm/routes/crm.routes.ts)
-- [modules.routes.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/modules/routes/modules.routes.ts)
-- [system-rbac.catalog.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/core/platform/rbac/catalog/system-rbac.catalog.ts)
-- [crm.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/components/schemas/crm.yaml)
-- [openapi.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/openapi.yaml)
+- [crm.types.ts](..\..\src\modules\crm\types\crm.types.ts)
+- [crm-contact.model.ts](..\..\src\modules\crm\models\crm-contact.model.ts)
+- [crm-organization.model.ts](..\..\src\modules\crm\models\crm-organization.model.ts)
+- [crm-opportunity.model.ts](..\..\src\modules\crm\models\crm-opportunity.model.ts)
+- [crm-activity.model.ts](..\..\src\modules\crm\models\crm-activity.model.ts)
+- [crm-counter.model.ts](..\..\src\modules\crm\models\crm-counter.model.ts)
+- [crm-dedup.service.ts](..\..\src\modules\crm\services\crm-dedup.service.ts)
+- [crm.service.ts](..\..\src\modules\crm\services\crm.service.ts)
+- [crm.controller.ts](..\..\src\modules\crm\controllers\crm.controller.ts)
+- [crm.routes.ts](..\..\src\modules\crm\routes\crm.routes.ts)
+- [modules.routes.ts](..\..\src\modules\routes\modules.routes.ts)
+- [system-rbac.catalog.ts](..\..\src\core\platform\rbac\catalog\system-rbac.catalog.ts)
+- [crm.yaml](..\..\openapi\components\schemas\crm.yaml)
+- [openapi.yaml](..\..\openapi\openapi.yaml)
 
 ## 3. Evidencia automatizada
 
@@ -47,9 +47,9 @@ Comandos verificados:
 
 Cobertura funcional minima:
 
-- contrato HTTP y guards RBAC del modulo: [crm.routes.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/integration/crm/crm.routes.test.ts)
-- aislamiento tenant ante mismatch de scope: [crm.isolation.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/integration/crm/crm.isolation.test.ts)
-- mapeo de errores estables y transicion de etapa: [crm.service.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/unit/modules/crm/crm.service.test.ts)
+- contrato HTTP y guards RBAC del modulo: [crm.routes.test.ts](..\..\tests\integration\crm\crm.routes.test.ts)
+- aislamiento tenant ante mismatch de scope: [crm.isolation.test.ts](..\..\tests\integration\crm\crm.isolation.test.ts)
+- mapeo de errores estables y transicion de etapa: [crm.service.test.ts](..\..\tests\unit\modules\crm\crm.service.test.ts)
 
 ## 4. Evidencia de contrato
 
@@ -100,8 +100,9 @@ Se detecto deuda tecnica contractual en hardening tenant-scoped y evidencia CSRF
 
 ### 6.3 Evidencia automatizada del re-cierre
 
-- `npm run docs:cierres:validate` ✅
-- `npm run openapi:validate` ✅
-- `npm run build` ✅
-- `npm run lint` ✅
-- `npm run test` ✅ (`98` archivos en verde, `1` skipped por feature flag de restore drill)
+- `npm run docs:cierres:validate` âœ…
+- `npm run openapi:validate` âœ…
+- `npm run build` âœ…
+- `npm run lint` âœ…
+- `npm run test` âœ… (`98` archivos en verde, `1` skipped por feature flag de restore drill)
+

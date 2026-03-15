@@ -5,6 +5,8 @@ import { RATE_LIMITER_PROFILES, type RateLimiterProfile } from '@/constants/secu
 import { env } from '@/config/env';
 import { AppError } from '@/infrastructure/errors/app-error';
 import { ERROR_CODES } from '@/infrastructure/errors/error-codes';
+import { logger } from '@/infrastructure/logger/logger';
+import { getRedisClient, hasRedisInitializationAttempted, isRedisEnabled } from '@/infrastructure/redis/redis.client';
 
 interface RateLimitBucket {
   count: number;
@@ -19,9 +21,10 @@ interface CreateRateLimiterOptions {
 }
 
 const rateLimitStore = new Map<string, RateLimitBucket>();
+let redisFallbackLogged = false;
 
 function buildRateLimitKey(profile: RateLimiterProfile, clientId: string): string {
-  return `${profile}:${clientId}`;
+  return `${env.RATE_LIMIT_REDIS_PREFIX}:${profile}:${clientId}`;
 }
 
 function resolveClientId(ip: string | undefined): string {
@@ -38,30 +41,90 @@ function normalizeEmailForRateLimit(value: unknown): string {
   return normalizedEmail.length > 0 ? normalizedEmail : 'unknown';
 }
 
+async function incrementRedisBucket(
+  key: string,
+  windowMs: number
+): Promise<RateLimitBucket | null> {
+  const redis = getRedisClient();
+
+  if (!redis) {
+    return null;
+  }
+
+  const now = Date.now();
+
+  try {
+    const count = await redis.incr(key);
+
+    if (count === 1) {
+      await redis.pexpire(key, windowMs);
+    }
+
+    const ttl = await redis.pttl(key);
+    const expiresAt = ttl > 0 ? now + ttl : now + windowMs;
+
+    return {
+      count,
+      expiresAt
+    };
+  } catch (error) {
+    logger.warn(
+      {
+        scope: 'rate_limiter.redis.error',
+        key,
+        errorMessage: error instanceof Error ? error.message : 'Unknown redis error'
+      },
+      'Rate limiter redis backend failed; falling back to in-memory store.'
+    );
+
+    return null;
+  }
+}
+
+function incrementInMemoryBucket(key: string, windowMs: number): RateLimitBucket {
+  const now = Date.now();
+  const existingBucket = rateLimitStore.get(key);
+
+  if (!existingBucket || existingBucket.expiresAt <= now) {
+    const bucket = {
+      count: 1,
+      expiresAt: now + windowMs
+    };
+    rateLimitStore.set(key, bucket);
+    return bucket;
+  }
+
+  existingBucket.count += 1;
+  rateLimitStore.set(key, existingBucket);
+  return existingBucket;
+}
+
 export function clearRateLimiterStore(): void {
   rateLimitStore.clear();
+  redisFallbackLogged = false;
 }
 
 export function createRateLimiter(options: CreateRateLimiterOptions): RequestHandler {
-  return (req, _res, next) => {
-    const now = Date.now();
+  return async (req, _res, next) => {
     const rateLimitKey = options.keyResolver?.(req) ?? resolveClientId(req.ip);
     const key = buildRateLimitKey(options.profile, rateLimitKey);
-    const existingBucket = rateLimitStore.get(key);
 
-    if (!existingBucket || existingBucket.expiresAt <= now) {
-      rateLimitStore.set(key, {
-        count: 1,
-        expiresAt: now + options.windowMs
-      });
-      next();
-      return;
+    let bucket: RateLimitBucket | null = null;
+
+    if (isRedisEnabled()) {
+      bucket = await incrementRedisBucket(key, options.windowMs);
     }
 
-    existingBucket.count += 1;
-    rateLimitStore.set(key, existingBucket);
+    if (!bucket) {
+      if (!redisFallbackLogged && isRedisEnabled() && hasRedisInitializationAttempted()) {
+        logger.warn({ scope: 'rate_limiter.redis.fallback' }, 'Redis rate limiter unavailable; using in-memory store.');
+        redisFallbackLogged = true;
+      }
 
-    if (existingBucket.count > options.max) {
+      bucket = incrementInMemoryBucket(key, options.windowMs);
+    }
+
+    if (bucket.count > options.max) {
       next(
         new AppError({
           code: ERROR_CODES.RATE_LIMITED,
@@ -94,11 +157,15 @@ export function createEmailAddressRateLimiter(options: Omit<CreateRateLimiterOpt
   });
 }
 
-export const globalRateLimiter = createRateLimiter({
-  max: env.RATE_LIMIT_MAX_GLOBAL,
-  windowMs: env.RATE_LIMIT_WINDOW_MS,
-  profile: RATE_LIMITER_PROFILES.GLOBAL
-});
+export function createGlobalRateLimiter(): RequestHandler {
+  return createRateLimiter({
+    max: env.RATE_LIMIT_MAX_GLOBAL,
+    windowMs: env.RATE_LIMIT_WINDOW_MS,
+    profile: RATE_LIMITER_PROFILES.GLOBAL
+  });
+}
+
+export const globalRateLimiter = createGlobalRateLimiter();
 
 export const authRateLimiter = createRateLimiter({
   max: env.RATE_LIMIT_MAX_AUTH,

@@ -6,6 +6,10 @@ patch:
   security:
     - bearerAuth: []
     - accessTokenCookie: []
+  x-permissions:
+    module: tenant:modules:inventory:use
+    required:
+      - tenant:modules:inventory:update
   parameters:
     - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
     - name: categoryId
@@ -51,6 +55,10 @@ delete:
   security:
     - bearerAuth: []
     - accessTokenCookie: []
+  x-permissions:
+    module: tenant:modules:inventory:use
+    required:
+      - tenant:modules:inventory:delete
   parameters:
     - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
     - name: categoryId

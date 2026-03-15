@@ -1,10 +1,12 @@
-import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
+import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 
 import mongoose, { Types } from 'mongoose';
 
 import {
   BILLING_CHECKOUT_STATUS,
-  BILLING_EVENT_STATUS,  BILLING_WEBHOOK_EVENT_TYPE,
+  BILLING_EVENT_STATUS,
+  BILLING_WEBHOOK_EVENT_TYPE,
+  BILLING_WEBHOOK_EVENT_TYPES,
   type BillingProvider
 } from '@/constants/billing';
 import { HTTP_STATUS } from '@/constants/http';
@@ -29,9 +31,11 @@ import {
 } from '@/core/platform/billing/types/billing.types';
 import { systemRbacCatalog } from '@/core/platform/rbac/catalog/system-rbac.catalog';
 import { rbacService, type RbacService } from '@/core/platform/rbac/services/rbac.service';
+import { TENANT_SUBSCRIPTION_STATUS } from '@/constants/tenant';
 import { TenantModel } from '@/core/tenant/models/tenant.model';
 import { AppError } from '@/infrastructure/errors/app-error';
 import { ERROR_CODES } from '@/infrastructure/errors/error-codes';
+import { logger } from '@/infrastructure/logger/logger';
 
 function ensureObjectId(id: string): Types.ObjectId {
   return new Types.ObjectId(id);
@@ -107,6 +111,53 @@ function buildCanonicalWebhookPayload(payload: ProcessBillingWebhookInput['paylo
 
 function buildWebhookSignature(payload: string, secret: string): string {
   return createHmac('sha256', secret).update(payload).digest('hex');
+}
+
+function buildWebhookSignedPayload(timestampSeconds: number, payload: string): string {
+  return `${timestampSeconds}.${payload}`;
+}
+
+function buildWebhookPayloadHash(payload: string): string {
+  return createHash('sha256').update(payload).digest('hex');
+}
+
+function buildWebhookIdempotencyKey(payload: ProcessBillingWebhookInput['payload']): string {
+  const sessionKey = payload.data.checkoutSessionId ?? payload.data.providerSessionId ?? payload.id;
+  return `${payload.provider}:${payload.type}:${payload.data.tenantId}:${sessionKey}`;
+}
+
+function resolveActivatedTenantSubscriptionStatus(
+  previousStatus: string | null | undefined
+): 'active' | 'reactivated' {
+  if (
+    previousStatus === TENANT_SUBSCRIPTION_STATUS.CANCELED ||
+    previousStatus === TENANT_SUBSCRIPTION_STATUS.SUSPENDED ||
+    previousStatus === TENANT_SUBSCRIPTION_STATUS.GRACE
+  ) {
+    return TENANT_SUBSCRIPTION_STATUS.REACTIVATED;
+  }
+
+  return TENANT_SUBSCRIPTION_STATUS.ACTIVE;
+}
+
+function resolveGracePeriodEnd(): Date {
+  return new Date(Date.now() + env.BILLING_GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000);
+}
+
+ type SubscriptionTransition = {
+  tenantId: string;
+  previousStatus: string | null;
+  nextStatus: string;
+  reason: string;
+};
+
+function isMongoDuplicateKeyError(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    error.code === 11000
+  );
 }
 
 function isSignatureValid(signature: string, expectedSignature: string): boolean {
@@ -200,50 +251,97 @@ export class BillingService implements BillingServiceContract {
   async processProviderWebhook(
     input: ProcessBillingWebhookInput
   ): Promise<BillingWebhookProcessResult> {
-    this.assertWebhookSignature(input.signature, input.payload);
+    const rawPayload = this.resolveRawWebhookPayload(input);
+    const signatureTimestamp = await this.assertWebhookSecurity(input, rawPayload);
 
-    const duplicate = await BillingEventModel.findOne({ providerEventId: input.payload.id }).lean();
+    const isSupportedEventType = BILLING_WEBHOOK_EVENT_TYPES.includes(input.payload.type);
+
+    if (!isSupportedEventType) {
+      await this.recordWebhookSecurityRejection(input, 'Billing webhook event type is not supported');
+      throw buildBillingError(
+        ERROR_CODES.VALIDATION_ERROR,
+        'Billing webhook event type is not supported',
+        HTTP_STATUS.BAD_REQUEST
+      );
+    }
+
+    const idempotencyKey = buildWebhookIdempotencyKey(input.payload);
+    const payloadHash = buildWebhookPayloadHash(rawPayload);
+
+    const [duplicateByEventId, duplicateByIdempotencyKey] = await Promise.all([
+      BillingEventModel.findOne({ providerEventId: input.payload.id }).lean(),
+      BillingEventModel.findOne({
+        idempotencyKey,
+        status: {
+          $in: [BILLING_EVENT_STATUS.PROCESSED, BILLING_EVENT_STATUS.IGNORED]
+        }
+      }).lean()
+    ]);
+
+    const duplicate = duplicateByEventId ?? duplicateByIdempotencyKey;
 
     if (duplicate) {
-      return {
-        eventId: input.payload.id,
+      return this.buildDuplicateWebhookResult(input, duplicate);
+    }
+
+    let billingEventId = '';
+
+    try {
+      const createdBillingEvent = await BillingEventModel.create({
+        providerEventId: input.payload.id,
+        idempotencyKey,
         provider: input.payload.provider,
         type: input.payload.type,
-        status: 'duplicate',
-        checkoutSessionId: duplicate.checkoutSessionId ? duplicate.checkoutSessionId.toString() : null,
-        tenantId: duplicate.tenantId ? duplicate.tenantId.toString() : null
-      };
-    }
-
-    const billingEvent = await BillingEventModel.create({
-      providerEventId: input.payload.id,
-      provider: input.payload.provider,
-      type: input.payload.type,
-      status: BILLING_EVENT_STATUS.RECEIVED,
-      tenantId: Types.ObjectId.isValid(input.payload.data.tenantId)
-        ? ensureObjectId(input.payload.data.tenantId)
-        : null,
-      checkoutSessionId:
-        input.payload.data.checkoutSessionId && Types.ObjectId.isValid(input.payload.data.checkoutSessionId)
-          ? ensureObjectId(input.payload.data.checkoutSessionId)
+        status: BILLING_EVENT_STATUS.RECEIVED,
+        tenantId: Types.ObjectId.isValid(input.payload.data.tenantId)
+          ? ensureObjectId(input.payload.data.tenantId)
           : null,
-      reason: null,
-      payload: input.payload,
-      processedAt: null
-    });
+        checkoutSessionId:
+          input.payload.data.checkoutSessionId && Types.ObjectId.isValid(input.payload.data.checkoutSessionId)
+            ? ensureObjectId(input.payload.data.checkoutSessionId)
+            : null,
+        reason: null,
+        payloadHash,
+        payload: input.payload,
+        signatureTimestamp,
+        processedAt: null
+      });
+      billingEventId = createdBillingEvent._id.toString();
+    } catch (error) {
+      if (isMongoDuplicateKeyError(error)) {
+        const duplicateByRace = await BillingEventModel.findOne({ idempotencyKey }).lean();
+
+        if (duplicateByRace) {
+          return this.buildDuplicateWebhookResult(input, duplicateByRace);
+        }
+      }
+
+      throw error;
+    }
 
     if (input.payload.type === BILLING_WEBHOOK_EVENT_TYPE.CHECKOUT_PAID) {
-      return await this.processPaidWebhook(billingEvent._id.toString(), input);
+      return await this.processPaidWebhook(billingEventId, input);
     }
 
-    return await this.processTerminalWebhook(billingEvent._id.toString(), input);
+    return await this.processTerminalWebhook(billingEventId, input);
   }
 
-  private assertWebhookSignature(
-    signature: string | null,
-    payload: ProcessBillingWebhookInput['payload']
-  ): void {
+  private resolveRawWebhookPayload(input: ProcessBillingWebhookInput): string {
+    if (typeof input.rawBody === 'string' && input.rawBody.length > 0) {
+      return input.rawBody;
+    }
+
+    return buildCanonicalWebhookPayload(input.payload);
+  }
+
+  private async assertWebhookSecurity(
+    input: ProcessBillingWebhookInput,
+    rawPayload: string
+  ): Promise<Date> {
+    const signature = input.signature?.trim();
+
     if (!signature) {
+      await this.recordWebhookSecurityRejection(input, 'Billing webhook signature is required');
       throw buildBillingError(
         ERROR_CODES.AUTH_UNAUTHENTICATED,
         'Billing webhook signature is required',
@@ -251,16 +349,120 @@ export class BillingService implements BillingServiceContract {
       );
     }
 
-    const canonicalPayload = buildCanonicalWebhookPayload(payload);
-    const expectedSignature = buildWebhookSignature(canonicalPayload, env.BILLING_WEBHOOK_SECRET);
+    const rawTimestamp = input.timestamp?.trim();
+
+    if (!rawTimestamp) {
+      await this.recordWebhookSecurityRejection(input, 'Billing webhook timestamp is required');
+      throw buildBillingError(
+        ERROR_CODES.AUTH_UNAUTHENTICATED,
+        'Billing webhook timestamp is required',
+        HTTP_STATUS.UNAUTHORIZED
+      );
+    }
+
+    const parsedTimestampSeconds = Number.parseInt(rawTimestamp, 10);
+
+    if (!Number.isInteger(parsedTimestampSeconds) || parsedTimestampSeconds <= 0) {
+      await this.recordWebhookSecurityRejection(input, 'Billing webhook timestamp is invalid');
+      throw buildBillingError(
+        ERROR_CODES.AUTH_UNAUTHENTICATED,
+        'Billing webhook timestamp is invalid',
+        HTTP_STATUS.UNAUTHORIZED
+      );
+    }
+
+    const nowSeconds = Math.floor(Date.now() / 1000);
+
+    if (Math.abs(nowSeconds - parsedTimestampSeconds) > env.BILLING_WEBHOOK_TOLERANCE_SECONDS) {
+      await this.recordWebhookSecurityRejection(input, 'Billing webhook timestamp is outside tolerance window');
+      throw buildBillingError(
+        ERROR_CODES.AUTH_UNAUTHENTICATED,
+        'Billing webhook timestamp is outside tolerance window',
+        HTTP_STATUS.UNAUTHORIZED
+      );
+    }
+
+    const expectedSignature = buildWebhookSignature(
+      buildWebhookSignedPayload(parsedTimestampSeconds, rawPayload),
+      env.BILLING_WEBHOOK_SECRET
+    );
 
     if (!isSignatureValid(signature, expectedSignature)) {
+      await this.recordWebhookSecurityRejection(input, 'Billing webhook signature is invalid');
       throw buildBillingError(
         ERROR_CODES.AUTH_UNAUTHENTICATED,
         'Billing webhook signature is invalid',
         HTTP_STATUS.UNAUTHORIZED
       );
     }
+
+    return new Date(parsedTimestampSeconds * 1000);
+  }
+
+  private async recordWebhookSecurityRejection(
+    input: ProcessBillingWebhookInput,
+    reason: string
+  ): Promise<void> {
+    logger.warn(
+      {
+        scope: 'billing.webhook.security.reject',
+        eventId: input.payload.id,
+        provider: input.payload.provider,
+        type: input.payload.type,
+        reason,
+        timestamp: input.timestamp
+      },
+      'Billing webhook security rejection recorded.'
+    );
+
+    if (!input.context) {
+      return;
+    }
+
+    await this.recordAuditLog({
+      context: input.context,
+      action: 'billing.webhook.security.reject',
+      resource: {
+        type: 'billing_webhook',
+        id: input.payload.id
+      },
+      severity: 'critical',
+      metadata: {
+        reason,
+        provider: input.payload.provider,
+        type: input.payload.type,
+        timestamp: input.timestamp
+      }
+    });
+  }
+
+  private buildDuplicateWebhookResult(
+    input: ProcessBillingWebhookInput,
+    duplicate: {
+      checkoutSessionId?: Types.ObjectId | null;
+      tenantId?: Types.ObjectId | null;
+    }
+  ): BillingWebhookProcessResult {
+    logger.info(
+      {
+        scope: 'billing.webhook.duplicate',
+        eventId: input.payload.id,
+        provider: input.payload.provider,
+        type: input.payload.type,
+        tenantId: duplicate.tenantId ? duplicate.tenantId.toString() : null,
+        checkoutSessionId: duplicate.checkoutSessionId ? duplicate.checkoutSessionId.toString() : null
+      },
+      'Billing webhook duplicate detected.'
+    );
+
+    return {
+      eventId: input.payload.id,
+      provider: input.payload.provider,
+      type: input.payload.type,
+      status: 'duplicate',
+      checkoutSessionId: duplicate.checkoutSessionId ? duplicate.checkoutSessionId.toString() : null,
+      tenantId: duplicate.tenantId ? duplicate.tenantId.toString() : null
+    };
   }
 
   private async processPaidWebhook(
@@ -325,6 +527,8 @@ export class BillingService implements BillingServiceContract {
 
         tenant.planId = resolvedPlan.key;
         tenant.activeModuleKeys = [...resolvedPlan.allowedModuleKeys];
+        tenant.subscriptionStatus = resolveActivatedTenantSubscriptionStatus(tenant.subscriptionStatus);
+        tenant.subscriptionGraceEndsAt = null;
 
         checkoutSession.planId = resolvedPlan.key;
         checkoutSession.status = BILLING_CHECKOUT_STATUS.ACTIVATED;
@@ -386,6 +590,7 @@ export class BillingService implements BillingServiceContract {
     input: ProcessBillingWebhookInput
   ): Promise<BillingWebhookProcessResult> {
     const session = await mongoose.startSession();
+    let subscriptionTransition: SubscriptionTransition | null = null;
 
     try {
       let checkoutSessionId: string | null = null;
@@ -412,6 +617,8 @@ export class BillingService implements BillingServiceContract {
           return;
         }
 
+        const tenant = await TenantModel.findById(checkoutSession.tenantId).session(session);
+
         checkoutSession.status =
           input.payload.type === BILLING_WEBHOOK_EVENT_TYPE.CHECKOUT_FAILED
             ? BILLING_CHECKOUT_STATUS.FAILED
@@ -424,11 +631,78 @@ export class BillingService implements BillingServiceContract {
         billingEvent.checkoutSessionId = checkoutSession._id;
         billingEvent.processedAt = new Date();
 
-        await Promise.all([checkoutSession.save({ session }), billingEvent.save({ session })]);
+        const saveOperations: Promise<unknown>[] = [
+          checkoutSession.save({ session }),
+          billingEvent.save({ session })
+        ];
+
+        if (tenant) {
+          const previousStatus = tenant.subscriptionStatus ?? null;
+
+          if (input.payload.type === BILLING_WEBHOOK_EVENT_TYPE.CHECKOUT_FAILED) {
+            tenant.subscriptionStatus = TENANT_SUBSCRIPTION_STATUS.GRACE;
+            tenant.subscriptionGraceEndsAt = resolveGracePeriodEnd();
+            subscriptionTransition = {
+              tenantId: tenant._id.toString(),
+              previousStatus,
+              nextStatus: tenant.subscriptionStatus,
+              reason: 'payment_failed'
+            };
+          }
+
+          if (input.payload.type === BILLING_WEBHOOK_EVENT_TYPE.CHECKOUT_CANCELED) {
+            tenant.subscriptionStatus = TENANT_SUBSCRIPTION_STATUS.SUSPENDED;
+            tenant.subscriptionGraceEndsAt = null;
+            subscriptionTransition = {
+              tenantId: tenant._id.toString(),
+              previousStatus,
+              nextStatus: tenant.subscriptionStatus,
+              reason: 'payment_canceled'
+            };
+          }
+
+          saveOperations.push(tenant.save({ session }));
+        }
+
+        await Promise.all(saveOperations);
 
         checkoutSessionId = checkoutSession._id.toString();
         tenantId = checkoutSession.tenantId.toString();
       });
+
+      const transition = subscriptionTransition as SubscriptionTransition | null;
+
+      if (transition) {
+        await this.recordAuditLog({
+          context: input.context,
+          tenant: {
+            tenantId: transition.tenantId
+          },
+          action:
+            transition.nextStatus === TENANT_SUBSCRIPTION_STATUS.GRACE
+              ? 'tenant.subscription.grace'
+              : 'tenant.subscription.suspend',
+          resource: {
+            type: 'tenant',
+            id: transition.tenantId
+          },
+          severity: 'warning',
+          changes: {
+            before: {
+              subscriptionStatus: transition.previousStatus
+            },
+            after: {
+              subscriptionStatus: transition.nextStatus
+            },
+            fields: ['subscriptionStatus']
+          },
+          metadata: {
+            reason: transition.reason,
+            billingEventId: input.payload.id,
+            provider: input.payload.provider
+          }
+        });
+      }
 
       return {
         eventId: input.payload.id,
@@ -494,4 +768,23 @@ export class BillingService implements BillingServiceContract {
 }
 
 export const billingService = new BillingService();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

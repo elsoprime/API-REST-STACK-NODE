@@ -108,6 +108,7 @@ describe('billing routes', () => {
     vi.spyOn(TenantModel, 'findById').mockResolvedValue({
       _id: new Types.ObjectId(tenantId),
       status: 'active',
+      subscriptionStatus: 'active',
       ownerUserId: new Types.ObjectId(userId),
       planId: null,
       activeModuleKeys: []
@@ -146,6 +147,7 @@ describe('billing routes', () => {
     const response = await request(app)
       .post('/api/v1/billing/webhooks/provider')
       .set('X-Billing-Signature', 'test-signature')
+      .set('X-Billing-Timestamp', '1760000000')
       .send({
         id: 'evt_123',
         provider: 'simulated',
@@ -160,9 +162,12 @@ describe('billing routes', () => {
     expect(response.status).toBe(200);
     expect(service.processProviderWebhook).toHaveBeenCalledWith(
       expect.objectContaining({
-        signature: 'test-signature'
+        signature: 'test-signature',
+        timestamp: '1760000000',
+        rawBody: expect.any(String)
       })
     );
     expect(response.body.data.status).toBe('processed');
   });
 });
+

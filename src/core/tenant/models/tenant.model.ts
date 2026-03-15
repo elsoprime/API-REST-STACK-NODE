@@ -1,6 +1,6 @@
 import { model, Schema, type HydratedDocument, type InferSchemaType } from 'mongoose';
 
-import { TENANT_STATUS } from '@/constants/tenant';
+import { TENANT_STATUS, TENANT_SUBSCRIPTION_STATUS } from '@/constants/tenant';
 import { baseDocumentPlugin } from '@/infrastructure/database/plugins/baseDocument.plugin';
 
 const tenantSchema = new Schema(
@@ -22,6 +22,16 @@ const tenantSchema = new Schema(
       enum: Object.values(TENANT_STATUS),
       default: TENANT_STATUS.ACTIVE,
       index: true
+    },
+    subscriptionStatus: {
+      type: String,
+      enum: Object.values(TENANT_SUBSCRIPTION_STATUS),
+      default: TENANT_SUBSCRIPTION_STATUS.PENDING,
+      index: true
+    },
+    subscriptionGraceEndsAt: {
+      type: Date,
+      default: null
     },
     ownerUserId: {
       type: Schema.Types.ObjectId,
@@ -52,3 +62,5 @@ tenantSchema.plugin(baseDocumentPlugin);
 export type TenantDocument = HydratedDocument<InferSchemaType<typeof tenantSchema>>;
 
 export const TenantModel = model<TenantDocument>('Tenant', tenantSchema);
+
+

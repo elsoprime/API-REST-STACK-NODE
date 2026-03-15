@@ -101,7 +101,7 @@ src/mocks/
 - `POST /api/v1/billing/checkout/session`: exito (`201`) y error de validacion/permisos.
 - `PATCH /api/v1/tenant/subscription`: asignacion/cambio de plan.
 - `DELETE /api/v1/tenant/subscription`: cancelacion y limpieza de modulos.
-- `POST /api/v1/billing/webhooks/provider`: webhook con firma valida e invalida para flujos dev.
+- `POST /api/v1/billing/webhooks/provider`: webhook dev con firma valida sobre `${timestamp}.${rawBody}`, firma invalida y timestamp vencido.
 
 ## 6. Contrato de envelope en mocks
 

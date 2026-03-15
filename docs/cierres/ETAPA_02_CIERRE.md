@@ -1,4 +1,4 @@
-# Cierre Etapa 2
+﻿# Cierre Etapa 2
 
 Fecha: 2026-03-07  
 Estado: Cierre formal aprobado
@@ -7,10 +7,10 @@ Estado: Cierre formal aprobado
 
 Se consideran cubiertos los entregables de Etapa 2 definidos en:
 
-- [PLAN_MAESTRO.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/PLAN_MAESTRO.md)
-- [ANEXO_01_IDENTIDAD_AUTH.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/anexos/ANEXO_01_IDENTIDAD_AUTH.md)
-- [ADR-006_AUTH_DELIVERY_AND_PROVISIONING_PORTS.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/adrs/ADR-006_AUTH_DELIVERY_AND_PROVISIONING_PORTS.md)
-- [CRITERIOS_DE_CIERRE.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/checklists/CRITERIOS_DE_CIERRE.md)
+- [PLAN_MAESTRO.md](..\PLAN_MAESTRO.md)
+- [ANEXO_01_IDENTIDAD_AUTH.md](..\anexos\ANEXO_01_IDENTIDAD_AUTH.md)
+- [ADR-006_AUTH_DELIVERY_AND_PROVISIONING_PORTS.md](..\adrs\ADR-006_AUTH_DELIVERY_AND_PROVISIONING_PORTS.md)
+- [CRITERIOS_DE_CIERRE.md](..\checklists\CRITERIOS_DE_CIERRE.md)
 
 Incluye:
 
@@ -30,24 +30,24 @@ Incluye:
 
 Archivos principales implementados:
 
-- [auth.service.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/core/platform/auth/services/auth.service.ts)
-- [token.service.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/core/platform/auth/services/token.service.ts)
-- [password.service.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/core/platform/auth/services/password.service.ts)
-- [two-factor.service.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/core/platform/auth/services/two-factor.service.ts)
-- [auth.controller.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/core/platform/auth/controllers/auth.controller.ts)
-- [auth.routes.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/core/platform/auth/routes/auth.routes.ts)
-- [auth.types.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/core/platform/auth/types/auth.types.ts)
-- [user.model.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/core/platform/users/models/user.model.ts)
-- [user-security.model.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/core/platform/users/models/user-security.model.ts)
-- [auth-session.model.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/core/platform/auth/models/auth-session.model.ts)
-- [authenticate.middleware.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/infrastructure/middleware/authenticate.middleware.ts)
-- [cookies.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/infrastructure/security/cookies.ts)
-- [csrf.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/infrastructure/security/csrf.ts)
-- [email-verification-delivery.port.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/core/platform/auth/ports/email-verification-delivery.port.ts)
-- [two-factor-provisioning.port.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/core/platform/auth/ports/two-factor-provisioning.port.ts)
-- [auth-delivery.registry.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/infrastructure/security/auth-delivery.registry.ts)
-- [email-verification-delivery.memory.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/infrastructure/security/email-verification-delivery.memory.ts)
-- [two-factor-provisioning.memory.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/infrastructure/security/two-factor-provisioning.memory.ts)
+- [auth.service.ts](..\..\src\core\platform\auth\services\auth.service.ts)
+- [token.service.ts](..\..\src\core\platform\auth\services\token.service.ts)
+- [password.service.ts](..\..\src\core\platform\auth\services\password.service.ts)
+- [two-factor.service.ts](..\..\src\core\platform\auth\services\two-factor.service.ts)
+- [auth.controller.ts](..\..\src\core\platform\auth\controllers\auth.controller.ts)
+- [auth.routes.ts](..\..\src\core\platform\auth\routes\auth.routes.ts)
+- [auth.types.ts](..\..\src\core\platform\auth\types\auth.types.ts)
+- [user.model.ts](..\..\src\core\platform\users\models\user.model.ts)
+- [user-security.model.ts](..\..\src\core\platform\users\models\user-security.model.ts)
+- [auth-session.model.ts](..\..\src\core\platform\auth\models\auth-session.model.ts)
+- [authenticate.middleware.ts](..\..\src\infrastructure\middleware\authenticate.middleware.ts)
+- [cookies.ts](..\..\src\infrastructure\security\cookies.ts)
+- [csrf.ts](..\..\src\infrastructure\security\csrf.ts)
+- [email-verification-delivery.port.ts](..\..\src\core\platform\auth\ports\email-verification-delivery.port.ts)
+- [two-factor-provisioning.port.ts](..\..\src\core\platform\auth\ports\two-factor-provisioning.port.ts)
+- [auth-delivery.registry.ts](..\..\src\infrastructure\security\auth-delivery.registry.ts)
+- [email-verification-delivery.memory.ts](..\..\src\infrastructure\security\email-verification-delivery.memory.ts)
+- [two-factor-provisioning.memory.ts](..\..\src\infrastructure\security\two-factor-provisioning.memory.ts)
 
 ## 3. Evidencia automatizada
 
@@ -59,26 +59,26 @@ Comandos verificados:
 
 Cobertura funcional relevante:
 
-- register/login/refresh/logout browser/headless: [auth.routes.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/integration/auth/auth.routes.test.ts)
-- verify-email, 2FA, recovery codes y lockout: [auth.advanced.routes.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/integration/auth/auth.advanced.routes.test.ts)
-- no exposicion de secretos y estados `403/423`: [auth.runtime.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/integration/auth/auth.runtime.test.ts)
-- register -> delivery port -> verify-email sin secretos por HTTP: [auth.delivery-flow.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/integration/auth/auth.delivery-flow.test.ts)
-- setup 2FA -> provisioning port -> confirm sin secreto por HTTP: [auth.2fa-provisioning.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/integration/auth/auth.2fa-provisioning.test.ts)
-- servicio auth y delivery de verify-email: [auth.service.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/unit/core/platform/auth/auth.service.test.ts)
-- firma/verificacion de tokens: [token.service.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/unit/core/platform/auth/token.service.test.ts)
-- hashing de passwords: [password.service.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/unit/core/platform/auth/password.service.test.ts)
-- TOTP y recovery codes: [two-factor.service.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/unit/core/platform/auth/two-factor.service.test.ts)
-- precedencia de autenticacion: [authenticate.middleware.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/unit/infrastructure/middleware/authenticate.middleware.test.ts)
+- register/login/refresh/logout browser/headless: [auth.routes.test.ts](..\..\tests\integration\auth\auth.routes.test.ts)
+- verify-email, 2FA, recovery codes y lockout: [auth.advanced.routes.test.ts](..\..\tests\integration\auth\auth.advanced.routes.test.ts)
+- no exposicion de secretos y estados `403/423`: [auth.runtime.test.ts](..\..\tests\integration\auth\auth.runtime.test.ts)
+- register -> delivery port -> verify-email sin secretos por HTTP: [auth.delivery-flow.test.ts](..\..\tests\integration\auth\auth.delivery-flow.test.ts)
+- setup 2FA -> provisioning port -> confirm sin secreto por HTTP: [auth.2fa-provisioning.test.ts](..\..\tests\integration\auth\auth.2fa-provisioning.test.ts)
+- servicio auth y delivery de verify-email: [auth.service.test.ts](..\..\tests\unit\core\platform\auth\auth.service.test.ts)
+- firma/verificacion de tokens: [token.service.test.ts](..\..\tests\unit\core\platform\auth\token.service.test.ts)
+- hashing de passwords: [password.service.test.ts](..\..\tests\unit\core\platform\auth\password.service.test.ts)
+- TOTP y recovery codes: [two-factor.service.test.ts](..\..\tests\unit\core\platform\auth\two-factor.service.test.ts)
+- precedencia de autenticacion: [authenticate.middleware.test.ts](..\..\tests\unit\infrastructure\middleware\authenticate.middleware.test.ts)
 
 ## 4. Evidencia de contrato
 
-- OpenAPI validado desde [openapi.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/openapi.yaml)
-- register documentado en [register.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/paths/auth/register.yaml)
-- verify-email documentado en [verify-email.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/paths/auth/verify-email.yaml)
-- login browser documentado en [login-browser.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/paths/auth/login-browser.yaml)
-- login headless documentado en [login-headless.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/paths/auth/login-headless.yaml)
-- setup 2FA documentado en [setup.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/paths/auth/2fa/setup.yaml)
-- schemas auth alineados en [auth.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/components/schemas/auth.yaml)
+- OpenAPI validado desde [openapi.yaml](..\..\openapi\openapi.yaml)
+- register documentado en [register.yaml](..\..\openapi\paths\auth\register.yaml)
+- verify-email documentado en [verify-email.yaml](..\..\openapi\paths\auth\verify-email.yaml)
+- login browser documentado en [login-browser.yaml](..\..\openapi\paths\auth\login-browser.yaml)
+- login headless documentado en [login-headless.yaml](..\..\openapi\paths\auth\login-headless.yaml)
+- setup 2FA documentado en [setup.yaml](..\..\openapi\paths\auth\2fa\setup.yaml)
+- schemas auth alineados en [auth.yaml](..\..\openapi\components\schemas\auth.yaml)
 
 ## 5. Comportamiento por entorno
 
@@ -107,3 +107,4 @@ Se incorpora al cierre de Etapa 2:
 - entrega de reset por canal externo (`PasswordResetDeliveryPort`) con template transaccional dedicado.
 - revocacion de sesiones segun contrato en reset/cambio de clave.
 - validaciones ejecutadas en verde: `docs:cierres:validate`, `openapi:validate`, `build`, `lint`, `test`.
+

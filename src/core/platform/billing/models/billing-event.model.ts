@@ -12,6 +12,12 @@ const billingEventSchema = new Schema(
       unique: true,
       index: true
     },
+    idempotencyKey: {
+      type: String,
+      required: true,
+      trim: true,
+      index: true
+    },
     provider: {
       type: String,
       enum: Object.values(BILLING_PROVIDER),
@@ -47,9 +53,19 @@ const billingEventSchema = new Schema(
       type: String,
       default: null
     },
+    payloadHash: {
+      type: String,
+      required: true,
+      trim: true
+    },
     payload: {
       type: Schema.Types.Mixed,
       required: true
+    },
+    signatureTimestamp: {
+      type: Date,
+      required: true,
+      index: true
     },
     processedAt: {
       type: Date,

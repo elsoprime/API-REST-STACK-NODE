@@ -1,4 +1,4 @@
-# Cierre Etapa 11
+﻿# Cierre Etapa 11
 
 Fecha: 2026-03-08  
 Estado: Cerrada (hardening y go-live readiness)
@@ -15,28 +15,28 @@ La Etapa 11 consolida hardening operativo y readiness de go-live sobre el core S
 
 ## 2. Evidencia de codigo
 
-- [runtime.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/app/runtime.ts)
-- [health.routes.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/core/shared/routes/health.routes.ts)
-- [env.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/config/env.ts)
-- [go-live-readiness.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/infrastructure/operations/go-live-readiness.ts)
-- [auth-delivery.registry.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/infrastructure/security/auth-delivery.registry.ts)
-- [tenant-invitation.registry.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/infrastructure/tenant/tenant-invitation.registry.ts)
-- [webhook-delivery.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/src/infrastructure/security/webhook-delivery.ts)
-- [restore.mongodb-drill.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/integration/go-live/restore.mongodb-drill.test.ts)
-- [package.json](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/package.json)
+- [runtime.ts](..\..\src\app\runtime.ts)
+- [health.routes.ts](..\..\src\core\shared\routes\health.routes.ts)
+- [env.ts](..\..\src\config\env.ts)
+- [go-live-readiness.ts](..\..\src\infrastructure\operations\go-live-readiness.ts)
+- [auth-delivery.registry.ts](..\..\src\infrastructure\security\auth-delivery.registry.ts)
+- [tenant-invitation.registry.ts](..\..\src\infrastructure\tenant\tenant-invitation.registry.ts)
+- [webhook-delivery.ts](..\..\src\infrastructure\security\webhook-delivery.ts)
+- [restore.mongodb-drill.test.ts](..\..\tests\integration\go-live\restore.mongodb-drill.test.ts)
+- [package.json](..\..\package.json)
 
 ## 3. Evidencia automatizada
 
 Suites agregadas:
 
-- [smoke.staging.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/e2e/go-live/smoke.staging.test.ts)
-- [restore.drill.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/e2e/go-live/restore.drill.test.ts)
-- [go-live-readiness.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/unit/infrastructure/operations/go-live-readiness.test.ts)
-- [webhook-delivery.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/unit/infrastructure/security/webhook-delivery.test.ts)
-- [auth-delivery.registry.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/unit/infrastructure/security/auth-delivery.registry.test.ts)
-- [tenant-invitation.registry.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/unit/infrastructure/tenant/tenant-invitation.registry.test.ts)
-- [production-readiness-guards.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/integration/go-live/production-readiness-guards.test.ts)
-- [restore.mongodb-drill.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/integration/go-live/restore.mongodb-drill.test.ts)
+- [smoke.staging.test.ts](..\..\tests\e2e\go-live\smoke.staging.test.ts)
+- [restore.drill.test.ts](..\..\tests\e2e\go-live\restore.drill.test.ts)
+- [go-live-readiness.test.ts](..\..\tests\unit\infrastructure\operations\go-live-readiness.test.ts)
+- [webhook-delivery.test.ts](..\..\tests\unit\infrastructure\security\webhook-delivery.test.ts)
+- [auth-delivery.registry.test.ts](..\..\tests\unit\infrastructure\security\auth-delivery.registry.test.ts)
+- [tenant-invitation.registry.test.ts](..\..\tests\unit\infrastructure\tenant\tenant-invitation.registry.test.ts)
+- [production-readiness-guards.test.ts](..\..\tests\integration\go-live\production-readiness-guards.test.ts)
+- [restore.mongodb-drill.test.ts](..\..\tests\integration\go-live\restore.mongodb-drill.test.ts)
 
 Comandos contractuales de etapa:
 
@@ -57,14 +57,14 @@ Comandos contractuales de etapa:
   - `checks.productionDeliveryAdapters`
 - en `production` la readiness exige configuracion real de delivery aunque el flag legacy este desactivado
 - OpenAPI actualizado para health en:
-  - [success.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/components/schemas/success.yaml)
-  - [health.yaml](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/openapi/paths/health.yaml)
+  - [success.yaml](..\..\openapi\components\schemas\success.yaml)
+  - [health.yaml](..\..\openapi\paths\health.yaml)
 
 ## 5. Evidencia operacional
 
-- runbook publicado: [RUNBOOK_GO_LIVE.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/operaciones/RUNBOOK_GO_LIVE.md)
-- smoke suite staging publicada: [SMOKE_SUITE_STAGING.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/operaciones/SMOKE_SUITE_STAGING.md)
-- guia local del drill Mongo: [MONGO_LOCAL_RESTORE_DRILL.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/operaciones/MONGO_LOCAL_RESTORE_DRILL.md)
+- runbook publicado: [RUNBOOK_GO_LIVE.md](..\operaciones\RUNBOOK_GO_LIVE.md)
+- smoke suite staging publicada: [SMOKE_SUITE_STAGING.md](..\operaciones\SMOKE_SUITE_STAGING.md)
+- guia local del drill Mongo: [MONGO_LOCAL_RESTORE_DRILL.md](..\operaciones\MONGO_LOCAL_RESTORE_DRILL.md)
 
 ### 5.1 Evidencia real del restore drill Mongo
 
@@ -72,7 +72,7 @@ Ejecuciones reales reportadas en local el 2026-03-08:
 
 1. `npm run mongo:restore:up` -> contenedores `mongo-restore` y `mongo-restore-init-replica` en estado saludable/creado.
 2. `npm run test:restore:mongodb:enabled` a las 17:32 -> falla por diferencia en `_id` al comparar artifact vs restaurado.
-3. Ajuste aplicado en [restore.mongodb-drill.test.ts](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/tests/integration/go-live/restore.mongodb-drill.test.ts): clonado de registros antes de `insertMany` durante restore.
+3. Ajuste aplicado en [restore.mongodb-drill.test.ts](..\..\tests\integration\go-live\restore.mongodb-drill.test.ts): clonado de registros antes de `insertMany` durante restore.
 4. `npm run test:restore:mongodb:enabled` a las 17:34 -> `1 passed (1)` en verde.
 
 ### 5.2 Evidencia release candidate en GitHub Actions
@@ -87,8 +87,8 @@ Gate remoto ejecutado el 2026-03-08 sobre branch `release-candidate/etapa-11`:
 
 Detalle consolidado en:
 
-- [ETAPA_11_EVIDENCIA_RELEASE.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/cierres/ETAPA_11_EVIDENCIA_RELEASE.md)
-- [ETAPA_11_GO_NO_GO.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/checklists/ETAPA_11_GO_NO_GO.md)
+- [ETAPA_11_EVIDENCIA_RELEASE.md](.\ETAPA_11_EVIDENCIA_RELEASE.md)
+- [ETAPA_11_GO_NO_GO.md](..\checklists\ETAPA_11_GO_NO_GO.md)
 
 ## 6. Veredicto
 
@@ -101,9 +101,9 @@ La salida efectiva a produccion requiere ejecutar el runbook sobre infraestructu
 Registro posterior al cierre:
 
 - Fecha: 2026-03-09
-- Continuidad definida en [PLAN_MAESTRO.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/PLAN_MAESTRO.md) como `Etapa 12`
-- Documento de etapa pendiente: [ETAPA_12_EMAIL_DELIVERY.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/arquitectura/ETAPA_12_EMAIL_DELIVERY.md)
-- Decision arquitectonica asociada: [ADR-014_EMAIL_DELIVERY_PROVIDERS_AND_TEMPLATES.md](/H:/Proyectos%20FullStack/API-REST-STACK-NODE/docs/adrs/ADR-014_EMAIL_DELIVERY_PROVIDERS_AND_TEMPLATES.md)
+- Continuidad definida en [PLAN_MAESTRO.md](..\PLAN_MAESTRO.md) como `Etapa 12`
+- Documento de etapa pendiente: [ETAPA_12_EMAIL_DELIVERY.md](..\arquitectura\ETAPA_12_EMAIL_DELIVERY.md)
+- Decision arquitectonica asociada: [ADR-014_EMAIL_DELIVERY_PROVIDERS_AND_TEMPLATES.md](..\adrs\ADR-014_EMAIL_DELIVERY_PROVIDERS_AND_TEMPLATES.md)
 
 Este registro no reabre la Etapa 11 ni modifica su veredicto de cierre.
 
@@ -125,6 +125,7 @@ Se revalido la etapa para confirmar estado real de gates go-live y reducir deuda
 
 ### 8.3 Evidencia automatizada del re-cierre
 
-- `npm run go-live:check` ✅
-- `npm run test:restore:mongodb:enabled` ✅
-- `npm run docs:cierres:validate` ✅
+- `npm run go-live:check` âœ…
+- `npm run test:restore:mongodb:enabled` âœ…
+- `npm run docs:cierres:validate` âœ…
+

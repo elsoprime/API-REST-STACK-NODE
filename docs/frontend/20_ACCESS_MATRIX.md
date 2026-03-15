@@ -1,8 +1,8 @@
 # Matriz de Acceso Frontend
 
-Version: 1.6.0
+Version: 1.7.0
 Estado: Activo
-Ultima actualizacion: 2026-03-11
+Ultima actualizacion: 2026-03-13
 
 ## 1. Proposito
 
@@ -13,6 +13,9 @@ Definir la relacion exacta entre rutas UI, endpoints backend, permisos y restric
 - Esta matriz no reemplaza autorizacion backend.
 - Si una ruta no existe en OpenAPI, no se implementa en frontend.
 - Si hay conflicto, priorizar `openapi/*` y rutas runtime.
+- Separar consumo por scope:
+  - tenant-scoped -> `tenantClient` + `X-Tenant-Id`.
+  - platform-scoped -> `platformClient` sin `X-Tenant-Id` y sin token tenant-scoped.
 
 ## 3. Matriz de acceso
 
@@ -50,8 +53,8 @@ Definir la relacion exacta entre rutas UI, endpoints backend, permisos y restric
 | Tenant subscription assign | `/app/settings/billing` | `PATCH /api/v1/tenant/subscription` | Requerida | Si | `tenant:settings:update` (runtime owner) | N/A | Asigna/cambia plan y modulos del tenant |
 | Tenant subscription cancel | `/app/settings/billing` | `DELETE /api/v1/tenant/subscription` | Requerida | Si | `tenant:settings:update` (runtime owner) | N/A | Cancela plan y limpia modulos activos |
 | Billing webhooks provider | N/A UI (sistema) | `POST /api/v1/billing/webhooks/provider` | System-to-system | No | N/A | N/A | Endpoint exclusivo backend/provider; no consumo FE |
-| Platform settings read | `/app/settings/platform` | `GET /api/v1/platform/settings` | Requerida | No | `platform:settings:read` | N/A | Solo usuarios platform-scoped |
-| Platform settings update | `/app/settings/platform` | `PATCH /api/v1/platform/settings` | Requerida | No | `platform:settings:update` | N/A | CSRF en cookie-auth |
+| Platform settings read | `/app/settings/platform` | `GET /api/v1/platform/settings` | Requerida | No | `platform:settings:read` | N/A | Solo usuarios platform-scoped. Usar `platformClient` (sin token tenant-scoped). |
+| Platform settings update | `/app/settings/platform` | `PATCH /api/v1/platform/settings` | Requerida | No | `platform:settings:update` | N/A | CSRF en cookie-auth. Usar `platformClient` (sin token tenant-scoped). |
 | Auditoria tenant | `/app/audit` | `GET /api/v1/audit` | Requerida | Si | `tenant:audit:read` | N/A | Filtros + paginacion |
 | Inventory categorias | `/app/inventory/categories` | `GET/POST /api/v1/modules/inventory/categories` | Requerida | Si | `tenant:modules:inventory:use` | Modulo `inventory` habilitado | Mutaciones con CSRF |
 | Inventory categoria detalle | `/app/inventory/categories/:id` | `PATCH/DELETE /api/v1/modules/inventory/categories/{categoryId}` | Requerida | Si | `tenant:modules:inventory:use` | Modulo `inventory` habilitado | |

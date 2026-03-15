@@ -46,6 +46,8 @@ export interface BillingWebhookData {
 
 export interface ProcessBillingWebhookInput {
   signature: string | null;
+  timestamp: string | null;
+  rawBody?: string | null;
   payload: {
     id: string;
     type: BillingWebhookEventType;

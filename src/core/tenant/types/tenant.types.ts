@@ -4,7 +4,8 @@ import { type TenantAuthorizationContext } from '@/core/platform/rbac/types/rbac
 import {
   type InvitationStatus,
   type MembershipStatus,
-  type TenantStatus
+  type TenantStatus,
+  type TenantSubscriptionStatus
 } from '@/constants/tenant';
 
 export interface TenantView {
@@ -12,6 +13,8 @@ export interface TenantView {
   name: string;
   slug: string;
   status: TenantStatus;
+  subscriptionStatus?: TenantSubscriptionStatus;
+  subscriptionGraceEndsAt?: string | null;
   ownerUserId: string;
   planId: string | null;
   activeModuleKeys: string[];
@@ -134,6 +137,7 @@ export interface AssignTenantSubscriptionInput {
   userId: string;
   tenantId: string;
   planId: string;
+  checkoutSessionId: string;
   context?: ExecutionContext;
 }
 
@@ -147,6 +151,7 @@ export interface TenantSubscriptionView {
   planId: string | null;
   activeModuleKeys: string[];
   status: 'activated' | 'canceled';
+  lifecycleStatus: TenantSubscriptionStatus;
 }
 
 export interface TenantSubscriptionResult {
@@ -165,3 +170,6 @@ export interface TenantServiceContract {
   assignSubscription: (input: AssignTenantSubscriptionInput) => Promise<TenantSubscriptionResult>;
   cancelSubscription: (input: CancelTenantSubscriptionInput) => Promise<TenantSubscriptionResult>;
 }
+
+
+

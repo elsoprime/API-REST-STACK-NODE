@@ -747,6 +747,14 @@ export class InventoryService implements InventoryServiceContract {
           { session }
         );
 
+        if (!movement) {
+          throw buildInventoryError(
+            ERROR_CODES.INTERNAL_ERROR,
+            'Inventory stock movement did not complete',
+            HTTP_STATUS.INTERNAL_SERVER_ERROR
+          );
+        }
+
         movementView = toStockMovementView(movement.toObject());
 
         await this.recordAuditLog(
@@ -881,3 +889,4 @@ export class InventoryService implements InventoryServiceContract {
 }
 
 export const inventoryService = new InventoryService();
+
