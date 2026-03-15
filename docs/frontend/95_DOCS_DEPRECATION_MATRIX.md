@@ -29,6 +29,7 @@ Clasificar la documentacion de `docs/frontend/*` para eliminar ruido, conservar 
 | `70_E2E_CRITICAL_FLOWS.md` | Vigente | Flujos criticos incluyen provisioning billing | Mantener |
 | `80_BACKEND_DEPENDENCIES.md` | Vigente | Dependencias cerradas/abiertas actualizadas | Mantener trazabilidad |
 | `90_DOD_CHECKLIST.md` | Vigente | Criterios de cierre incluyen billing/provisioning | Mantener |
+| `operaciones/BILLING_LOCAL_DEMO_RUNBOOK.md` | Vigente | Runbook operativo para cierre practico checkout -> webhook -> activacion | Mantener y actualizar junto a cambios de billing/provisioning |
 
 ## 4. Inconsistencias detectadas y tratamiento
 

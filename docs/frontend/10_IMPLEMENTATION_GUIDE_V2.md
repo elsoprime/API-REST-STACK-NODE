@@ -267,7 +267,7 @@ await bootstrapTenantRuntime(tenantId);
 
 ### Validaciones FE obligatorias
 
-- No llamar `billing/webhooks/provider` desde UI; solo backend/provider.
+- No llamar `billing/webhooks/provider` desde UI; solo backend/provider.`r`n- Runbook local recomendado para demo operativa: `docs/operaciones/BILLING_LOCAL_DEMO_RUNBOOK.md`.
 - Tratar `checkout/session` como estado intermedio hasta recibir webhook o asignacion directa.
 - Tras `PATCH/DELETE /tenant/subscription`, invalidar cache tenant-scoped y refetch de `tenant/settings/effective`.
 - Si runtime llega incompleto o nulo, degradar a estado seguro sin romper render.

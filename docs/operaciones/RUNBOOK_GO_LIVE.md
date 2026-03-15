@@ -1,4 +1,4 @@
-﻿# Runbook Go-Live (Etapa 11)
+# Runbook Go-Live (Etapa 11)
 
 ## 1. Objetivo
 
@@ -113,3 +113,31 @@ Nota operativa:
 - Este bloque registra evidencia de un corte especifico y no reemplaza el criterio permanente del runbook.
 
 
+
+## 10. Runbook local: demo de pago simulado (checkout -> webhook -> activacion)
+
+Objetivo: validar el flujo operativo real sin bypass de pago en entorno local.
+
+Prerequisitos minimos:
+
+- backend corriendo en `APP_URL` (ejemplo: `http://localhost:4000`)
+- `BILLING_WEBHOOK_SECRET` definido en `.env`
+- sesion owner del tenant para crear checkout
+
+Secuencia recomendada:
+
+1. Crear checkout en `POST /api/v1/billing/checkout/session` desde UI (`/app/settings/billing`).
+2. Tomar `checkoutSessionId` de la respuesta.
+3. Simular webhook paid:
+
+```bash
+npm run billing:webhook:simulate -- --tenant-id=<tenantId> --checkout-session-id=<checkoutSessionId> --plan-id=<planId> --provider=simulated --type=billing.checkout.paid
+```
+
+4. Revalidar runtime en `GET /api/v1/tenant/settings/effective` con `X-Tenant-Id`.
+5. Confirmar activacion en UI (`/app/settings/billing` -> `Verificar activacion`).
+
+Resultados esperados:
+
+- antes del webhook: `TENANT_SUBSCRIPTION_PAYMENT_REQUIRED` es valido en flujos restringidos
+- despues del webhook paid: runtime efectivo activo y modulos habilitados segun plan

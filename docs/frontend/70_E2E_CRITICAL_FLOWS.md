@@ -87,12 +87,14 @@ Criterio de aceptacion:
 3. Verificar carga de `GET /api/v1/tenant/settings/effective`.
 4. Editar singleton y ejecutar `PATCH /api/v1/tenant/settings`.
 5. Verificar refetch de runtime efectivo y confirmacion UX.
+6. Simular `403 TENANT_SUBSCRIPTION_PAYMENT_REQUIRED` en `tenant/settings/effective` y verificar CTA a `/app/settings/billing` sin retry loop.
 
 Criterio de aceptacion:
 
 - El singleton se actualiza sin perder contexto tenant y el runtime queda consistente en UI.
+- Ante `TENANT_SUBSCRIPTION_PAYMENT_REQUIRED`, la UI debe guiar a Billing con CTA explicito.
 
-### E2E-04D Billing provisioning + runtime efectivo
+Referencia operativa local: `docs/operaciones/BILLING_LOCAL_DEMO_RUNBOOK.md``r`n`r`n### E2E-04D Billing provisioning + runtime efectivo
 
 1. Abrir `/app/settings/billing`.
 2. Cargar `GET /api/v1/billing/plans`.

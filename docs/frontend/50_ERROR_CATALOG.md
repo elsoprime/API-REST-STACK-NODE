@@ -41,6 +41,7 @@ Estandarizar el manejo UX de `error.code` del backend para mensajes, acciones y 
 
 Nota operativa tenant settings:
 - Si `GET /api/v1/tenant/settings/effective` responde `GEN_INTERNAL_ERROR`, no aplicar retry en loop desde frontend.
+- Si `GET /api/v1/tenant/settings/effective` responde `TENANT_SUBSCRIPTION_PAYMENT_REQUIRED`, mostrar CTA directo a Billing y no aplicar retry en loop.
 - Escalar a backend para validar bootstrap de `PlatformSettings` en startup.
 
 
@@ -78,6 +79,7 @@ Nota operativa tenant settings:
 | `TENANT_OWNER_REQUIRED` | `tenant.ownerRequired` | Esta accion requiere rol owner. | Solicitar operacion a un owner. | No |
 | `TENANT_SLUG_ALREADY_EXISTS` | `tenant.slugExists` | El identificador del tenant ya existe. | Elegir otro slug/nombre. | No |
 | `TENANT_MEMBER_LIMIT_REACHED` | `tenant.memberLimitReached` | Se alcanzo el limite de miembros del plan. | Actualizar plan o remover miembros. | No |
+| `TENANT_SUBSCRIPTION_PAYMENT_REQUIRED` | `tenant.subscriptionPaymentRequired` | La suscripcion del tenant requiere pago. | Ir a Billing (`/app/settings/billing`) y completar pago; luego revalidar runtime efectivo. | No |
 | `TENANT_INVITATION_INVALID` | `tenant.invitationInvalid` | Invitacion invalida. | Revisar enlace de invitacion. | No |
 | `TENANT_INVITATION_EXPIRED` | `tenant.invitationExpired` | Invitacion expirada. | Solicitar nueva invitacion. | No |
 | `TENANT_INVITATION_REVOKED` | `tenant.invitationRevoked` | Invitacion revocada. | Solicitar nueva invitacion. | No |
