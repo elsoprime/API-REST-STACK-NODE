@@ -27,6 +27,15 @@ import { AppError } from '@/infrastructure/errors/app-error';
 import { ERROR_CODES } from '@/infrastructure/errors/error-codes';
 import { requireCsrfToken } from '@/infrastructure/security/csrf';
 
+const INVENTORY_PERMISSIONS = {
+  MODULE_USE: 'tenant:modules:inventory:use',
+  READ: 'tenant:modules:inventory:read',
+  CREATE: 'tenant:modules:inventory:create',
+  UPDATE: 'tenant:modules:inventory:update',
+  DELETE: 'tenant:modules:inventory:delete',
+  STOCK_WRITE: 'tenant:modules:inventory:stock:write'
+} as const;
+
 function requireCsrfForCookieAuth() {
   return (
     req: Parameters<typeof requireCsrfToken>[0],
@@ -85,21 +94,24 @@ export function createInventoryRouter(service: InventoryServiceContract = invent
   const controller = createInventoryController(service);
 
   router.use(authenticateMiddleware, resolveTenantContextMiddleware);
-  router.use(requirePermission('tenant:modules:inventory:use'));
+  router.use(requirePermission(INVENTORY_PERMISSIONS.MODULE_USE));
 
   router.post(
     '/categories',
+    requirePermission(INVENTORY_PERMISSIONS.CREATE),
     requireCsrfForCookieAuth(),
     validateBody(createInventoryCategorySchema),
     controller.createCategory
   );
   router.get(
     '/categories',
+    requirePermission(INVENTORY_PERMISSIONS.READ),
     validateQuery(listInventoryCategoriesQuerySchema),
     controller.listCategories
   );
   router.patch(
     '/categories/:categoryId',
+    requirePermission(INVENTORY_PERMISSIONS.UPDATE),
     requireCsrfForCookieAuth(),
     validateInventoryCategoryParams,
     validateBody(updateInventoryCategorySchema),
@@ -107,20 +119,33 @@ export function createInventoryRouter(service: InventoryServiceContract = invent
   );
   router.delete(
     '/categories/:categoryId',
+    requirePermission(INVENTORY_PERMISSIONS.DELETE),
     requireCsrfForCookieAuth(),
     validateInventoryCategoryParams,
     controller.deleteCategory
   );
   router.post(
     '/items',
+    requirePermission(INVENTORY_PERMISSIONS.CREATE),
     requireCsrfForCookieAuth(),
     validateBody(createInventoryItemSchema),
     controller.createItem
   );
-  router.get('/items', validateQuery(listInventoryItemsQuerySchema), controller.listItems);
-  router.get('/items/:itemId', validateInventoryItemParams, controller.getItem);
+  router.get(
+    '/items',
+    requirePermission(INVENTORY_PERMISSIONS.READ),
+    validateQuery(listInventoryItemsQuerySchema),
+    controller.listItems
+  );
+  router.get(
+    '/items/:itemId',
+    requirePermission(INVENTORY_PERMISSIONS.READ),
+    validateInventoryItemParams,
+    controller.getItem
+  );
   router.patch(
     '/items/:itemId',
+    requirePermission(INVENTORY_PERMISSIONS.UPDATE),
     requireCsrfForCookieAuth(),
     validateInventoryItemParams,
     validateBody(updateInventoryItemSchema),
@@ -128,23 +153,27 @@ export function createInventoryRouter(service: InventoryServiceContract = invent
   );
   router.delete(
     '/items/:itemId',
+    requirePermission(INVENTORY_PERMISSIONS.DELETE),
     requireCsrfForCookieAuth(),
     validateInventoryItemParams,
     controller.deleteItem
   );
   router.post(
     '/stock-movements',
+    requirePermission(INVENTORY_PERMISSIONS.STOCK_WRITE),
     requireCsrfForCookieAuth(),
     validateBody(createInventoryStockMovementSchema),
     controller.createStockMovement
   );
   router.get(
     '/stock-movements',
+    requirePermission(INVENTORY_PERMISSIONS.READ),
     validateQuery(listInventoryStockMovementsQuerySchema),
     controller.listStockMovements
   );
   router.get(
     '/alerts/low-stock',
+    requirePermission(INVENTORY_PERMISSIONS.READ),
     validateQuery(listInventoryLowStockAlertsQuerySchema),
     controller.listLowStockAlerts
   );

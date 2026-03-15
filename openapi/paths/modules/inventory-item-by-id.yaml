@@ -6,6 +6,10 @@ get:
   security:
     - bearerAuth: []
     - accessTokenCookie: []
+  x-permissions:
+    module: tenant:modules:inventory:use
+    required:
+      - tenant:modules:inventory:read
   parameters:
     - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
     - name: itemId
@@ -37,6 +41,10 @@ patch:
   security:
     - bearerAuth: []
     - accessTokenCookie: []
+  x-permissions:
+    module: tenant:modules:inventory:use
+    required:
+      - tenant:modules:inventory:update
   parameters:
     - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
     - name: itemId
@@ -82,6 +90,10 @@ delete:
   security:
     - bearerAuth: []
     - accessTokenCookie: []
+  x-permissions:
+    module: tenant:modules:inventory:use
+    required:
+      - tenant:modules:inventory:delete
   parameters:
     - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
     - name: itemId

@@ -6,6 +6,10 @@ get:
   security:
     - bearerAuth: []
     - accessTokenCookie: []
+  x-permissions:
+    module: tenant:modules:inventory:use
+    required:
+      - tenant:modules:inventory:read
   parameters:
     - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
     - name: page
@@ -36,3 +40,4 @@ get:
       $ref: ../../components/responses/_index.yaml#/GenericError
     '403':
       $ref: ../../components/responses/_index.yaml#/GenericError
+
