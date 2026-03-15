@@ -54,7 +54,8 @@ function createTenantTestApp() {
       subscription: {
         planId: 'plan:growth',
         activeModuleKeys: ['inventory', 'crm', 'hr'],
-        status: 'activated' as const
+        status: 'activated' as const,
+        lifecycleStatus: 'active' as const
       }
     }),
     cancelSubscription: vi.fn().mockResolvedValue({
@@ -62,7 +63,8 @@ function createTenantTestApp() {
       subscription: {
         planId: null,
         activeModuleKeys: [],
-        status: 'canceled' as const
+        status: 'canceled' as const,
+        lifecycleStatus: 'canceled' as const
       }
     })
   };
@@ -211,6 +213,7 @@ describe('tenant routes', () => {
     vi.spyOn(TenantModel, 'findById').mockResolvedValue({
       _id: fakeTenantId,
       status: 'active',
+      subscriptionStatus: 'active',
       ownerUserId: new Types.ObjectId('507f1f77bcf86cd799439010')
     } as never);
     vi.spyOn(MembershipModel, 'findOne').mockResolvedValue({
@@ -250,6 +253,7 @@ describe('tenant routes', () => {
     vi.spyOn(TenantModel, 'findById').mockResolvedValue({
       _id: fakeTenantId,
       status: 'active',
+      subscriptionStatus: 'active',
       ownerUserId: new Types.ObjectId(authenticatedUserId),
       planId: null,
       activeModuleKeys: []
@@ -266,7 +270,8 @@ describe('tenant routes', () => {
       .set('Authorization', `Bearer ${accessToken}`)
       .set(APP_CONFIG.TENANT_ID_HEADER, fakeTenantId.toString())
       .send({
-        planId: 'plan:growth'
+        planId: 'plan:growth',
+        checkoutSessionId: '507f1f77bcf86cd799439091'
       });
 
     expect(response.status).toBe(200);
@@ -274,7 +279,8 @@ describe('tenant routes', () => {
       expect.objectContaining({
         userId: authenticatedUserId,
         tenantId: fakeTenantId.toString(),
-        planId: 'plan:growth'
+        planId: 'plan:growth',
+        checkoutSessionId: '507f1f77bcf86cd799439091'
       })
     );
     expect(response.body.data.subscription.status).toBe('activated');
@@ -292,6 +298,7 @@ describe('tenant routes', () => {
     vi.spyOn(TenantModel, 'findById').mockResolvedValue({
       _id: fakeTenantId,
       status: 'active',
+      subscriptionStatus: 'active',
       ownerUserId: new Types.ObjectId(authenticatedUserId),
       planId: 'plan:growth',
       activeModuleKeys: ['inventory', 'crm', 'hr']
@@ -318,3 +325,6 @@ describe('tenant routes', () => {
     expect(response.body.data.subscription.status).toBe('canceled');
   });
 });
+
+
+

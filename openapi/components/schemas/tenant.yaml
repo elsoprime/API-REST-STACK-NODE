@@ -5,6 +5,7 @@ Tenant:
     - name
     - slug
     - status
+    - subscriptionStatus
     - ownerUserId
     - planId
     - activeModuleKeys
@@ -19,6 +20,11 @@ Tenant:
     status:
       type: string
       enum: [active, suspended]
+
+    subscriptionGraceEndsAt:
+      type: string
+      format: date-time
+      nullable: true
     ownerUserId:
       type: string
     planId:
@@ -48,7 +54,7 @@ Membership:
       type: string
     roleKey:
       type: string
-      enum: [tenant:owner, tenant:member]
+      enum: [tenant:owner, tenant:admin, tenant:member]
     status:
       type: string
       enum: [active, suspended]
@@ -71,7 +77,7 @@ Invitation:
       format: email
     roleKey:
       type: string
-      enum: [tenant:owner, tenant:member]
+      enum: [tenant:owner, tenant:admin, tenant:member]
     status:
       type: string
       enum: [pending, accepted, revoked, expired]
@@ -222,3 +228,7 @@ TransferOwnershipSuccessResponse:
           $ref: '#/Membership'
     traceId:
       type: string
+
+
+
+

@@ -2,9 +2,11 @@ import { randomBytes } from 'node:crypto';
 
 import mongoose, { Types } from 'mongoose';
 
+import { BILLING_CHECKOUT_STATUS } from '@/constants/billing';
 import { HTTP_STATUS } from '@/constants/http';
 import { AUTH_SESSION_STATUS } from '@/constants/security';
 import { auditContextFactory } from '@/core/platform/audit/services/audit-context.factory';
+import { BillingCheckoutSessionModel } from '@/core/platform/billing/models/billing-checkout-session.model';
 import { auditService, type AuditService } from '@/core/platform/audit/services/audit.service';
 import {
   type AuditJsonObject,
@@ -30,7 +32,8 @@ import {
   MEMBERSHIP_STATUS,
   TENANT_POLICY,
   TENANT_ROLE_KEYS,
-  TENANT_STATUS
+  TENANT_STATUS,
+  TENANT_SUBSCRIPTION_STATUS
 } from '@/constants/tenant';
 import {
   type AcceptInvitationInput,
@@ -86,6 +89,31 @@ function resolveEffectiveMemberLimit(
   return Math.min(tenantMemberLimit, planMemberLimit);
 }
 
+
+function resolveSubscriptionActivationStatus(previousStatus?: string | null): 'active' | 'reactivated' {
+  if (
+    previousStatus === TENANT_SUBSCRIPTION_STATUS.CANCELED ||
+    previousStatus === TENANT_SUBSCRIPTION_STATUS.SUSPENDED ||
+    previousStatus === TENANT_SUBSCRIPTION_STATUS.GRACE
+  ) {
+    return TENANT_SUBSCRIPTION_STATUS.REACTIVATED;
+  }
+
+  return TENANT_SUBSCRIPTION_STATUS.ACTIVE;
+}
+
+function resolveTenantSubscriptionStatus(tenant: {
+  subscriptionStatus?: TenantDocument['subscriptionStatus'] | null;
+  planId?: string | null;
+}): (typeof TENANT_SUBSCRIPTION_STATUS)[keyof typeof TENANT_SUBSCRIPTION_STATUS] {
+  if (tenant.subscriptionStatus) {
+    return tenant.subscriptionStatus;
+  }
+
+  return tenant.planId
+    ? TENANT_SUBSCRIPTION_STATUS.ACTIVE
+    : TENANT_SUBSCRIPTION_STATUS.PENDING;
+}
 function slugifyTenantName(name: string): string {
   return name
     .trim()
@@ -130,6 +158,8 @@ function toTenantView(tenant: {
   name: string;
   slug: string;
   status: TenantDocument['status'];
+  subscriptionStatus?: TenantDocument['subscriptionStatus'] | null;
+  subscriptionGraceEndsAt?: Date | null;
   ownerUserId: Types.ObjectId | string;
   planId?: string | null;
   activeModuleKeys?: string[];
@@ -142,6 +172,13 @@ function toTenantView(tenant: {
     name: tenant.name,
     slug: tenant.slug,
     status: tenant.status,
+    subscriptionStatus: resolveTenantSubscriptionStatus({
+      subscriptionStatus: tenant.subscriptionStatus,
+      planId: tenant.planId ?? null
+    }),
+    subscriptionGraceEndsAt: tenant.subscriptionGraceEndsAt
+      ? toIsoDateString(tenant.subscriptionGraceEndsAt)
+      : null,
     ownerUserId:
       typeof tenant.ownerUserId === 'string'
         ? tenant.ownerUserId
@@ -248,7 +285,8 @@ export class TenantService implements TenantServiceContract {
               name: input.name.trim(),
               slug,
               ownerUserId: ensureObjectId(input.userId),
-              status: TENANT_STATUS.ACTIVE
+              status: TENANT_STATUS.ACTIVE,
+              subscriptionStatus: TENANT_SUBSCRIPTION_STATUS.PENDING
             }
           ],
           { session }
@@ -1022,13 +1060,14 @@ export class TenantService implements TenantServiceContract {
   }
 
   async assignSubscription(input: AssignTenantSubscriptionInput): Promise<TenantSubscriptionResult> {
-    const [tenant, membership, resolvedPlan] = await Promise.all([
+    const [tenant, membership, resolvedPlan, checkoutSession] = await Promise.all([
       TenantModel.findById(input.tenantId),
       MembershipModel.findOne({
         tenantId: ensureObjectId(input.tenantId),
         userId: ensureObjectId(input.userId)
       }),
-      this.authorization.resolvePlan(input.planId)
+      this.authorization.resolvePlan(input.planId),
+      BillingCheckoutSessionModel.findById(input.checkoutSessionId)
     ]);
 
     if (!tenant) {
@@ -1054,16 +1093,66 @@ export class TenantService implements TenantServiceContract {
       );
     }
 
+    if (!checkoutSession || checkoutSession.tenantId.toString() !== tenant._id.toString()) {
+      throw buildTenantError(
+        ERROR_CODES.TENANT_SUBSCRIPTION_PAYMENT_REQUIRED,
+        'Subscription activation requires a paid checkout session for this tenant',
+        HTTP_STATUS.FORBIDDEN
+      );
+    }
+
+    if (checkoutSession.planId !== resolvedPlan.key) {
+      throw buildTenantError(
+        ERROR_CODES.VALIDATION_ERROR,
+        'Checkout session plan does not match requested subscription plan',
+        HTTP_STATUS.BAD_REQUEST
+      );
+    }
+
+    if (
+      checkoutSession.status !== BILLING_CHECKOUT_STATUS.PAID &&
+      checkoutSession.status !== BILLING_CHECKOUT_STATUS.ACTIVATED
+    ) {
+      throw buildTenantError(
+        ERROR_CODES.TENANT_SUBSCRIPTION_PAYMENT_REQUIRED,
+        'Checkout session is not paid yet',
+        HTTP_STATUS.FORBIDDEN
+      );
+    }
+
+    if (
+      checkoutSession.status !== BILLING_CHECKOUT_STATUS.ACTIVATED &&
+      checkoutSession.expiresAt.getTime() <= Date.now()
+    ) {
+      throw buildTenantError(
+        ERROR_CODES.TENANT_SUBSCRIPTION_PAYMENT_REQUIRED,
+        'Checkout session expired before activation',
+        HTTP_STATUS.FORBIDDEN
+      );
+    }
+
     const session = await mongoose.startSession();
 
     try {
       await session.withTransaction(async () => {
         const previousPlanId = tenant.planId ?? null;
         const previousActiveModuleKeys = [...(tenant.activeModuleKeys ?? [])];
+        const previousSubscriptionStatus = resolveTenantSubscriptionStatus({
+          subscriptionStatus: tenant.subscriptionStatus,
+          planId: tenant.planId
+        });
 
         tenant.planId = resolvedPlan.key;
         tenant.activeModuleKeys = [...resolvedPlan.allowedModuleKeys];
-        await tenant.save({ session });
+        tenant.subscriptionStatus = resolveSubscriptionActivationStatus(previousSubscriptionStatus);
+        tenant.subscriptionGraceEndsAt = null;
+
+        checkoutSession.planId = resolvedPlan.key;
+        checkoutSession.status = BILLING_CHECKOUT_STATUS.ACTIVATED;
+        checkoutSession.lastError = null;
+        checkoutSession.activatedAt = checkoutSession.activatedAt ?? new Date();
+
+        await Promise.all([tenant.save({ session }), checkoutSession.save({ session })]);
 
         await this.recordAuditLog(
           {
@@ -1083,13 +1172,16 @@ export class TenantService implements TenantServiceContract {
             changes: {
               before: {
                 planId: previousPlanId,
-                activeModuleKeys: previousActiveModuleKeys
+                activeModuleKeys: previousActiveModuleKeys,
+                subscriptionStatus: previousSubscriptionStatus
               },
               after: {
                 planId: tenant.planId,
-                activeModuleKeys: tenant.activeModuleKeys
+                activeModuleKeys: tenant.activeModuleKeys,
+                subscriptionStatus: tenant.subscriptionStatus,
+                checkoutSessionId: checkoutSession._id.toString()
               },
-              fields: ['planId', 'activeModuleKeys']
+              fields: ['planId', 'activeModuleKeys', 'subscriptionStatus']
             }
           },
           { session }
@@ -1101,7 +1193,11 @@ export class TenantService implements TenantServiceContract {
         subscription: {
           planId: tenant.planId ?? null,
           activeModuleKeys: [...tenant.activeModuleKeys],
-          status: 'activated'
+          status: 'activated',
+          lifecycleStatus: resolveTenantSubscriptionStatus({
+            subscriptionStatus: tenant.subscriptionStatus,
+            planId: tenant.planId
+          })
         }
       };
     } finally {
@@ -1139,9 +1235,15 @@ export class TenantService implements TenantServiceContract {
       await session.withTransaction(async () => {
         const previousPlanId = tenant.planId ?? null;
         const previousActiveModuleKeys = [...(tenant.activeModuleKeys ?? [])];
+        const previousSubscriptionStatus = resolveTenantSubscriptionStatus({
+          subscriptionStatus: tenant.subscriptionStatus,
+          planId: tenant.planId
+        });
 
         tenant.planId = null;
         tenant.activeModuleKeys = [];
+        tenant.subscriptionStatus = TENANT_SUBSCRIPTION_STATUS.CANCELED;
+        tenant.subscriptionGraceEndsAt = null;
         await tenant.save({ session });
 
         await this.recordAuditLog(
@@ -1162,13 +1264,15 @@ export class TenantService implements TenantServiceContract {
             changes: {
               before: {
                 planId: previousPlanId,
-                activeModuleKeys: previousActiveModuleKeys
+                activeModuleKeys: previousActiveModuleKeys,
+                subscriptionStatus: previousSubscriptionStatus
               },
               after: {
                 planId: tenant.planId,
-                activeModuleKeys: tenant.activeModuleKeys
+                activeModuleKeys: tenant.activeModuleKeys,
+                subscriptionStatus: tenant.subscriptionStatus
               },
-              fields: ['planId', 'activeModuleKeys']
+              fields: ['planId', 'activeModuleKeys', 'subscriptionStatus']
             }
           },
           { session }
@@ -1180,7 +1284,11 @@ export class TenantService implements TenantServiceContract {
         subscription: {
           planId: null,
           activeModuleKeys: [],
-          status: 'canceled'
+          status: 'canceled',
+          lifecycleStatus: resolveTenantSubscriptionStatus({
+            subscriptionStatus: tenant.subscriptionStatus,
+            planId: tenant.planId
+          })
         }
       };
     } finally {
@@ -1287,6 +1395,17 @@ export class TenantService implements TenantServiceContract {
 }
 
 export const tenantService = new TenantService();
+
+
+
+
+
+
+
+
+
+
+
 
 
 

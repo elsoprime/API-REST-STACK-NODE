@@ -1,4 +1,4 @@
-import { type NextFunction, type Request, type Response } from 'express';
+﻿import { type NextFunction, type Request, type Response } from 'express';
 
 import { HTTP_STATUS } from '@/constants/http';
 import { createExecutionContext } from '@/core/platform/context/services/execution-context.factory';
@@ -182,6 +182,7 @@ export function createTenantController(service: TenantServiceContract) {
           userId: auth.userId,
           tenantId: tenantContext.tenantId,
           planId: req.body.planId,
+          checkoutSessionId: req.body.checkoutSessionId,
           context: getExecutionContext(res)
         });
 
@@ -208,3 +209,4 @@ export function createTenantController(service: TenantServiceContract) {
     }
   };
 }
+

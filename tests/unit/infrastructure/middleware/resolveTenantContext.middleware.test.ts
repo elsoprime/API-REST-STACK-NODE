@@ -52,6 +52,7 @@ describe('resolveTenantContext middleware', () => {
     vi.spyOn(TenantModel, 'findById').mockResolvedValue({
       _id: fakeTenantId,
       status: 'active',
+      subscriptionStatus: 'active',
       ownerUserId: fakeUserId
     } as never);
     vi.spyOn(MembershipModel, 'findOne').mockResolvedValue({
@@ -101,6 +102,7 @@ describe('resolveTenantContext middleware', () => {
     vi.spyOn(TenantModel, 'findById').mockResolvedValue({
       _id: fakeTenantId,
       status: 'active',
+      subscriptionStatus: 'active',
       ownerUserId: fakeUserId
     } as never);
     vi.spyOn(MembershipModel, 'findOne').mockResolvedValue({
@@ -168,3 +170,4 @@ describe('resolveTenantContext middleware', () => {
     expect(membershipFindOneSpy).not.toHaveBeenCalled();
   });
 });
+

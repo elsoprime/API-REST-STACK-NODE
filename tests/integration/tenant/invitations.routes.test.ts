@@ -94,6 +94,7 @@ describe('tenant invitation routes', () => {
     vi.spyOn(TenantModel, 'findById').mockResolvedValue({
       _id: fakeTenantId,
       status: 'active',
+      subscriptionStatus: 'active',
       ownerUserId: fakeUserId
     } as never);
     vi.spyOn(MembershipModel, 'findOne').mockResolvedValue({
@@ -163,6 +164,7 @@ describe('tenant invitation routes', () => {
     vi.spyOn(TenantModel, 'findById').mockResolvedValue({
       _id: fakeTenantId,
       status: 'active',
+      subscriptionStatus: 'active',
       ownerUserId: fakeUserId
     } as never);
     vi.spyOn(MembershipModel, 'findOne').mockResolvedValue({
@@ -198,6 +200,7 @@ describe('tenant invitation routes', () => {
     vi.spyOn(TenantModel, 'findById').mockResolvedValue({
       _id: fakeTenantId,
       status: 'active',
+      subscriptionStatus: 'active',
       ownerUserId: fakeUserId
     } as never);
     vi.spyOn(MembershipModel, 'findOne').mockResolvedValue({
@@ -225,4 +228,6 @@ describe('tenant invitation routes', () => {
     );
   });
 });
+
+
 

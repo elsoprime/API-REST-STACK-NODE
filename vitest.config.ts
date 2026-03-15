@@ -5,12 +5,22 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    testTimeout: 10000,
     setupFiles: ['./tests/support/setup.ts'],
     include: ['tests/**/*.test.ts'],
     coverage: {
+      all: true,
+      include: ['src/**/*.ts'],
       provider: 'v8',
-      reporter: ['text', 'html'],
-      exclude: ['tests/**']
+      reporter: ['text', 'html', 'json-summary', 'lcov'],
+      reportsDirectory: './coverage',
+      exclude: ['tests/**'],
+      thresholds: {
+        statements: 70,
+        branches: 70,
+        functions: 75,
+        lines: 70
+      }
     }
   },
   resolve: {

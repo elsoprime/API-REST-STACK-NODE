@@ -36,7 +36,8 @@ describe('env configuration validation', () => {
     'DELIVERY_WEBHOOK_AUTH_TOKEN',
     'DELIVERY_WEBHOOK_TIMEOUT_MS',
     'BILLING_PROVIDER',
-    'BILLING_WEBHOOK_SECRET'
+    'BILLING_WEBHOOK_SECRET',
+    'BILLING_WEBHOOK_TOLERANCE_SECONDS'
   ] as const;
 
   const snapshotEnvironment = (): Record<string, string | undefined> =>
@@ -89,6 +90,7 @@ describe('env configuration validation', () => {
     process.env.EMAIL_PROVIDER = 'resend';
     process.env.BILLING_PROVIDER = 'stripe';
     process.env.BILLING_WEBHOOK_SECRET = 'change_this_prod_webhook_secret';
+    process.env.REDIS_URL = 'redis://localhost:6379';
     process.env.AUTH_VERIFY_EMAIL_URL = 'http://app.example.com/auth/verify-email';
     process.env.AUTH_RESET_PASSWORD_URL = 'https://app.example.com/auth/reset-password';
     process.env.AUTH_TWO_FACTOR_PROVISIONING_WEBHOOK_URL = 'https://delivery.example.com/2fa';
@@ -109,6 +111,7 @@ describe('env configuration validation', () => {
     process.env.EMAIL_PROVIDER = 'mailpit';
     process.env.BILLING_PROVIDER = 'stripe';
     process.env.BILLING_WEBHOOK_SECRET = 'change_this_prod_webhook_secret';
+    process.env.REDIS_URL = 'redis://localhost:6379';
     process.env.AUTH_VERIFY_EMAIL_URL = 'https://app.example.com/auth/verify-email';
     process.env.AUTH_RESET_PASSWORD_URL = 'https://app.example.com/auth/reset-password';
     process.env.TENANT_INVITATION_ACCEPT_URL = 'https://app.example.com/tenant/invitations/accept';
@@ -128,6 +131,7 @@ describe('env configuration validation', () => {
     process.env.EMAIL_PROVIDER = 'resend';
     process.env.BILLING_PROVIDER = 'simulated';
     process.env.BILLING_WEBHOOK_SECRET = 'change_this_prod_webhook_secret';
+    process.env.REDIS_URL = 'redis://localhost:6379';
     process.env.AUTH_VERIFY_EMAIL_URL = 'https://app.example.com/auth/verify-email';
     process.env.AUTH_RESET_PASSWORD_URL = 'https://app.example.com/auth/reset-password';
     process.env.TENANT_INVITATION_ACCEPT_URL = 'https://app.example.com/tenant/invitations/accept';
@@ -139,3 +143,4 @@ describe('env configuration validation', () => {
     }
   });
 });
+

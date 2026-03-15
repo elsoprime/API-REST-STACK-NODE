@@ -58,6 +58,23 @@ const optionalHttpUrlSchema = z.preprocess(
     .optional()
 );
 
+const optionalRedisUrlSchema = z.preprocess(
+  (value) => {
+    if (typeof value !== 'string') {
+      return value;
+    }
+
+    const trimmed = value.trim();
+    return trimmed.length === 0 ? undefined : trimmed;
+  },
+  z
+    .string()
+    .url()
+    .refine((value) => value.startsWith('redis://') || value.startsWith('rediss://'), {
+      message: 'Must be a redis:// or rediss:// URL'
+    })
+    .optional()
+);
 const optionalStringSchema = z.preprocess(
   (value) => {
     if (typeof value !== 'string') {
@@ -98,6 +115,8 @@ const envSchema = z.object({
   RATE_LIMIT_MAX_GLOBAL: z.coerce.number().int().positive().default(100),
   RATE_LIMIT_MAX_AUTH: z.coerce.number().int().positive().default(10),
   RATE_LIMIT_MAX_SENSITIVE: z.coerce.number().int().positive().default(5),
+  RATE_LIMIT_REDIS_PREFIX: z.string().min(1).default('rl'),
+  REDIS_URL: optionalRedisUrlSchema,
   CORS_ORIGINS: z.string().min(1),
   LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error']).default('info'),
   LOG_PRETTY: z.enum(['true', 'false']).transform((value) => value === 'true'),
@@ -123,6 +142,8 @@ const envSchema = z.object({
   DELIVERY_WEBHOOK_TIMEOUT_MS: z.coerce.number().int().positive().default(5000),
   BILLING_PROVIDER: z.enum(['simulated', 'stripe']).default(billingProviderDefaultsByEnv[runtimeNodeEnv]),
   BILLING_WEBHOOK_SECRET: z.string().min(16).default('dev-billing-webhook-secret'),
+  BILLING_WEBHOOK_TOLERANCE_SECONDS: z.coerce.number().int().min(30).max(3600).default(300),
+  BILLING_GRACE_PERIOD_DAYS: z.coerce.number().int().min(1).max(60).default(7),
   DB_CONNECT_MAX_RETRIES: z.coerce
     .number()
     .int()
@@ -170,6 +191,14 @@ if (parsedAndValidatedEnv.NODE_ENV === 'production') {
     );
   }
 
+  if (!parsedAndValidatedEnv.REDIS_URL) {
+    throw new Error(
+      `Invalid environment variables: ${JSON.stringify({
+        REDIS_URL: ['REDIS_URL must be configured in production']
+      })}`
+    );
+  }
+
   const nonHttpsDeliveryKeys = [
     ['AUTH_VERIFY_EMAIL_URL', parsedAndValidatedEnv.AUTH_VERIFY_EMAIL_URL],
     ['AUTH_RESET_PASSWORD_URL', parsedAndValidatedEnv.AUTH_RESET_PASSWORD_URL],
@@ -188,3 +217,13 @@ if (parsedAndValidatedEnv.NODE_ENV === 'production') {
 }
 
 export const env = parsedAndValidatedEnv;
+
+
+
+
+
+
+
+
+
+

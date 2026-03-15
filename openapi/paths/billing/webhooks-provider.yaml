@@ -7,14 +7,35 @@ post:
     - name: X-Billing-Signature
       in: header
       required: true
+      description: 'HMAC SHA-256 signature over ${X-Billing-Timestamp}.${rawBody} in hex format.'
       schema:
         type: string
+      example: 7f2c2dd24804e0b91dc4c1e16be4f7f0f5999cad71ff8b5053b97b7af52f33f8
+    - name: X-Billing-Timestamp
+      in: header
+      required: true
+      description: Unix timestamp in seconds used for anti-replay validation.
+      schema:
+        type: string
+      example: '1773502200'
   requestBody:
     required: true
     content:
       application/json:
         schema:
           $ref: ../../components/schemas/billing.yaml#/BillingWebhookEvent
+        examples:
+          checkoutPaid:
+            summary: Paid checkout event signed by provider
+            value:
+              id: evt_provider_paid_01
+              provider: simulated
+              type: billing.checkout.paid
+              createdAt: '2026-03-14T15:30:00.000Z'
+              data:
+                tenantId: '507f1f77bcf86cd799439011'
+                planId: plan:growth
+                providerSessionId: chk_provider_paid_01
   responses:
     '200':
       description: Webhook event processed
@@ -22,7 +43,65 @@ post:
         application/json:
           schema:
             $ref: ../../components/schemas/billing.yaml#/BillingWebhookProcessSuccessResponse
+          examples:
+            processed:
+              summary: Paid event activates the tenant subscription
+              value:
+                success: true
+                data:
+                  eventId: evt_provider_paid_01
+                  provider: simulated
+                  type: billing.checkout.paid
+                  status: processed
+                  checkoutSessionId: '507f1f77bcf86cd799439091'
+                  tenantId: '507f1f77bcf86cd799439011'
+                traceId: 6d3b5d1a-9c5f-4f33-b800-14d59f651111
+            duplicate:
+              summary: Event already processed earlier and treated as idempotent duplicate
+              value:
+                success: true
+                data:
+                  eventId: evt_provider_paid_01
+                  provider: simulated
+                  type: billing.checkout.paid
+                  status: duplicate
+                  checkoutSessionId: '507f1f77bcf86cd799439091'
+                  tenantId: '507f1f77bcf86cd799439011'
+                traceId: 6d3b5d1a-9c5f-4f33-b800-14d59f652222
+            ignored:
+              summary: Event is accepted but ignored because the checkout or tenant cannot be resolved
+              value:
+                success: true
+                data:
+                  eventId: evt_provider_failed_01
+                  provider: simulated
+                  type: billing.checkout.failed
+                  status: ignored
+                  checkoutSessionId: null
+                  tenantId: null
+                traceId: 6d3b5d1a-9c5f-4f33-b800-14d59f653333
     '400':
       $ref: ../../components/responses/_index.yaml#/GenericError
     '401':
-      $ref: ../../components/responses/_index.yaml#/GenericError
+      description: Billing webhook rejected because the signature or timestamp is invalid
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/error.yaml#/ErrorResponse
+          examples:
+            invalidSignature:
+              summary: Signature does not match the raw payload
+              value:
+                success: false
+                error:
+                  code: AUTH_UNAUTHENTICATED
+                  message: Billing webhook signature is invalid
+                traceId: 6d3b5d1a-9c5f-4f33-b800-14d59f654444
+            expiredTimestamp:
+              summary: Timestamp falls outside the configured replay tolerance window
+              value:
+                success: false
+                error:
+                  code: AUTH_UNAUTHENTICATED
+                  message: Billing webhook timestamp is outside tolerance window
+                traceId: 6d3b5d1a-9c5f-4f33-b800-14d59f655555

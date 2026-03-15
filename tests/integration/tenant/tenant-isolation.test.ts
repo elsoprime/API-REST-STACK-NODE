@@ -60,6 +60,7 @@ describe('tenant isolation', () => {
     vi.spyOn(TenantModel, 'findById').mockResolvedValue({
       _id: fakeTenantId,
       status: 'active',
+      subscriptionStatus: 'active',
       ownerUserId: new Types.ObjectId()
     } as never);
     vi.spyOn(MembershipModel, 'findOne').mockResolvedValue(null as never);
@@ -86,6 +87,7 @@ describe('tenant isolation', () => {
     vi.spyOn(TenantModel, 'findById').mockResolvedValue({
       _id: fakeTenantId,
       status: 'active',
+      subscriptionStatus: 'active',
       ownerUserId: new Types.ObjectId()
     } as never);
     vi.spyOn(MembershipModel, 'findOne').mockResolvedValue({
@@ -118,6 +120,7 @@ describe('tenant isolation', () => {
     vi.spyOn(TenantModel, 'findById').mockResolvedValue({
       _id: fakeTenantId,
       status: 'active',
+      subscriptionStatus: 'active',
       ownerUserId: fakeUserId
     } as never);
     vi.spyOn(MembershipModel, 'findOne').mockResolvedValue({
@@ -138,3 +141,4 @@ describe('tenant isolation', () => {
     });
   });
 });
+

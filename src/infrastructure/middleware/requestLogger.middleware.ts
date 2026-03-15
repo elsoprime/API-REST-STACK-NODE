@@ -39,7 +39,32 @@ export const requestLoggerMiddleware: RequestHandler = (req, res, next) => {
       },
       'HTTP request completed.'
     );
+
+    if ([401, 403, 429].includes(res.statusCode)) {
+      requestLogger.warn(
+        {
+          scope: 'http.security.alert',
+          method: req.method,
+          path: req.originalUrl,
+          statusCode: res.statusCode
+        },
+        'Security-relevant HTTP status detected.'
+      );
+    }
+
+    if (res.statusCode >= 500) {
+      requestLogger.error(
+        {
+          scope: 'http.server.error',
+          method: req.method,
+          path: req.originalUrl,
+          statusCode: res.statusCode
+        },
+        'Server error response emitted.'
+      );
+    }
   });
 
   next();
 };
+

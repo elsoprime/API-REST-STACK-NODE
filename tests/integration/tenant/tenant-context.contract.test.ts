@@ -128,6 +128,7 @@ describe('tenant context contract', () => {
     vi.spyOn(TenantModel, 'findById').mockResolvedValue({
       _id: tenantId,
       status: 'active',
+      subscriptionStatus: 'active',
       ownerUserId: new Types.ObjectId()
     } as never);
     vi.spyOn(MembershipModel, 'findOne').mockResolvedValue({
@@ -159,6 +160,7 @@ describe('tenant context contract', () => {
     vi.spyOn(TenantModel, 'findById').mockResolvedValue({
       _id: tenantId,
       status: 'active',
+      subscriptionStatus: 'active',
       ownerUserId: new Types.ObjectId()
     } as never);
     vi.spyOn(MembershipModel, 'findOne').mockResolvedValue({
@@ -177,3 +179,4 @@ describe('tenant context contract', () => {
     expect(response.body.error.code).toBe('TENANT_ACCESS_DENIED');
   });
 });
+

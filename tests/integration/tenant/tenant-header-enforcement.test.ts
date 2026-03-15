@@ -64,7 +64,8 @@ function createTenantHeaderContractApp() {
       subscription: {
         planId: 'plan:growth',
         activeModuleKeys: ['inventory', 'crm', 'hr'],
-        status: 'activated' as const
+        status: 'activated' as const,
+        lifecycleStatus: 'active' as const
       }
     }),
     cancelSubscription: vi.fn().mockResolvedValue({
@@ -72,7 +73,8 @@ function createTenantHeaderContractApp() {
       subscription: {
         planId: null,
         activeModuleKeys: [],
-        status: 'canceled' as const
+        status: 'canceled' as const,
+        lifecycleStatus: 'canceled' as const
       }
     })
   };
@@ -178,7 +180,8 @@ describe('tenant header enforcement contract', () => {
       .patch('/api/v1/tenant/subscription')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
-        planId: 'plan:growth'
+        planId: 'plan:growth',
+        checkoutSessionId: '507f1f77bcf86cd799439091'
       });
 
     expect(response.status).toBe(400);
@@ -186,3 +189,5 @@ describe('tenant header enforcement contract', () => {
     expect(service.assignSubscription).not.toHaveBeenCalled();
   });
 });
+
+
