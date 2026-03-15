@@ -1,4 +1,4 @@
-# Criterios de Cierre
+﻿# Criterios de Cierre
 
 ## Regla general
 
@@ -15,6 +15,7 @@ Toda etapa necesita evidencia en cuatro capas:
 - `npm run test` verde
 - `npm run test:coverage` verde
 - `npm run openapi:validate` verde
+- `npm run docs:links:validate` verde
 - documento de cierre publicado en `docs/cierres/`
 - evidencia de criterios funcionales de la etapa
 - evidencia de comportamiento por entorno cuando aplique
@@ -119,4 +120,6 @@ Go-Live requiere:
 - restore probado
 - runbook vigente
 - observabilidad minima operativa
+
+
 

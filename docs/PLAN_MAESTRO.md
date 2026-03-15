@@ -33,7 +33,9 @@ Su objetivo no es describir una vision aspiracional, sino dejar una base ejecuta
 - Bootstrap real del repo: [ETAPA_-1_BOOTSTRAP.md](.\arquitectura\ETAPA_-1_BOOTSTRAP.md)
 - Politica operativa: [ENTORNOS_Y_RESILIENCIA.md](.\arquitectura\ENTORNOS_Y_RESILIENCIA.md)
 - Criterios de cierre: [CRITERIOS_DE_CIERRE.md](.\checklists\CRITERIOS_DE_CIERRE.md)
+- Politica de enlaces: [DOC_LINK_POLICY.md](.\checklists\DOC_LINK_POLICY.md)
 - ADRs: [ADRs.md](.\adrs\ADRs.md)
+- Historial deprecado: [README.md](.\_deprecated\README.md)
 
 Los anexos de `docs/anexos/` desarrollan cada bloque funcional, pero no pueden contradecir este documento ni los contratos transversales.
 
@@ -342,5 +344,7 @@ Orden de ejecucion adoptado para cerrar hallazgos del informe de auditoria de in
 6. Re-cierre formal con evidencia automatizada y acoplamiento FE/API.
 
 Fuente de ejecucion detallada: [PLAN_REMEDIACION_INTEGRACION_REPO.md](.\PLAN_REMEDIACION_INTEGRACION_REPO.md).
+
+
 
 
