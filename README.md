@@ -5,8 +5,10 @@ SaaS Core Engine V3 construido con Node.js + TypeScript + MongoDB para arquitect
 ## Estado
 
 - Etapa 10 (HR): cerrada con pruebas y documentacion.
-- Etapa 11 (hardening y go-live): cerrada con smoke suite, restore drill y runbook operativo.
+- Etapa 11 (hardening y go-live): remediacion tecnica ejecutada; Olas 2A/2B/2C/2D completadas y Ola 3 en consolidacion documental.
 - Etapa 12 (email delivery): implementada con plantillas versionadas, Mailpit local y Resend para produccion.
+- Plan operativo vigente: `docs/PLAN_REMEDIACION_INTEGRACION_REPO.md`.
+- Ultima evidencia DoD validada (2026-03-15): lint, build, test, test:coverage, openapi:validate y docs:cierres:validate en verde.
 
 ## Stack
 
@@ -44,6 +46,12 @@ SaaS Core Engine V3 construido con Node.js + TypeScript + MongoDB para arquitect
 npm install
 ```
 
+En entornos limpios o CI, usar:
+
+```bash
+npm ci
+```
+
 2. Crear archivo de entorno local desde plantilla:
 
 ```bash
@@ -71,6 +79,7 @@ npm run dev
   - `npm run docs:cierres:validate`
 - Tests:
   - `npm run test`
+  - `npm run test:coverage`
   - `npm run test:unit`
   - `npm run test:integration`
   - `npm run test:e2e`
@@ -126,6 +135,7 @@ npm run mailpit:down
 ## Documentacion principal
 
 - [docs/PLAN_MAESTRO.md](docs/PLAN_MAESTRO.md)
+- [docs/PLAN_REMEDIACION_INTEGRACION_REPO.md](docs/PLAN_REMEDIACION_INTEGRACION_REPO.md)
 - [docs/arquitectura/CONTRATOS_TRANSVERSALES.md](docs/arquitectura/CONTRATOS_TRANSVERSALES.md)
 - [docs/checklists/CRITERIOS_DE_CIERRE.md](docs/checklists/CRITERIOS_DE_CIERRE.md)
 - [docs/operaciones/RUNBOOK_GO_LIVE.md](docs/operaciones/RUNBOOK_GO_LIVE.md)
@@ -148,3 +158,4 @@ npm run mailpit:down
   - `https://github.com/elsoprime/API-REST-STACK-NODE/actions/runs/22830132265`
 - Estado actual de salida formal:
   - `NO-GO` hasta resolver bloqueo externo de facturacion en GitHub Actions y re-ejecutar el workflow en verde.
+
