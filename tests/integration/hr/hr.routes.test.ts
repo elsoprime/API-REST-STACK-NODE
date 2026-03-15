@@ -367,4 +367,35 @@ describe('hr routes', () => {
     expect(response.body.error.code).toBe('RBAC_PERMISSION_DENIED');
     expect(service.updateCompensation).not.toHaveBeenCalled();
   });
+  it('rejects invalid employeeId route params with validation contract', async () => {
+    const tenantId = new Types.ObjectId();
+    const membershipId = new Types.ObjectId();
+    const userId = new Types.ObjectId();
+    const { service } = createHrServiceDouble();
+    const app = createHrTestApp(service);
+
+    vi.spyOn(TenantModel, 'findById').mockResolvedValue({
+      _id: tenantId,
+      status: 'active',
+      ownerUserId: new Types.ObjectId(),
+      planId: 'plan:growth',
+      activeModuleKeys: ['inventory', 'crm', 'hr']
+    } as never);
+    vi.spyOn(MembershipModel, 'findOne').mockResolvedValue({
+      _id: membershipId,
+      userId,
+      status: 'active',
+      roleKey: 'tenant:member'
+    } as never);
+
+    const response = await request(app)
+      .get('/api/v1/modules/hr/employees/not-an-object-id')
+      .set('Authorization', `Bearer ${buildAccessToken(userId.toString())}`)
+      .set(APP_CONFIG.TENANT_ID_HEADER, tenantId.toString());
+
+    expect(response.status).toBe(400);
+    expect(response.body.error.code).toBe('GEN_VALIDATION_ERROR');
+    expect(service.getEmployee).not.toHaveBeenCalled();
+  });
 });
+

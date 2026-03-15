@@ -219,4 +219,59 @@ describe('HrService', () => {
       code: 'HR_COMPENSATION_NOT_FOUND'
     });
   });
+  it('rejects invalid ObjectId values with validation error before touching persistence', async () => {
+    const service = new HrService({
+      record: vi.fn()
+    } as never);
+    const findEmployeeSpy = vi.spyOn(HrEmployeeModel, 'findOne');
+
+    await expect(
+      service.getEmployee({
+        tenantId: 'invalid-tenant-id',
+        employeeId: new Types.ObjectId().toString()
+      })
+    ).rejects.toMatchObject({
+      code: ERROR_CODES.VALIDATION_ERROR,
+      statusCode: HTTP_STATUS.BAD_REQUEST
+    });
+
+    await expect(
+      service.updateCompensation({
+        tenantId: new Types.ObjectId().toString(),
+        employeeId: 'invalid-employee-id',
+        patch: {
+          salaryAmount: 100000
+        }
+      })
+    ).rejects.toMatchObject({
+      code: ERROR_CODES.VALIDATION_ERROR,
+      statusCode: HTTP_STATUS.BAD_REQUEST
+    });
+
+    expect(findEmployeeSpy).not.toHaveBeenCalled();
+  });
+
+  it('rejects required text fields when they become empty after trimming', async () => {
+    const service = new HrService({
+      record: vi.fn()
+    } as never);
+    const createEmployeeSpy = vi.spyOn(HrEmployeeModel, 'create');
+
+    await expect(
+      service.createEmployee({
+        tenantId: new Types.ObjectId().toString(),
+        employeeCode: '   ',
+        firstName: 'Ada',
+        lastName: 'Lovelace',
+        employmentType: 'full_time',
+        startDate: '2026-03-01T00:00:00.000Z'
+      })
+    ).rejects.toMatchObject({
+      code: ERROR_CODES.VALIDATION_ERROR,
+      statusCode: HTTP_STATUS.BAD_REQUEST
+    });
+
+    expect(createEmployeeSpy).not.toHaveBeenCalled();
+  });
 });
+

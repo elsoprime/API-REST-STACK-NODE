@@ -1,8 +1,10 @@
 import mongoose, { Types } from 'mongoose';
 
+import { BILLING_CHECKOUT_STATUS } from '@/constants/billing';
 import { AUTH_SESSION_STATUS } from '@/constants/security';
 import { DEFAULT_AUTH_SCOPE } from '@/core/platform/auth/types/auth.types';
 import { AuthSessionModel } from '@/core/platform/auth/models/auth-session.model';
+import { BillingCheckoutSessionModel } from '@/core/platform/billing/models/billing-checkout-session.model';
 import { UserModel } from '@/core/platform/users/models/user.model';
 import { InvitationModel } from '@/core/tenant/models/invitation.model';
 import { MembershipModel } from '@/core/tenant/models/membership.model';
@@ -591,4 +593,204 @@ describe('TenantService', () => {
     expect(result.tenant.ownerUserId).toBe(nextOwnerUserId.toString());
     expect(result.membership.roleKey).toBe('tenant:auditor');
   });
+  it('assigns tenant subscription when checkout is paid and owned by tenant', async () => {
+    const audit = createAuditStub();
+    const resolvePlan = vi.fn().mockResolvedValue({
+      key: 'plan:growth',
+      allowedModuleKeys: ['inventory', 'crm', 'hr'],
+      memberLimit: 25
+    });
+    const service = new TenantService(
+      undefined,
+      undefined,
+      {
+        ...createAuthorizationStub(),
+        resolvePlan
+      } as never,
+      audit as never
+    );
+    const tenantId = new Types.ObjectId();
+    const ownerUserId = new Types.ObjectId();
+    const checkoutSessionId = new Types.ObjectId();
+    const ownerMembershipId = new Types.ObjectId();
+    const sessionMock = {
+      withTransaction: vi.fn(async (callback: () => Promise<void>) => callback()),
+      endSession: vi.fn().mockResolvedValue(undefined)
+    };
+    const tenantSave = vi.fn().mockResolvedValue(undefined);
+    const checkoutSave = vi.fn().mockResolvedValue(undefined);
+
+    vi.spyOn(TenantModel, 'findById').mockResolvedValue({
+      _id: tenantId,
+      name: 'Acme',
+      slug: 'acme',
+      status: 'active',
+      ownerUserId,
+      planId: null,
+      activeModuleKeys: [],
+      subscriptionStatus: 'pending',
+      subscriptionGraceEndsAt: null,
+      memberLimit: null,
+      save: tenantSave,
+      toObject: () => ({
+        _id: tenantId,
+        name: 'Acme',
+        slug: 'acme',
+        status: 'active',
+        ownerUserId,
+        planId: 'plan:growth',
+        activeModuleKeys: ['inventory', 'crm', 'hr'],
+        subscriptionStatus: 'active',
+        subscriptionGraceEndsAt: null,
+        memberLimit: null
+      })
+    } as never);
+    vi.spyOn(MembershipModel, 'findOne').mockResolvedValue({
+      _id: ownerMembershipId,
+      tenantId,
+      userId: ownerUserId,
+      roleKey: 'tenant:owner',
+      status: 'active'
+    } as never);
+    vi.spyOn(BillingCheckoutSessionModel, 'findById').mockResolvedValue({
+      _id: checkoutSessionId,
+      tenantId,
+      planId: 'plan:growth',
+      status: BILLING_CHECKOUT_STATUS.PAID,
+      expiresAt: new Date(Date.now() + 60_000),
+      activatedAt: null,
+      lastError: null,
+      save: checkoutSave
+    } as never);
+    vi.spyOn(mongoose, 'startSession').mockResolvedValue(sessionMock as never);
+
+    const result = await service.assignSubscription({
+      userId: ownerUserId.toString(),
+      tenantId: tenantId.toString(),
+      planId: 'plan:growth',
+      checkoutSessionId: checkoutSessionId.toString()
+    });
+
+    expect(resolvePlan).toHaveBeenCalledWith('plan:growth');
+    expect(tenantSave).toHaveBeenCalled();
+    expect(checkoutSave).toHaveBeenCalled();
+    expect(result.subscription).toMatchObject({
+      planId: 'plan:growth',
+      status: 'activated',
+      lifecycleStatus: 'active'
+    });
+  });
+
+  it('rejects subscription assignment when checkout plan mismatches requested plan', async () => {
+    const resolvePlan = vi.fn().mockResolvedValue({
+      key: 'plan:growth',
+      allowedModuleKeys: ['inventory', 'crm'],
+      memberLimit: 25
+    });
+    const service = new TenantService(
+      undefined,
+      undefined,
+      {
+        ...createAuthorizationStub(),
+        resolvePlan
+      } as never,
+      createAuditStub() as never
+    );
+    const tenantId = new Types.ObjectId();
+    const ownerUserId = new Types.ObjectId();
+
+    vi.spyOn(TenantModel, 'findById').mockResolvedValue({
+      _id: tenantId,
+      status: 'active',
+      ownerUserId,
+      planId: null,
+      activeModuleKeys: []
+    } as never);
+    vi.spyOn(MembershipModel, 'findOne').mockResolvedValue({
+      _id: new Types.ObjectId(),
+      tenantId,
+      userId: ownerUserId,
+      roleKey: 'tenant:owner',
+      status: 'active'
+    } as never);
+    vi.spyOn(BillingCheckoutSessionModel, 'findById').mockResolvedValue({
+      _id: new Types.ObjectId(),
+      tenantId,
+      planId: 'plan:starter',
+      status: BILLING_CHECKOUT_STATUS.PAID,
+      expiresAt: new Date(Date.now() + 60_000)
+    } as never);
+
+    await expect(
+      service.assignSubscription({
+        userId: ownerUserId.toString(),
+        tenantId: tenantId.toString(),
+        planId: 'plan:growth',
+        checkoutSessionId: new Types.ObjectId().toString()
+      })
+    ).rejects.toMatchObject({
+      code: 'GEN_VALIDATION_ERROR',
+      statusCode: 400
+    });
+  });
+
+  it('cancels tenant subscription and clears active modules', async () => {
+    const service = new TenantService(undefined, undefined, createAuthorizationStub() as never, createAuditStub() as never);
+    const tenantId = new Types.ObjectId();
+    const ownerUserId = new Types.ObjectId();
+    const ownerMembershipId = new Types.ObjectId();
+    const sessionMock = {
+      withTransaction: vi.fn(async (callback: () => Promise<void>) => callback()),
+      endSession: vi.fn().mockResolvedValue(undefined)
+    };
+    const tenantSave = vi.fn().mockResolvedValue(undefined);
+
+    vi.spyOn(TenantModel, 'findById').mockResolvedValue({
+      _id: tenantId,
+      name: 'Acme',
+      slug: 'acme',
+      status: 'active',
+      ownerUserId,
+      planId: 'plan:growth',
+      activeModuleKeys: ['inventory', 'crm'],
+      subscriptionStatus: 'active',
+      subscriptionGraceEndsAt: null,
+      memberLimit: null,
+      save: tenantSave,
+      toObject: () => ({
+        _id: tenantId,
+        name: 'Acme',
+        slug: 'acme',
+        status: 'active',
+        ownerUserId,
+        planId: null,
+        activeModuleKeys: [],
+        subscriptionStatus: 'canceled',
+        subscriptionGraceEndsAt: null,
+        memberLimit: null
+      })
+    } as never);
+    vi.spyOn(MembershipModel, 'findOne').mockResolvedValue({
+      _id: ownerMembershipId,
+      tenantId,
+      userId: ownerUserId,
+      roleKey: 'tenant:owner',
+      status: 'active'
+    } as never);
+    vi.spyOn(mongoose, 'startSession').mockResolvedValue(sessionMock as never);
+
+    const result = await service.cancelSubscription({
+      userId: ownerUserId.toString(),
+      tenantId: tenantId.toString()
+    });
+
+    expect(tenantSave).toHaveBeenCalled();
+    expect(result.subscription).toEqual({
+      planId: null,
+      activeModuleKeys: [],
+      status: 'canceled',
+      lifecycleStatus: 'canceled'
+    });
+  });
 });
+
