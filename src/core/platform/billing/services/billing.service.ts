@@ -168,6 +168,14 @@ function isSignatureValid(signature: string, expectedSignature: string): boolean
   return timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature));
 }
 
+function isProviderAllowedForEnvironment(provider: BillingProvider): boolean {
+  if (env.NODE_ENV !== 'production') {
+    return true;
+  }
+
+  return provider === env.BILLING_PROVIDER;
+}
+
 export class BillingService implements BillingServiceContract {
   constructor(
     private readonly authorization: RbacService = rbacService,
@@ -262,6 +270,18 @@ export class BillingService implements BillingServiceContract {
         ERROR_CODES.VALIDATION_ERROR,
         'Billing webhook event type is not supported',
         HTTP_STATUS.BAD_REQUEST
+      );
+    }
+
+    if (!isProviderAllowedForEnvironment(input.payload.provider)) {
+      await this.recordWebhookSecurityRejection(
+        input,
+        `Billing webhook provider ${input.payload.provider} is not allowed in ${env.NODE_ENV}`
+      );
+      throw buildBillingError(
+        ERROR_CODES.AUTH_UNAUTHENTICATED,
+        'Billing webhook provider is not allowed for this environment',
+        HTTP_STATUS.UNAUTHORIZED
       );
     }
 

@@ -31,7 +31,8 @@
     "openapi:validate": "swagger-cli validate openapi/openapi.yaml",
     "docs:links:validate": "powershell -ExecutionPolicy Bypass -File ./scripts/validate-doc-links.ps1",
     "docs:coupling:check": "powershell -ExecutionPolicy Bypass -File ./scripts/check-docs-coupling.ps1",
-    "docs:cierres:validate": "node ./scripts/validate-cierres-nomenclature.mjs"
+    "docs:cierres:validate": "node ./scripts/validate-cierres-nomenclature.mjs",
+    "billing:webhook:simulate": "node --env-file=.env scripts/simulate-billing-webhook.mjs"
   },
   "dependencies": {
     "@types/jsonwebtoken": "^9.0.10",

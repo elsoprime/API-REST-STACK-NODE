@@ -7,6 +7,7 @@ import {
   BILLING_EVENT_STATUS,
   BILLING_WEBHOOK_EVENT_TYPE
 } from '@/constants/billing';
+import { env } from '@/config/env';
 import { TENANT_SUBSCRIPTION_STATUS } from '@/constants/tenant';
 import { BillingCheckoutSessionModel } from '@/core/platform/billing/models/billing-checkout-session.model';
 import { BillingEventModel } from '@/core/platform/billing/models/billing-event.model';
@@ -291,6 +292,29 @@ describe('billing.service', () => {
     await expect(service.processProviderWebhook(buildWebhookInput(payload))).rejects.toThrow(
       'Billing webhook event type is not supported'
     );
+  });
+
+  it('rejects webhook provider mismatch in production environment', async () => {
+    const service = new BillingService();
+    const payload = buildWebhookPayload({
+      id: 'evt_test_provider_mismatch',
+      provider: 'simulated'
+    });
+
+    const previousNodeEnv = env.NODE_ENV;
+    const previousBillingProvider = env.BILLING_PROVIDER;
+
+    try {
+      env.NODE_ENV = 'production';
+      env.BILLING_PROVIDER = 'stripe';
+
+      await expect(service.processProviderWebhook(buildWebhookInput(payload))).rejects.toThrow(
+        'Billing webhook provider is not allowed for this environment'
+      );
+    } finally {
+      env.NODE_ENV = previousNodeEnv;
+      env.BILLING_PROVIDER = previousBillingProvider;
+    }
   });
 
   it('returns duplicate status when webhook event id was already processed', async () => {
