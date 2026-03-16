@@ -18,6 +18,8 @@
   Manual principal por fases y etapas (API -> Frontend).
 - `95_DOCS_DEPRECATION_MATRIX.md`
   Estado de cada documento frontend (vigente/corregir/deprecado).
+- `15_INVENTORY_MODULO_IMPLEMENTATION_GUIDE_V2.md`
+  Guia operativa especifica para implementar el modulo Inventario escalable en Frontend.
 - `20_ACCESS_MATRIX.md`
   Matriz ruta UI -> endpoint -> permiso -> modulo/plan.
 - `30_API_CLIENT_STANDARD.md`
@@ -52,4 +54,5 @@
 4. Actualizar matriz de deprecacion si cambia estado de algun documento.
 5. Si se depreca un documento, moverlo a `docs/frontend/_deprecated/`.
 6. Vincular el PR a secciones modificadas de `docs/frontend`.
+
 
