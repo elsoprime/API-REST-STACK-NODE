@@ -3,7 +3,10 @@ import mongoose, { Types } from 'mongoose';
 import { HTTP_STATUS } from '@/constants/http';
 import { ERROR_CODES } from '@/infrastructure/errors/error-codes';
 import { InventoryCategoryModel } from '@/modules/inventory/models/inventory-category.model';
+import { InventoryWarehouseModel } from '@/modules/inventory/models/inventory-warehouse.model';
 import { InventoryItemModel } from '@/modules/inventory/models/inventory-item.model';
+import { InventoryBalanceModel } from '@/modules/inventory/models/inventory-balance.model';
+import { InventorySettingsModel } from '@/modules/inventory/models/inventory-settings.model';
 import { InventoryStockMovementModel } from '@/modules/inventory/models/inventory-stock-movement.model';
 import { InventoryService } from '@/modules/inventory/services/inventory.service';
 
@@ -295,6 +298,136 @@ describe('InventoryService', () => {
     expect(audit.record).toHaveBeenCalled();
   });
 
+
+  it('creates warehouses and records audit trail', async () => {
+    const audit = createAuditStub();
+    const service = new InventoryService(audit as never);
+    const tenantId = new Types.ObjectId();
+    const warehouseId = new Types.ObjectId();
+
+    vi.spyOn(InventoryWarehouseModel, 'create').mockResolvedValue({
+      _id: warehouseId,
+      tenantId,
+      name: 'Main',
+      description: null,
+      isActive: true,
+      toObject() {
+        return {
+          _id: warehouseId,
+          tenantId,
+          name: 'Main',
+          description: null,
+          isActive: true
+        };
+      }
+    } as never);
+
+    const result = await service.createWarehouse({
+      tenantId: tenantId.toString(),
+      name: ' Main '
+    });
+
+    expect(result.id).toBe(warehouseId.toString());
+    expect(result.name).toBe('Main');
+    expect(audit.record).toHaveBeenCalled();
+  });
+
+  it('lists warehouses with search and pagination', async () => {
+    const service = new InventoryService({
+      record: vi.fn()
+    } as never);
+    const tenantId = new Types.ObjectId();
+    const findLean = vi.fn().mockResolvedValue([
+      {
+        _id: new Types.ObjectId(),
+        tenantId,
+        name: 'Main',
+        description: null,
+        isActive: true
+      }
+    ]);
+    const limit = vi.fn().mockReturnValue({ lean: findLean });
+    const skip = vi.fn().mockReturnValue({ limit });
+    const sort = vi.fn().mockReturnValue({ skip });
+
+    vi.spyOn(InventoryWarehouseModel, 'find').mockReturnValue({ sort } as never);
+    vi.spyOn(InventoryWarehouseModel, 'countDocuments').mockResolvedValue(1 as never);
+
+    const result = await service.listWarehouses({
+      tenantId: tenantId.toString(),
+      page: 1,
+      limit: 20,
+      search: 'Ma'
+    });
+
+    expect(InventoryWarehouseModel.find).toHaveBeenCalled();
+    expect(result.items[0].name).toBe('Main');
+    expect(result.total).toBe(1);
+  });
+
+  it('updates warehouses and maps not found/duplicate errors', async () => {
+    const service = new InventoryService({
+      record: vi.fn()
+    } as never);
+    const tenantId = new Types.ObjectId();
+    const warehouseId = new Types.ObjectId();
+
+    const updateSpy = vi.spyOn(InventoryWarehouseModel, 'findOneAndUpdate');
+    updateSpy.mockResolvedValueOnce({
+      _id: warehouseId,
+      tenantId,
+      name: 'Main-2',
+      description: null,
+      isActive: true,
+      toObject() {
+        return {
+          _id: warehouseId,
+          tenantId,
+          name: 'Main-2',
+          description: null,
+          isActive: true
+        };
+      }
+    } as never);
+
+    const result = await service.updateWarehouse({
+      tenantId: tenantId.toString(),
+      warehouseId: warehouseId.toString(),
+      patch: {
+        name: 'Main-2'
+      }
+    });
+
+    expect(result.name).toBe('Main-2');
+
+    updateSpy.mockResolvedValueOnce(null as never);
+    await expect(
+      service.updateWarehouse({
+        tenantId: tenantId.toString(),
+        warehouseId: warehouseId.toString(),
+        patch: {
+          name: 'Missing'
+        }
+      })
+    ).rejects.toMatchObject({
+      code: ERROR_CODES.INVENTORY_WAREHOUSE_NOT_FOUND,
+      statusCode: HTTP_STATUS.NOT_FOUND
+    });
+
+    updateSpy.mockRejectedValueOnce({ code: 11000 } as never);
+    await expect(
+      service.updateWarehouse({
+        tenantId: tenantId.toString(),
+        warehouseId: warehouseId.toString(),
+        patch: {
+          name: 'Dup'
+        }
+      })
+    ).rejects.toMatchObject({
+      code: ERROR_CODES.INVENTORY_WAREHOUSE_ALREADY_EXISTS,
+      statusCode: HTTP_STATUS.CONFLICT
+    });
+  });
   it('rejects item creation when category cannot be resolved', async () => {
     const service = new InventoryService({
       record: vi.fn()
@@ -1102,4 +1235,110 @@ describe('InventoryService', () => {
       statusCode: HTTP_STATUS.BAD_REQUEST
     });
   });
+  it('returns default rollout settings when tenant has no inventory settings', async () => {
+    const service = new InventoryService({
+      record: vi.fn()
+    } as never);
+    const tenantId = new Types.ObjectId();
+
+    vi.spyOn(InventorySettingsModel, 'findOne').mockReturnValue({
+      lean: vi.fn().mockResolvedValue(null)
+    } as never);
+
+    const result = await service.getSettings(tenantId.toString());
+
+    expect(result).toEqual({
+      tenantId: tenantId.toString(),
+      lotAllocationPolicy: 'FIFO',
+      rolloutPhase: 'pilot',
+      capabilities: {
+        warehouses: true,
+        lots: false,
+        stocktakes: false
+      }
+    });
+  });
+
+  it('updates rollout settings partially and records audit metadata', async () => {
+    const audit = createAuditStub();
+    const service = new InventoryService(audit as never);
+    const tenantId = new Types.ObjectId();
+
+    const updateSpy = vi.spyOn(InventorySettingsModel, 'findOneAndUpdate');
+    updateSpy.mockResolvedValue({
+      tenantId,
+      lotAllocationPolicy: 'FEFO',
+      rolloutPhase: 'cohort',
+      capabilities: {
+        warehouses: true,
+        lots: true,
+        stocktakes: false
+      },
+      toObject() {
+        return {
+          tenantId,
+          lotAllocationPolicy: 'FEFO',
+          rolloutPhase: 'cohort',
+          capabilities: {
+            warehouses: true,
+            lots: true,
+            stocktakes: false
+          }
+        };
+      }
+    } as never);
+
+    const result = await service.updateSettings({
+      tenantId: tenantId.toString(),
+      rolloutPhase: 'cohort',
+      capabilities: {
+        lots: true
+      }
+    });
+
+    expect(result.rolloutPhase).toBe('cohort');
+    expect(result.capabilities.lots).toBe(true);
+    expect(updateSpy).toHaveBeenCalled();
+    expect(audit.record).toHaveBeenCalled();
+  });
+
+  it('computes reconciliation report from movements, balances and item stock', async () => {
+    const service = new InventoryService({
+      record: vi.fn()
+    } as never);
+    const tenantId = new Types.ObjectId();
+
+    const movementAggregateSpy = vi.spyOn(InventoryStockMovementModel, 'aggregate').mockResolvedValue([
+      {
+        movementCount: 3,
+        movementIn: 20,
+        movementOut: 12
+      }
+    ] as never);
+    const balanceAggregateSpy = vi.spyOn(InventoryBalanceModel, 'aggregate').mockResolvedValue([
+      {
+        balanceTotal: 40
+      }
+    ] as never);
+    const itemAggregateSpy = vi.spyOn(InventoryItemModel, 'aggregate').mockResolvedValue([
+      {
+        itemStockTotal: 42
+      }
+    ] as never);
+
+    const report = await service.getReconciliation({
+      tenantId: tenantId.toString(),
+      sinceDays: 1
+    });
+
+    expect(report.movementCount).toBe(3);
+    expect(report.balanceTotal).toBe(40);
+    expect(report.itemStockTotal).toBe(42);
+    expect(report.drift).toBe(2);
+    expect(report.status).toBe('drift_detected');
+    expect(movementAggregateSpy).toHaveBeenCalled();
+    expect(balanceAggregateSpy).toHaveBeenCalled();
+    expect(itemAggregateSpy).toHaveBeenCalled();
+  });
 });
+

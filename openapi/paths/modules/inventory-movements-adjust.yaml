@@ -1,0 +1,43 @@
+﻿post:
+  tags:
+    - Inventory
+  summary: Register inventory adjustment movement
+  operationId: createInventoryMovementAdjust
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  x-permissions:
+    module: tenant:modules:inventory:use
+    required:
+      - tenant:modules:inventory:stock:write
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      description: Required when authenticating with access token cookie; not required for Bearer auth.
+      schema:
+        type: string
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../../components/schemas/inventory.yaml#/CreateInventoryMovementAdjustRequest
+  responses:
+    '201':
+      description: Inventory movement created
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/inventory.yaml#/InventoryStockMovementSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '404':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '409':
+      $ref: ../../components/responses/_index.yaml#/GenericError

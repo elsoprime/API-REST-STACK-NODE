@@ -1,4 +1,4 @@
-post:
+﻿post:
   tags:
     - Inventory
   summary: Register inventory stock movement
@@ -76,6 +76,12 @@ get:
       schema:
         type: string
         pattern: '^[a-fA-F0-9]{24}$'
+    - name: movementType
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: [entry, exit, adjust, transfer, return]
   responses:
     '200':
       description: Inventory stock movements list
@@ -89,3 +95,4 @@ get:
       $ref: ../../components/responses/_index.yaml#/GenericError
     '403':
       $ref: ../../components/responses/_index.yaml#/GenericError
+

@@ -1,4 +1,4 @@
-import { Router } from 'express';
+﻿import { Router } from 'express';
 import { Types } from 'mongoose';
 import request from 'supertest';
 
@@ -8,20 +8,7 @@ import { AuthSessionModel } from '@/core/platform/auth/models/auth-session.model
 import { tokenService } from '@/core/platform/auth/services/token.service';
 import { createInventoryRouter } from '@/modules/inventory/routes/inventory.routes';
 
-function createInventoryIsolationApp(service: {
-  createCategory: ReturnType<typeof vi.fn>;
-  listCategories: ReturnType<typeof vi.fn>;
-  updateCategory: ReturnType<typeof vi.fn>;
-  deleteCategory: ReturnType<typeof vi.fn>;
-  createItem: ReturnType<typeof vi.fn>;
-  listItems: ReturnType<typeof vi.fn>;
-  getItem: ReturnType<typeof vi.fn>;
-  updateItem: ReturnType<typeof vi.fn>;
-  deleteItem: ReturnType<typeof vi.fn>;
-  createStockMovement: ReturnType<typeof vi.fn>;
-  listStockMovements: ReturnType<typeof vi.fn>;
-  listLowStockAlerts: ReturnType<typeof vi.fn>;
-}) {
+function createInventoryIsolationApp(service: Record<string, ReturnType<typeof vi.fn>>) {
   const rootRouter = Router();
   const apiV1Router = Router();
   const modulesRouter = Router();
@@ -88,3 +75,4 @@ describe('inventory tenant isolation', () => {
     expect(service.listItems).not.toHaveBeenCalled();
   });
 });
+

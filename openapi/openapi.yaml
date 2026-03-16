@@ -75,14 +75,48 @@ paths:
     $ref: ./paths/modules/inventory-categories.yaml
   /api/v1/modules/inventory/categories/{categoryId}:
     $ref: ./paths/modules/inventory-category-by-id.yaml
+  /api/v1/modules/inventory/warehouses:
+    $ref: ./paths/modules/inventory-warehouses.yaml
+  /api/v1/modules/inventory/warehouses/{warehouseId}:
+    $ref: ./paths/modules/inventory-warehouse-by-id.yaml
+  /api/v1/modules/inventory/settings:
+    $ref: ./paths/modules/inventory-settings.yaml
+  /api/v1/modules/inventory/reconciliation:
+    $ref: ./paths/modules/inventory-reconciliation.yaml
+  /api/v1/modules/inventory/lots:
+    $ref: ./paths/modules/inventory-lots.yaml
+  /api/v1/modules/inventory/lots/{lotId}:
+    $ref: ./paths/modules/inventory-lot-by-id.yaml
   /api/v1/modules/inventory/items:
     $ref: ./paths/modules/inventory-items.yaml
   /api/v1/modules/inventory/items/{itemId}:
     $ref: ./paths/modules/inventory-item-by-id.yaml
   /api/v1/modules/inventory/stock-movements:
     $ref: ./paths/modules/inventory-stock-movements.yaml
+  /api/v1/modules/inventory/movements/entry:
+    $ref: ./paths/modules/inventory-movements-entry.yaml
+  /api/v1/modules/inventory/movements/exit:
+    $ref: ./paths/modules/inventory-movements-exit.yaml
+  /api/v1/modules/inventory/movements/adjust:
+    $ref: ./paths/modules/inventory-movements-adjust.yaml
+  /api/v1/modules/inventory/movements/transfer:
+    $ref: ./paths/modules/inventory-movements-transfer.yaml
+  /api/v1/modules/inventory/movements/return:
+    $ref: ./paths/modules/inventory-movements-return.yaml
   /api/v1/modules/inventory/alerts/low-stock:
     $ref: ./paths/modules/inventory-alerts-low-stock.yaml
+  /api/v1/modules/inventory/alerts/expiring-lots:
+    $ref: ./paths/modules/inventory-alerts-expiring-lots.yaml
+  /api/v1/modules/inventory/stocktakes:
+    $ref: ./paths/modules/inventory-stocktakes.yaml
+  /api/v1/modules/inventory/stocktakes/{stocktakeId}:
+    $ref: ./paths/modules/inventory-stocktake-by-id.yaml
+  /api/v1/modules/inventory/stocktakes/{stocktakeId}/counts:
+    $ref: ./paths/modules/inventory-stocktake-counts.yaml
+  /api/v1/modules/inventory/stocktakes/{stocktakeId}/apply:
+    $ref: ./paths/modules/inventory-stocktake-apply.yaml
+  /api/v1/modules/inventory/stocktakes/{stocktakeId}/cancel:
+    $ref: ./paths/modules/inventory-stocktake-cancel.yaml
   /api/v1/modules/crm/contacts:
     $ref: ./paths/modules/crm-contacts.yaml
   /api/v1/modules/crm/contacts/{contactId}:
@@ -116,4 +150,9 @@ components:
     $ref: ./components/parameters/_index.yaml
   securitySchemes:
     $ref: ./components/securitySchemes/_index.yaml
+
+
+
+
+
 

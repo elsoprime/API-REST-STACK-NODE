@@ -106,6 +106,8 @@ TenantSettingsEffectiveSuccessResponse:
   $ref: ./tenant-settings.yaml#/TenantSettingsEffectiveSuccessResponse
 InventoryCategory:
   $ref: ./inventory.yaml#/InventoryCategory
+InventoryWarehouse:
+  $ref: ./inventory.yaml#/InventoryWarehouse
 InventoryItem:
   $ref: ./inventory.yaml#/InventoryItem
 InventoryStockMovement:
@@ -116,6 +118,10 @@ CreateInventoryCategoryRequest:
   $ref: ./inventory.yaml#/CreateInventoryCategoryRequest
 UpdateInventoryCategoryRequest:
   $ref: ./inventory.yaml#/UpdateInventoryCategoryRequest
+CreateInventoryWarehouseRequest:
+  $ref: ./inventory.yaml#/CreateInventoryWarehouseRequest
+UpdateInventoryWarehouseRequest:
+  $ref: ./inventory.yaml#/UpdateInventoryWarehouseRequest
 CreateInventoryItemRequest:
   $ref: ./inventory.yaml#/CreateInventoryItemRequest
 UpdateInventoryItemRequest:
@@ -126,6 +132,10 @@ InventoryCategorySuccessResponse:
   $ref: ./inventory.yaml#/InventoryCategorySuccessResponse
 InventoryCategoryListSuccessResponse:
   $ref: ./inventory.yaml#/InventoryCategoryListSuccessResponse
+InventoryWarehouseSuccessResponse:
+  $ref: ./inventory.yaml#/InventoryWarehouseSuccessResponse
+InventoryWarehouseListSuccessResponse:
+  $ref: ./inventory.yaml#/InventoryWarehouseListSuccessResponse
 InventoryItemSuccessResponse:
   $ref: ./inventory.yaml#/InventoryItemSuccessResponse
 InventoryItemListSuccessResponse:
@@ -224,3 +234,43 @@ BillingWebhookProcessSuccessResponse:
   $ref: ./billing.yaml#/BillingWebhookProcessSuccessResponse
 TenantSubscriptionSuccessResponse:
   $ref: ./billing.yaml#/TenantSubscriptionSuccessResponse
+
+InventoryLot:
+  $ref: ./inventory.yaml#/InventoryLot
+InventoryExpiringLotAlert:
+  $ref: ./inventory.yaml#/InventoryExpiringLotAlert
+InventorySettings:
+  $ref: ./inventory.yaml#/InventorySettings
+InventoryCapabilities:
+  $ref: ./inventory.yaml#/InventoryCapabilities
+InventoryReconciliation:
+  $ref: ./inventory.yaml#/InventoryReconciliation
+CreateInventoryLotRequest:
+  $ref: ./inventory.yaml#/CreateInventoryLotRequest
+UpdateInventoryLotRequest:
+  $ref: ./inventory.yaml#/UpdateInventoryLotRequest
+UpdateInventorySettingsRequest:
+  $ref: ./inventory.yaml#/UpdateInventorySettingsRequest
+InventoryLotSuccessResponse:
+  $ref: ./inventory.yaml#/InventoryLotSuccessResponse
+InventoryLotListSuccessResponse:
+  $ref: ./inventory.yaml#/InventoryLotListSuccessResponse
+InventoryExpiringLotAlertListSuccessResponse:
+  $ref: ./inventory.yaml#/InventoryExpiringLotAlertListSuccessResponse
+InventorySettingsSuccessResponse:
+  $ref: ./inventory.yaml#/InventorySettingsSuccessResponse
+InventoryReconciliationSuccessResponse:
+  $ref: ./inventory.yaml#/InventoryReconciliationSuccessResponse
+InventoryStocktakeLine:
+  $ref: ./inventory.yaml#/InventoryStocktakeLine
+InventoryStocktake:
+  $ref: ./inventory.yaml#/InventoryStocktake
+CreateInventoryStocktakeRequest:
+  $ref: ./inventory.yaml#/CreateInventoryStocktakeRequest
+UpsertInventoryStocktakeCountsRequest:
+  $ref: ./inventory.yaml#/UpsertInventoryStocktakeCountsRequest
+InventoryStocktakeSuccessResponse:
+  $ref: ./inventory.yaml#/InventoryStocktakeSuccessResponse
+InventoryStocktakeListSuccessResponse:
+  $ref: ./inventory.yaml#/InventoryStocktakeListSuccessResponse
+

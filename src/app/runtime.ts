@@ -11,6 +11,10 @@ import {
 } from '@/infrastructure/database/connection';
 import { logger } from '@/infrastructure/logger/logger';
 import { buildGoLiveConfigurationReadiness } from '@/infrastructure/operations/go-live-readiness';
+import {
+  startInventoryReconciliationMonitor,
+  type InventoryReconciliationMonitor
+} from '@/infrastructure/operations/inventory-reconciliation-monitor';
 
 type ShutdownTrigger = 'manual' | 'SIGTERM';
 type RuntimeLogLevel = 'INFO' | 'ERROR';
@@ -49,6 +53,7 @@ interface RuntimeDependencies {
   connectToDatabase?: () => Promise<void>;
   disconnectFromDatabase?: () => Promise<void>;
   bootstrapPlatformSettings?: () => Promise<void>;
+  startInventoryReconciliationMonitor?: () => InventoryReconciliationMonitor;
   listen?: (app: Express, port: number) => Promise<ServerLike>;
   closeServer?: (server: ServerLike) => Promise<void>;
   signalProcess?: SignalProcessLike;
@@ -133,6 +138,8 @@ export async function startApplication(
   const disconnect = dependencies.disconnectFromDatabase ?? disconnectFromDatabase;
   const bootstrapPlatformSettings =
     dependencies.bootstrapPlatformSettings ?? defaultBootstrapPlatformSettings;
+  const startReconciliationMonitor =
+    dependencies.startInventoryReconciliationMonitor ?? startInventoryReconciliationMonitor;
   const listen = dependencies.listen ?? listenHttpServer;
   const closeServer = dependencies.closeServer ?? closeHttpServer;
   const signalProcess = dependencies.signalProcess ?? process;
@@ -242,6 +249,8 @@ export async function startApplication(
     })
   );
 
+  const inventoryReconciliationMonitor = startReconciliationMonitor();
+
   let shutdownPromise: Promise<void> | null = null;
   const signalHandlers = new Map<NodeJS.Signals, () => void>();
 
@@ -268,6 +277,7 @@ export async function startApplication(
       );
 
       try {
+        inventoryReconciliationMonitor.stop();
         await closeServer(server);
         await disconnect();
 
@@ -319,4 +329,3 @@ export async function startApplication(
     shutdown
   };
 }
-

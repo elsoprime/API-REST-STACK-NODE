@@ -1,4 +1,4 @@
-import { Router } from 'express';
+﻿import { Router } from 'express';
 import { Types } from 'mongoose';
 import request from 'supertest';
 
@@ -10,20 +10,7 @@ import { MembershipModel } from '@/core/tenant/models/membership.model';
 import { TenantModel } from '@/core/tenant/models/tenant.model';
 import { createInventoryRouter } from '@/modules/inventory/routes/inventory.routes';
 
-function createInventoryStockHistoryApp(service: {
-  createCategory: ReturnType<typeof vi.fn>;
-  listCategories: ReturnType<typeof vi.fn>;
-  updateCategory: ReturnType<typeof vi.fn>;
-  deleteCategory: ReturnType<typeof vi.fn>;
-  createItem: ReturnType<typeof vi.fn>;
-  listItems: ReturnType<typeof vi.fn>;
-  getItem: ReturnType<typeof vi.fn>;
-  updateItem: ReturnType<typeof vi.fn>;
-  deleteItem: ReturnType<typeof vi.fn>;
-  createStockMovement: ReturnType<typeof vi.fn>;
-  listStockMovements: ReturnType<typeof vi.fn>;
-  listLowStockAlerts: ReturnType<typeof vi.fn>;
-}) {
+function createInventoryStockHistoryApp(service: Record<string, ReturnType<typeof vi.fn>>) {
   const rootRouter = Router();
   const apiV1Router = Router();
   const modulesRouter = Router();
@@ -131,3 +118,4 @@ describe('inventory stock history route', () => {
     expect(response.body.data.items[0].stockAfter).toBe(17);
   });
 });
+
