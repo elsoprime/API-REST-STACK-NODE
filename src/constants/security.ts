@@ -35,4 +35,4 @@ export const AUTH_SECURITY_POLICY = {
   TOTP_PERIOD_SECONDS: 30,
   TOTP_ALLOWED_WINDOW_STEPS: 1,
   RECOVERY_CODES_COUNT: 8
-} as const;`r`n
+} as const;

@@ -1452,4 +1452,4 @@ export class AuthService implements AuthServiceContract {
   }
 }
 
-export const authService = new AuthService();`r`n
+export const authService = new AuthService();

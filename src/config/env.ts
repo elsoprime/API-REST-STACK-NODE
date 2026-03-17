@@ -266,4 +266,4 @@ if (parsedAndValidatedEnv.NODE_ENV === 'production') {
   }
 }
 
-export const env = parsedAndValidatedEnv;`r`n
+export const env = parsedAndValidatedEnv;
