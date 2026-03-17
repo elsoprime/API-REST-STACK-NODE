@@ -301,7 +301,11 @@ export class RbacService implements RbacServiceContract {
     input: ResolveTenantRuntimeInput
   ): Promise<TenantRuntimeResolution> {
     const plan = await this.resolvePlan(input.planId);
-    const activeModuleKeys = ensureUniqueStrings(input.activeModuleKeys);
+    const requestedActiveModuleKeys = ensureUniqueStrings(input.activeModuleKeys);
+    const activeModuleKeys =
+      plan && requestedActiveModuleKeys.length === 0
+        ? [...plan.allowedModuleKeys]
+        : requestedActiveModuleKeys;
     const globallyDisabledModuleKeys = ensureUniqueStrings(input.disabledModuleKeys ?? []);
     const globallyDisabledFeatureFlagKeys = ensureUniqueStrings(
       input.disabledFeatureFlagKeys ?? []
