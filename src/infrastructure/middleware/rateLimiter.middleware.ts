@@ -179,6 +179,12 @@ export const authEmailRateLimiter = createEmailAddressRateLimiter({
   profile: RATE_LIMITER_PROFILES.AUTH
 });
 
+export const refreshRateLimiter = createRateLimiter({
+  max: env.RATE_LIMIT_MAX_REFRESH,
+  windowMs: env.RATE_LIMIT_WINDOW_MS,
+  profile: RATE_LIMITER_PROFILES.SENSITIVE
+});
+
 export const sensitiveRateLimiter = createRateLimiter({
   max: env.RATE_LIMIT_MAX_SENSITIVE,
   windowMs: env.RATE_LIMIT_WINDOW_MS,
@@ -189,4 +195,4 @@ export const sensitiveEmailRateLimiter = createEmailAddressRateLimiter({
   max: env.RATE_LIMIT_MAX_SENSITIVE,
   windowMs: env.RATE_LIMIT_WINDOW_MS,
   profile: RATE_LIMITER_PROFILES.SENSITIVE
-});
+});`r`n

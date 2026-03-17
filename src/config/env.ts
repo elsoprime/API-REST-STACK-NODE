@@ -139,6 +139,7 @@ const envSchema = z.object({
   RATE_LIMIT_MAX_GLOBAL: z.coerce.number().int().positive().default(100),
   RATE_LIMIT_MAX_AUTH: z.coerce.number().int().positive().default(10),
   RATE_LIMIT_MAX_SENSITIVE: z.coerce.number().int().positive().default(5),
+  RATE_LIMIT_MAX_REFRESH: z.coerce.number().int().positive().default(20),
   RATE_LIMIT_REDIS_PREFIX: z.string().min(1).default('rl'),
   REDIS_URL: optionalRedisUrlSchema,
   CORS_ORIGINS: z.string().min(1),
@@ -265,4 +266,4 @@ if (parsedAndValidatedEnv.NODE_ENV === 'production') {
   }
 }
 
-export const env = parsedAndValidatedEnv;
+export const env = parsedAndValidatedEnv;`r`n

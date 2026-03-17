@@ -166,6 +166,12 @@ function toUserView(
 }
 
 export class AuthService implements AuthServiceContract {
+  private readonly refreshInFlightByTokenHash = new Map<string, Promise<AuthResult>>();
+  private readonly refreshReplayCacheByTokenHash = new Map<string, {
+    result: AuthResult;
+    expiresAt: number;
+  }>();
+
   constructor(
     private readonly tokens: TokenService = tokenService,
     private readonly passwords: PasswordService = passwordService,
@@ -791,6 +797,34 @@ export class AuthService implements AuthServiceContract {
   }
 
   async refresh(input: RefreshBrowserInput | RefreshHeadlessInput): Promise<AuthResult> {
+    const refreshTokenHash = this.tokens.hashToken(input.refreshToken);
+    this.pruneRefreshReplayCache();
+
+    const cachedResult = this.getCachedRefreshReplay(refreshTokenHash);
+
+    if (cachedResult) {
+      return cachedResult;
+    }
+
+    const existingInFlightRefresh = this.refreshInFlightByTokenHash.get(refreshTokenHash);
+
+    if (existingInFlightRefresh) {
+      return existingInFlightRefresh;
+    }
+
+    const inFlightRefresh = this.performRefresh(input, refreshTokenHash).finally(() => {
+      this.refreshInFlightByTokenHash.delete(refreshTokenHash);
+    });
+
+    this.refreshInFlightByTokenHash.set(refreshTokenHash, inFlightRefresh);
+
+    return inFlightRefresh;
+  }
+
+  private async performRefresh(
+    input: RefreshBrowserInput | RefreshHeadlessInput,
+    refreshTokenHash: string
+  ): Promise<AuthResult> {
     let claims;
 
     try {
@@ -808,7 +842,7 @@ export class AuthService implements AuthServiceContract {
     if (
       !existingSession ||
       existingSession.status !== AUTH_SESSION_STATUS.ACTIVE ||
-      existingSession.refreshTokenHash !== this.tokens.hashToken(input.refreshToken) ||
+      existingSession.refreshTokenHash !== refreshTokenHash ||
       existingSession.expiresAt.getTime() <= Date.now()
     ) {
       throw buildAuthError(
@@ -883,9 +917,42 @@ export class AuthService implements AuthServiceContract {
         throw new Error('Refresh transaction did not produce a session result.');
       }
 
+      this.cacheRefreshReplay(refreshTokenHash, nextSessionResult);
       return nextSessionResult;
     } finally {
       await session.endSession();
+    }
+  }
+
+  private getCachedRefreshReplay(refreshTokenHash: string): AuthResult | null {
+    const cachedReplay = this.refreshReplayCacheByTokenHash.get(refreshTokenHash);
+
+    if (!cachedReplay) {
+      return null;
+    }
+
+    if (cachedReplay.expiresAt <= Date.now()) {
+      this.refreshReplayCacheByTokenHash.delete(refreshTokenHash);
+      return null;
+    }
+
+    return cachedReplay.result;
+  }
+
+  private cacheRefreshReplay(refreshTokenHash: string, result: AuthResult): void {
+    this.refreshReplayCacheByTokenHash.set(refreshTokenHash, {
+      result,
+      expiresAt: Date.now() + AUTH_SECURITY_POLICY.REFRESH_REPLAY_WINDOW_MS
+    });
+  }
+
+  private pruneRefreshReplayCache(): void {
+    const now = Date.now();
+
+    for (const [refreshTokenHash, replay] of this.refreshReplayCacheByTokenHash) {
+      if (replay.expiresAt <= now) {
+        this.refreshReplayCacheByTokenHash.delete(refreshTokenHash);
+      }
     }
   }
 
@@ -1385,4 +1452,4 @@ export class AuthService implements AuthServiceContract {
   }
 }
 
-export const authService = new AuthService();
+export const authService = new AuthService();`r`n
