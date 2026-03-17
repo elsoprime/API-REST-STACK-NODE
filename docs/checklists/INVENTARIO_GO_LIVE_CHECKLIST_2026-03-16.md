@@ -49,3 +49,9 @@ Accion inmediata:
 1. Desactivar monitor o reducir carga por flags.
 2. Volver a cohorte previa estable.
 3. Ejecutar triage y documentar RCA.
+
+## F. Estado actual de esta ola (2026-03-17)
+
+- Estado de avance: **Cerrado en desarrollo / Ready for Integration Validation**.
+- Go-live operativo: **Pospuesto**.
+- Esta checklist permanece como prerequisito pendiente para la siguiente ventana de release real.

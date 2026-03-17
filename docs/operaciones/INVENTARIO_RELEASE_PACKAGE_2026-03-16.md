@@ -88,3 +88,10 @@ Puntos criticos de salida:
 - Etapas completadas: 5, 6, 7 y 8.
 - DoD validado en verde en el ultimo corte tecnico.
 - Documentacion operativa y frontend complementada de forma aditiva.
+
+## 6) Estado operativo actual (actualizacion 2026-03-17)
+
+- Estado oficial para esta ola: **Cerrado en desarrollo / Ready for Integration Validation**.
+- Go-live real (staging canary + produccion) queda **pospuesto** hasta nueva ventana operativa.
+- Esta decision no invalida el cierre tecnico del modulo; solo posterga la activacion operativa por ambiente.
+- Prerrequisito para pasar a go-live: completar `docs/checklists/INVENTARIO_GO_LIVE_CHECKLIST_2026-03-16.md` con evidencia real por entorno.
