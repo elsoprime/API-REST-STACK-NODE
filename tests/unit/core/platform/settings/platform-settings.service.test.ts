@@ -5,6 +5,30 @@ import { PlatformSettingsModel } from '@/core/platform/settings/models/platform-
 import { PlatformSettingsService } from '@/core/platform/settings/services/platform-settings.service';
 import { ERROR_CODES } from '@/infrastructure/errors/error-codes';
 
+function buildSecurityDocument() {
+  return {
+    allowUserRegistration: true,
+    requireEmailVerification: true,
+    requireTwoFactorForPrivilegedUsers: false,
+    passwordPolicy: {
+      minLength: 12,
+      preventReuseCount: 5,
+      requireUppercase: true,
+      requireLowercase: true,
+      requireNumber: true,
+      requireSpecialChar: false
+    },
+    sessionPolicy: {
+      browserSessionTtlMinutes: 1440,
+      idleTimeoutMinutes: null
+    },
+    riskControls: {
+      allowRecoveryCodes: true,
+      enforceVerifiedEmailForPrivilegedAccess: true
+    }
+  };
+}
+
 describe('PlatformSettingsService', () => {
   afterEach(() => {
     vi.restoreAllMocks();
@@ -42,10 +66,7 @@ describe('PlatformSettingsService', () => {
             defaultCurrency: 'USD',
             defaultLanguage: 'en'
           },
-          security: {
-            allowUserRegistration: true,
-            requireEmailVerification: true
-          },
+          security: buildSecurityDocument(),
           operations: {
             maintenanceMode: false
           },
@@ -71,7 +92,7 @@ describe('PlatformSettingsService', () => {
       }
     });
 
-    expect(result.singletonKey).toBe('platform_settings');
+    expect(result.security.passwordPolicy.minLength).toBe(12);
     expect(audit.record).toHaveBeenCalledWith(
       expect.objectContaining({
         scope: 'platform',
@@ -88,7 +109,7 @@ describe('PlatformSettingsService', () => {
     );
   });
 
-  it('updates the singleton with a partial patch and records before/after audit data', async () => {
+  it('updates the singleton with a nested security patch and records before/after audit data', async () => {
     const audit = {
       record: vi.fn().mockResolvedValue({
         id: 'audit-2'
@@ -114,10 +135,7 @@ describe('PlatformSettingsService', () => {
         defaultCurrency: 'USD',
         defaultLanguage: 'en'
       },
-      security: {
-        allowUserRegistration: true,
-        requireEmailVerification: true
-      },
+      security: buildSecurityDocument(),
       operations: {
         maintenanceMode: false
       },
@@ -133,7 +151,12 @@ describe('PlatformSettingsService', () => {
           singletonKey: this.singletonKey,
           branding: { ...this.branding },
           localization: { ...this.localization },
-          security: { ...this.security },
+          security: {
+            ...this.security,
+            passwordPolicy: { ...this.security.passwordPolicy },
+            sessionPolicy: { ...this.security.sessionPolicy },
+            riskControls: { ...this.security.riskControls }
+          },
           operations: { ...this.operations },
           modules: {
             disabledModuleKeys: [...this.modules.disabledModuleKeys]
@@ -153,14 +176,17 @@ describe('PlatformSettingsService', () => {
 
     const result = await service.updateSettings({
       patch: {
-        branding: {
-          supportEmail: 'support@example.com'
+        security: {
+          requireTwoFactorForPrivilegedUsers: true,
+          passwordPolicy: {
+            minLength: 16
+          },
+          sessionPolicy: {
+            idleTimeoutMinutes: 30
+          }
         },
         operations: {
           maintenanceMode: true
-        },
-        modules: {
-          disabledModuleKeys: ['inventory']
         }
       },
       context: {
@@ -175,9 +201,9 @@ describe('PlatformSettingsService', () => {
     });
 
     expect(settingsDocument.save).toHaveBeenCalled();
-    expect(result.branding.supportEmail).toBe('support@example.com');
-    expect(result.operations.maintenanceMode).toBe(true);
-    expect(result.modules.disabledModuleKeys).toEqual(['inventory']);
+    expect(result.security.requireTwoFactorForPrivilegedUsers).toBe(true);
+    expect(result.security.passwordPolicy.minLength).toBe(16);
+    expect(result.security.sessionPolicy.idleTimeoutMinutes).toBe(30);
     expect(audit.record).toHaveBeenCalledWith(
       expect.objectContaining({
         scope: 'platform',
@@ -186,7 +212,7 @@ describe('PlatformSettingsService', () => {
         changes: expect.objectContaining({
           before: expect.any(Object),
           after: expect.any(Object),
-          fields: ['branding', 'operations', 'modules']
+          fields: ['security', 'operations']
         })
       }),
       {
@@ -195,7 +221,7 @@ describe('PlatformSettingsService', () => {
     );
   });
 
-  it('rejects unknown module keys before persisting the singleton update', async () => {
+  it('rejects invalid expanded security ranges before persisting the singleton update', async () => {
     const service = new PlatformSettingsService({
       record: vi.fn()
     } as never);
@@ -217,10 +243,7 @@ describe('PlatformSettingsService', () => {
         defaultCurrency: 'USD',
         defaultLanguage: 'en'
       },
-      security: {
-        allowUserRegistration: true,
-        requireEmailVerification: true
-      },
+      security: buildSecurityDocument(),
       operations: {
         maintenanceMode: false
       },
@@ -236,7 +259,12 @@ describe('PlatformSettingsService', () => {
           singletonKey: this.singletonKey,
           branding: { ...this.branding },
           localization: { ...this.localization },
-          security: { ...this.security },
+          security: {
+            ...this.security,
+            passwordPolicy: { ...this.security.passwordPolicy },
+            sessionPolicy: { ...this.security.sessionPolicy },
+            riskControls: { ...this.security.riskControls }
+          },
           operations: { ...this.operations },
           modules: {
             disabledModuleKeys: [...this.modules.disabledModuleKeys]
@@ -257,8 +285,10 @@ describe('PlatformSettingsService', () => {
     await expect(
       service.updateSettings({
         patch: {
-          modules: {
-            disabledModuleKeys: ['unknown-module']
+          security: {
+            passwordPolicy: {
+              minLength: 4
+            }
           }
         }
       })

@@ -274,3 +274,12 @@ InventoryStocktakeSuccessResponse:
 InventoryStocktakeListSuccessResponse:
   $ref: ./inventory.yaml#/InventoryStocktakeListSuccessResponse
 
+
+TenantMembershipListItem:
+  $ref: ./tenant.yaml#/TenantMembershipListItem
+TenantMembershipListSuccessResponse:
+  $ref: ./tenant.yaml#/TenantMembershipListSuccessResponse
+UpdateTenantMembershipRequest:
+  $ref: ./tenant.yaml#/UpdateTenantMembershipRequest
+TenantMembershipMutationSuccessResponse:
+  $ref: ./tenant.yaml#/TenantMembershipMutationSuccessResponse

@@ -232,3 +232,102 @@ TransferOwnershipSuccessResponse:
 
 
 
+
+TenantMembershipListItem:
+  type: object
+  required:
+    - membershipId
+    - userId
+    - fullName
+    - email
+    - roleKey
+    - status
+    - joinedAt
+    - createdAt
+    - isEffectiveOwner
+  properties:
+    membershipId:
+      type: string
+    userId:
+      type: string
+    fullName:
+      type: string
+    email:
+      type: string
+      format: email
+    roleKey:
+      type: string
+    status:
+      type: string
+      enum: [active, suspended]
+    joinedAt:
+      type: string
+      format: date-time
+      nullable: true
+    createdAt:
+      type: string
+      format: date-time
+      nullable: true
+    isEffectiveOwner:
+      type: boolean
+TenantMembershipListSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - items
+        - page
+        - limit
+        - total
+        - totalPages
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/TenantMembershipListItem'
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        totalPages:
+          type: integer
+    traceId:
+      type: string
+UpdateTenantMembershipRequest:
+  type: object
+  minProperties: 1
+  properties:
+    roleKey:
+      type: string
+    status:
+      type: string
+      enum: [active, suspended]
+TenantMembershipMutationSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - membership
+      properties:
+        membership:
+          $ref: '#/TenantMembershipListItem'
+    traceId:
+      type: string

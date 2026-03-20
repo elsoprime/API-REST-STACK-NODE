@@ -1,8 +1,8 @@
 # Guia de Mocking Frontend
 
-Version: 1.2.0
+Version: 1.3.0
 Estado: Activo
-Ultima actualizacion: 2026-03-11
+Ultima actualizacion: 2026-03-20
 
 ## 1. Proposito
 
@@ -69,33 +69,43 @@ src/mocks/
 - `POST /api/v1/auth/refresh/browser`: `AUTH_INVALID_REFRESH_TOKEN`
 - `POST /api/v1/auth/logout`: exito
 
-### 5.2 Tenant
+### 5.2 Tenant y Members
 
 - Lista de tenants vacia y con multiples tenants
 - Switch tenant exitoso (`/api/v1/tenant/switch`)
 - Switch tenant con `TENANT_SCOPE_MISMATCH`
+- `GET /api/v1/tenant/memberships`: listado paginado con filtros `search`, `roleKey`, `status`
+- `PATCH /api/v1/tenant/memberships/{membershipId}`: exito y `TENANT_MEMBERSHIP_OWNER_PROTECTED`
+- `DELETE /api/v1/tenant/memberships/{membershipId}`: exito y `TENANT_MEMBERSHIP_OWNER_PROTECTED`
 - Crear invitacion exitoso y `TENANT_OWNER_REQUIRED`
 - Aceptar invitacion por token (`/api/v1/tenant/invitations/accept`)
+- Transferir ownership exitoso (`/api/v1/tenant/transfer-ownership`)
 
-### 5.3 Inventory
+### 5.3 Platform Settings y Security
+
+- `GET /api/v1/platform/settings`: singleton con `security` ampliado
+- `PATCH /api/v1/platform/settings`: exito parcial sobre `security`
+- `PATCH /api/v1/platform/settings`: error de validacion en `passwordPolicy` o `sessionPolicy`
+
+### 5.4 Inventory
 
 - Listado con paginacion
 - Create/update/delete exitosos
 - Conflicto de stock (`INV_STOCK_CONFLICT`)
 
-### 5.4 CRM
+### 5.5 CRM
 
 - Lectura permitida
 - Accion denegada por permiso (`RBAC_PERMISSION_DENIED`)
 - Transicion de etapa invalida (`CRM_OPPORTUNITY_STAGE_TRANSITION_INVALID`)
 
-### 5.5 HR
+### 5.6 HR
 
 - Lectura empleados permitida
 - Compensacion denegada (`RBAC_PERMISSION_DENIED`)
 - Jerarquia ciclica (`HR_EMPLOYEE_HIERARCHY_CYCLE`)
 
-### 5.6 Billing y Provisioning
+### 5.7 Billing y Provisioning
 
 - `GET /api/v1/billing/plans`: catalogo de planes.
 - `POST /api/v1/billing/checkout/session`: exito (`201`) y error de validacion/permisos.
@@ -131,95 +141,61 @@ Error:
 }
 ```
 
-## 7. Ejemplo de handlers MSW (Auth)
+## 7. Ejemplo de handlers MSW (Members)
 
 ```ts
 import { http, HttpResponse } from 'msw';
 
-export const authHandlers = [
-  http.post('/api/v1/auth/forgot-password', async () => {
-    return HttpResponse.json(
-      {
-        success: true,
-        data: { accepted: true },
-        traceId: 'mock-auth-forgot-password-accepted'
+export const tenantHandlers = [
+  http.get('/api/v1/tenant/memberships', () => {
+    return HttpResponse.json({
+      success: true,
+      data: {
+        items: [
+          {
+            membershipId: 'membership_01',
+            userId: 'user_01',
+            fullName: 'Esteban Soto',
+            email: 'esteban.soto@dev.cl',
+            roleKey: 'tenant:owner',
+            status: 'active',
+            joinedAt: '2026-03-10T06:08:18.767Z',
+            createdAt: '2026-03-10T06:08:18.767Z',
+            isEffectiveOwner: true
+          }
+        ],
+        page: 1,
+        limit: 10,
+        total: 1,
+        totalPages: 1
       },
-      { status: 202 }
-    );
+      traceId: 'mock-tenant-memberships-list'
+    });
   }),
 
-  http.post('/api/v1/auth/reset-password', async ({ request }) => {
-    const body = (await request.json()) as { token?: string };
-
-    if (body.token === 'invalid-token') {
+  http.patch('/api/v1/tenant/memberships/:membershipId', ({ params }) => {
+    if (params.membershipId === 'membership_owner') {
       return HttpResponse.json(
         {
           success: false,
           error: {
-            code: 'AUTH_PASSWORD_RESET_INVALID',
-            message: 'Invalid password reset token'
+            code: 'TENANT_MEMBERSHIP_OWNER_PROTECTED',
+            message: 'Effective owner membership cannot be modified'
           },
-          traceId: 'mock-auth-reset-password-invalid'
-        },
-        { status: 400 }
-      );
-    }
-
-    return HttpResponse.json(
-      {
-        success: true,
-        data: {
-          reset: true,
-          revokedSessionIds: ['65f0000000000000000000aa']
-        },
-        traceId: 'mock-auth-reset-password-ok'
-      },
-      { status: 200 }
-    );
-  }),
-
-  http.post('/api/v1/auth/change-password', async ({ request }) => {
-    const body = (await request.json()) as { currentPassword?: string; newPassword?: string };
-
-    if (body.currentPassword !== 'current-password') {
-      return HttpResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'AUTH_PASSWORD_CHANGE_CURRENT_INVALID',
-            message: 'Current password is invalid'
-          },
-          traceId: 'mock-auth-change-password-current-invalid'
-        },
-        { status: 401 }
-      );
-    }
-
-    if (body.newPassword === 'current-password') {
-      return HttpResponse.json(
-        {
-          success: false,
-          error: {
-            code: 'AUTH_PASSWORD_CHANGE_REUSED',
-            message: 'New password must be different from current password'
-          },
-          traceId: 'mock-auth-change-password-reused'
+          traceId: 'mock-tenant-memberships-owner-protected'
         },
         { status: 409 }
       );
     }
 
-    return HttpResponse.json(
-      {
-        success: true,
-        data: {
-          changed: true,
-          revokedSessionIds: ['65f0000000000000000000ab']
-        },
-        traceId: 'mock-auth-change-password-ok'
+    return HttpResponse.json({
+      success: true,
+      data: {
+        membershipId: String(params.membershipId),
+        updated: true
       },
-      { status: 200 }
-    );
+      traceId: 'mock-tenant-memberships-update'
+    });
   })
 ];
 ```
@@ -240,3 +216,4 @@ Checklist por PR backend:
 - Incluir `traceId` fijo por escenario para trazabilidad en logs.
 - Usar escenarios reutilizables en vez de handlers duplicados.
 - Para rutas token-bound (`tenant/switch`, `invitations/accept`), no forzar `X-Tenant-Id` en mocks.
+- Para `platform/settings`, mantener un singleton consistente entre `/app/settings/platform` y `/app/settings/security`.

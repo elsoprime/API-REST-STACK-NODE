@@ -10,14 +10,10 @@ import {
   type AuditSeverity,
   type RecordAuditLogOptions
 } from '@/core/platform/audit/types/audit.types';
-import {
-  systemRbacCatalog
-} from '@/core/platform/rbac/catalog/system-rbac.catalog';
+import { systemRbacCatalog } from '@/core/platform/rbac/catalog/system-rbac.catalog';
 import { FeatureFlagModel } from '@/core/platform/rbac/models/feature-flag.model';
 import { ModuleModel } from '@/core/platform/rbac/models/module.model';
-import {
-  PlatformSettingsModel
-} from '@/core/platform/settings/models/platform-settings.model';
+import { PlatformSettingsModel } from '@/core/platform/settings/models/platform-settings.model';
 import {
   PLATFORM_SETTINGS_SINGLETON_KEY,
   type GetPlatformSettingsInput,
@@ -74,9 +70,7 @@ function ensureUniqueStrings(values: string[]): string[] {
   return [...new Set(values.map((value) => value.trim()).filter((value) => value.length > 0))];
 }
 
-function canQueryModel(
-  model: { db?: { readyState?: number }; findOne?: unknown }
-): boolean {
+function canQueryModel(model: { db?: { readyState?: number }; findOne?: unknown }): boolean {
   const findOne = model.findOne as { mock?: unknown } | undefined;
 
   return model.db?.readyState === 1 || typeof findOne?.mock !== 'undefined';
@@ -99,6 +93,23 @@ function toPlatformSettingsView(settings: {
   security?: {
     allowUserRegistration: boolean;
     requireEmailVerification: boolean;
+    requireTwoFactorForPrivilegedUsers?: boolean;
+    passwordPolicy?: {
+      minLength?: number;
+      preventReuseCount?: number;
+      requireUppercase?: boolean;
+      requireLowercase?: boolean;
+      requireNumber?: boolean;
+      requireSpecialChar?: boolean;
+    } | null;
+    sessionPolicy?: {
+      browserSessionTtlMinutes?: number;
+      idleTimeoutMinutes?: number | null;
+    } | null;
+    riskControls?: {
+      allowRecoveryCodes?: boolean;
+      enforceVerifiedEmailForPrivilegedAccess?: boolean;
+    } | null;
   } | null;
   operations?: {
     maintenanceMode: boolean;
@@ -125,7 +136,27 @@ function toPlatformSettingsView(settings: {
     },
     security: {
       allowUserRegistration: settings.security?.allowUserRegistration ?? true,
-      requireEmailVerification: settings.security?.requireEmailVerification ?? true
+      requireEmailVerification: settings.security?.requireEmailVerification ?? true,
+      requireTwoFactorForPrivilegedUsers:
+        settings.security?.requireTwoFactorForPrivilegedUsers ?? false,
+      passwordPolicy: {
+        minLength: settings.security?.passwordPolicy?.minLength ?? 12,
+        preventReuseCount: settings.security?.passwordPolicy?.preventReuseCount ?? 5,
+        requireUppercase: settings.security?.passwordPolicy?.requireUppercase ?? true,
+        requireLowercase: settings.security?.passwordPolicy?.requireLowercase ?? true,
+        requireNumber: settings.security?.passwordPolicy?.requireNumber ?? true,
+        requireSpecialChar: settings.security?.passwordPolicy?.requireSpecialChar ?? false
+      },
+      sessionPolicy: {
+        browserSessionTtlMinutes:
+          settings.security?.sessionPolicy?.browserSessionTtlMinutes ?? 1440,
+        idleTimeoutMinutes: settings.security?.sessionPolicy?.idleTimeoutMinutes ?? null
+      },
+      riskControls: {
+        allowRecoveryCodes: settings.security?.riskControls?.allowRecoveryCodes ?? true,
+        enforceVerifiedEmailForPrivilegedAccess:
+          settings.security?.riskControls?.enforceVerifiedEmailForPrivilegedAccess ?? true
+      }
     },
     operations: {
       maintenanceMode: settings.operations?.maintenanceMode ?? false
@@ -154,7 +185,24 @@ function buildDefaultPlatformSettingsSnapshot() {
     },
     security: {
       allowUserRegistration: true,
-      requireEmailVerification: true
+      requireEmailVerification: true,
+      requireTwoFactorForPrivilegedUsers: false,
+      passwordPolicy: {
+        minLength: 12,
+        preventReuseCount: 5,
+        requireUppercase: true,
+        requireLowercase: true,
+        requireNumber: true,
+        requireSpecialChar: false
+      },
+      sessionPolicy: {
+        browserSessionTtlMinutes: 1440,
+        idleTimeoutMinutes: null
+      },
+      riskControls: {
+        allowRecoveryCodes: true,
+        enforceVerifiedEmailForPrivilegedAccess: true
+      }
     },
     operations: {
       maintenanceMode: false
@@ -194,7 +242,46 @@ function mergePlatformSettingsView(
       allowUserRegistration:
         patch.security?.allowUserRegistration ?? current.security.allowUserRegistration,
       requireEmailVerification:
-        patch.security?.requireEmailVerification ?? current.security.requireEmailVerification
+        patch.security?.requireEmailVerification ?? current.security.requireEmailVerification,
+      requireTwoFactorForPrivilegedUsers:
+        patch.security?.requireTwoFactorForPrivilegedUsers ??
+        current.security.requireTwoFactorForPrivilegedUsers,
+      passwordPolicy: {
+        minLength:
+          patch.security?.passwordPolicy?.minLength ?? current.security.passwordPolicy.minLength,
+        preventReuseCount:
+          patch.security?.passwordPolicy?.preventReuseCount ??
+          current.security.passwordPolicy.preventReuseCount,
+        requireUppercase:
+          patch.security?.passwordPolicy?.requireUppercase ??
+          current.security.passwordPolicy.requireUppercase,
+        requireLowercase:
+          patch.security?.passwordPolicy?.requireLowercase ??
+          current.security.passwordPolicy.requireLowercase,
+        requireNumber:
+          patch.security?.passwordPolicy?.requireNumber ??
+          current.security.passwordPolicy.requireNumber,
+        requireSpecialChar:
+          patch.security?.passwordPolicy?.requireSpecialChar ??
+          current.security.passwordPolicy.requireSpecialChar
+      },
+      sessionPolicy: {
+        browserSessionTtlMinutes:
+          patch.security?.sessionPolicy?.browserSessionTtlMinutes ??
+          current.security.sessionPolicy.browserSessionTtlMinutes,
+        idleTimeoutMinutes:
+          typeof patch.security?.sessionPolicy?.idleTimeoutMinutes === 'undefined'
+            ? current.security.sessionPolicy.idleTimeoutMinutes
+            : patch.security.sessionPolicy.idleTimeoutMinutes
+      },
+      riskControls: {
+        allowRecoveryCodes:
+          patch.security?.riskControls?.allowRecoveryCodes ??
+          current.security.riskControls.allowRecoveryCodes,
+        enforceVerifiedEmailForPrivilegedAccess:
+          patch.security?.riskControls?.enforceVerifiedEmailForPrivilegedAccess ??
+          current.security.riskControls.enforceVerifiedEmailForPrivilegedAccess
+      }
     },
     operations: {
       maintenanceMode: patch.operations?.maintenanceMode ?? current.operations.maintenanceMode
@@ -212,6 +299,27 @@ function mergePlatformSettingsView(
           : current.featureFlags.disabledFeatureFlagKeys
     }
   };
+}
+
+function assertSecurityRanges(security: PlatformSettingsView['security']): void {
+  if (security.passwordPolicy.minLength < 8 || security.passwordPolicy.minLength > 128) {
+    throw buildPlatformSettingsValidationError('security.passwordPolicy.minLength must be between 8 and 128');
+  }
+
+  if (security.passwordPolicy.preventReuseCount < 0 || security.passwordPolicy.preventReuseCount > 24) {
+    throw buildPlatformSettingsValidationError('security.passwordPolicy.preventReuseCount must be between 0 and 24');
+  }
+
+  if (security.sessionPolicy.browserSessionTtlMinutes < 5 || security.sessionPolicy.browserSessionTtlMinutes > 43200) {
+    throw buildPlatformSettingsValidationError('security.sessionPolicy.browserSessionTtlMinutes must be between 5 and 43200');
+  }
+
+  if (
+    security.sessionPolicy.idleTimeoutMinutes !== null &&
+    (security.sessionPolicy.idleTimeoutMinutes < 1 || security.sessionPolicy.idleTimeoutMinutes > 43200)
+  ) {
+    throw buildPlatformSettingsValidationError('security.sessionPolicy.idleTimeoutMinutes must be null or between 1 and 43200');
+  }
 }
 
 export class PlatformSettingsService implements PlatformSettingsServiceContract {
@@ -329,6 +437,7 @@ export class PlatformSettingsService implements PlatformSettingsServiceContract 
 
         const before = toPlatformSettingsView(settings.toObject());
         const merged = mergePlatformSettingsView(before, input.patch);
+        assertSecurityRanges(merged.security);
 
         await Promise.all([
           this.assertValidModuleKeys(merged.modules.disabledModuleKeys),
@@ -391,7 +500,11 @@ export class PlatformSettingsService implements PlatformSettingsServiceContract 
       },
       security: {
         allowUserRegistration: view.security.allowUserRegistration,
-        requireEmailVerification: view.security.requireEmailVerification
+        requireEmailVerification: view.security.requireEmailVerification,
+        requireTwoFactorForPrivilegedUsers: view.security.requireTwoFactorForPrivilegedUsers,
+        passwordPolicy: { ...view.security.passwordPolicy },
+        sessionPolicy: { ...view.security.sessionPolicy },
+        riskControls: { ...view.security.riskControls }
       },
       operations: {
         maintenanceMode: view.operations.maintenanceMode

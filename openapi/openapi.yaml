@@ -141,6 +141,10 @@ paths:
     $ref: ./paths/modules/hr-employee-by-id.yaml
   /api/v1/modules/hr/employees/{employeeId}/compensation:
     $ref: ./paths/modules/hr-compensation-by-employee.yaml
+  /api/v1/tenant/memberships:
+    $ref: ./paths/tenant/memberships.yaml
+  /api/v1/tenant/memberships/{membershipId}:
+    $ref: ./paths/tenant/membership-by-id.yaml
 components:
   schemas:
     $ref: ./components/schemas/_index.yaml
@@ -150,6 +154,8 @@ components:
     $ref: ./components/parameters/_index.yaml
   securitySchemes:
     $ref: ./components/securitySchemes/_index.yaml
+
+
 
 
 

@@ -1,8 +1,8 @@
 # Flujos E2E Criticos Frontend
 
-Version: 1.4.0
+Version: 1.6.0
 Estado: Activo
-Ultima actualizacion: 2026-03-11
+Ultima actualizacion: 2026-03-20
 
 ## 1. Proposito
 
@@ -15,8 +15,9 @@ Definir la suite E2E minima para proteger flujos de negocio criticos y evitar re
 ## 3. Datos de prueba minimos
 
 - Usuario A: verificado, con acceso tenant owner (tenant T1)
-- Usuario B: miembro tenant (tenant T1)
-- Usuario C: sin tenants
+- Usuario B: miembro tenant admin (tenant T1)
+- Usuario C: miembro tenant sin permisos de memberships update/delete (tenant T1)
+- Usuario D: sin tenants
 - Tenant T2 para validar aislamiento
 - Datos seed para Inventory, CRM y HR en T1
 - Catalogo seed de billing plans (`starter`, `growth`, `enterprise`)
@@ -94,7 +95,9 @@ Criterio de aceptacion:
 - El singleton se actualiza sin perder contexto tenant y el runtime queda consistente en UI.
 - Ante `TENANT_SUBSCRIPTION_PAYMENT_REQUIRED`, la UI debe guiar a Billing con CTA explicito.
 
-Referencia operativa local: `docs/operaciones/BILLING_LOCAL_DEMO_RUNBOOK.md``r`n`r`n### E2E-04D Billing provisioning + runtime efectivo
+Referencia operativa local: `docs/operaciones/BILLING_LOCAL_DEMO_RUNBOOK.md`
+
+### E2E-04D Billing provisioning + runtime efectivo
 
 1. Abrir `/app/settings/billing`.
 2. Cargar `GET /api/v1/billing/plans`.
@@ -125,6 +128,34 @@ Criterio de aceptacion:
 Criterio de aceptacion:
 
 - UI no rompe y no intenta loops de reintento.
+
+### E2E-05B Members team list/update/remove
+
+1. Abrir `/app/members?tab=team` con usuario owner o admin.
+2. Verificar `GET /api/v1/tenant/memberships` y render de tabla.
+3. Filtrar por `search`, `roleKey` y `status`.
+4. Ejecutar `PATCH /api/v1/tenant/memberships/{membershipId}` sobre un miembro no owner.
+5. Ejecutar `DELETE /api/v1/tenant/memberships/{membershipId}` sobre un miembro no owner.
+6. Intentar mutar o remover owner efectivo y verificar mensaje basado en `TENANT_MEMBERSHIP_OWNER_PROTECTED`.
+
+Criterio de aceptacion:
+
+- La tabla refleja datos reales tenant-scoped.
+- Las mutaciones invalidan cache y refrescan el listado.
+- El owner efectivo nunca puede alterarse desde este flujo.
+
+### E2E-05C Platform security settings
+
+1. Abrir `/app/settings/security` con usuario platform-scoped autorizado.
+2. Verificar carga de `GET /api/v1/platform/settings`.
+3. Editar `requireTwoFactorForPrivilegedUsers`, `passwordPolicy`, `sessionPolicy` o `riskControls`.
+4. Guardar con `PATCH /api/v1/platform/settings`.
+5. Verificar mensaje de confirmacion y refetch del singleton.
+
+Criterio de aceptacion:
+
+- La pantalla opera sobre `data.security` sin endpoint alternativo.
+- El formulario conserva estado consistente tras refetch.
 
 ### E2E-06 Inventory CRUD + conflicto
 
@@ -204,11 +235,11 @@ Criterio de aceptacion:
 
 ### 5.1 Pull Request
 
-- E2E-01, E2E-03, E2E-04, E2E-04D, E2E-05, E2E-11
+- E2E-01, E2E-03, E2E-04, E2E-04D, E2E-05, E2E-05B, E2E-05C, E2E-11
 
 ### 5.2 Pre-release / staging
 
-- Todos los casos E2E-01 a E2E-12 + E2E-04D/E2E-04E
+- Todos los casos E2E-01 a E2E-12 + E2E-04D/E2E-04E + E2E-05B/E2E-05C
 
 ## 6. Evidencia requerida por corrida
 
@@ -223,6 +254,8 @@ Bloquear salida si falla cualquiera de:
 - Login y refresh de sesion
 - Tenant switch y aislamiento
 - Guardas de permisos
+- Members team list/update/remove
+- Platform security settings
 - Flujo critico Inventory
 - Recuperacion y cambio de contrasena
 
@@ -236,15 +269,33 @@ Casos implementados y validados localmente:
 - E2E-04 Tenant auto-switch con unico tenant y tenant switch manual con multiples tenants
 - E2E-04B Onboarding tenant con `create + switch`
 - E2E-04C Tenant settings + runtime efectivo
+- E2E-04D Billing provisioning y runtime efectivo
+- E2E-04E Cancelacion de suscripcion y bloqueo de modulos dependientes de plan
+- E2E-05 Guardas por permisos en workspace members sin acceso
+- E2E-05B Members team list/update/remove
+- E2E-05C Platform security settings
+- E2E-06 Inventory CRUD/listados operativos
+- E2E-07 CRM pipeline/listados operativos
+- E2E-08 HR empleados y permisos base
+- E2E-09 Auditoria filtros y navegacion
 - E2E-10 Logout y limpieza con bloqueo posterior de `/app`
+- E2E-11 Forgot + reset password
+- E2E-12 Change password y revocacion de sesiones
 
 Pendiente de cobertura local explicita:
 
-- E2E-11 Forgot + reset password
-- E2E-12 Change password y revocacion de sesiones
+- Ninguna dentro de la matriz critica actualmente priorizada.
 
 Archivos actuales:
 
 - `tests/e2e/login.spec.ts`
 - `tests/e2e/tenant.spec.ts`
 - `tests/e2e/tenant-settings.spec.ts`
+- `tests/e2e/billing-cycle.spec.ts`
+- `tests/e2e/audit.spec.ts`
+- `tests/e2e/modules.spec.ts`
+- `tests/e2e/security-2fa.spec.ts`
+- `tests/e2e/auth-recovery.spec.ts`
+- `tests/e2e/members.spec.ts`
+- `tests/e2e/platform-security.spec.ts`
+- `tests/e2e/guards.spec.ts`

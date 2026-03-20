@@ -32,6 +32,18 @@ const SYSTEM_PERMISSION_DEFINITIONS: PermissionDefinition[] = [
     moduleKey: null
   },
   {
+    key: 'tenant:memberships:update',
+    scope: 'tenant',
+    description: 'Update tenant membership information.',
+    moduleKey: null
+  },
+  {
+    key: 'tenant:memberships:delete',
+    scope: 'tenant',
+    description: 'Delete tenant memberships.',
+    moduleKey: null
+  },
+  {
     key: 'tenant:invitations:create',
     scope: 'tenant',
     description: 'Create tenant invitations.',
@@ -198,6 +210,8 @@ const SYSTEM_ROLE_DEFINITIONS: RoleDefinition[] = [
     hierarchyLevel: 200,
     permissions: [
       'tenant:memberships:read',
+      'tenant:memberships:update',
+      'tenant:memberships:delete',
       'tenant:invitations:create',
       'tenant:invitations:revoke',
       'tenant:audit:read',
@@ -234,6 +248,8 @@ const SYSTEM_ROLE_DEFINITIONS: RoleDefinition[] = [
     hierarchyLevel: 150,
     permissions: [
       'tenant:memberships:read',
+      'tenant:memberships:update',
+      'tenant:memberships:delete',
       'tenant:invitations:create',
       'tenant:invitations:revoke',
       'tenant:audit:read',
@@ -434,3 +450,4 @@ export const systemRbacCatalog = {
     return featureFlag ? cloneFeatureFlag(featureFlag) : null;
   }
 };
+

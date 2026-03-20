@@ -16,9 +16,32 @@ const localizationSchema = z.object({
   defaultLanguage: z.string().trim().regex(/^[a-z]{2}(?:-[A-Z]{2})?$/).optional()
 });
 
+const passwordPolicySchema = z.object({
+  minLength: z.number().int().min(8).max(128).optional(),
+  preventReuseCount: z.number().int().min(0).max(24).optional(),
+  requireUppercase: z.boolean().optional(),
+  requireLowercase: z.boolean().optional(),
+  requireNumber: z.boolean().optional(),
+  requireSpecialChar: z.boolean().optional()
+});
+
+const sessionPolicySchema = z.object({
+  browserSessionTtlMinutes: z.number().int().min(5).max(43200).optional(),
+  idleTimeoutMinutes: z.union([z.number().int().min(1).max(43200), z.null()]).optional()
+});
+
+const riskControlsSchema = z.object({
+  allowRecoveryCodes: z.boolean().optional(),
+  enforceVerifiedEmailForPrivilegedAccess: z.boolean().optional()
+});
+
 const securitySchema = z.object({
   allowUserRegistration: z.boolean().optional(),
-  requireEmailVerification: z.boolean().optional()
+  requireEmailVerification: z.boolean().optional(),
+  requireTwoFactorForPrivilegedUsers: z.boolean().optional(),
+  passwordPolicy: passwordPolicySchema.optional(),
+  sessionPolicy: sessionPolicySchema.optional(),
+  riskControls: riskControlsSchema.optional()
 });
 
 const operationsSchema = z.object({
