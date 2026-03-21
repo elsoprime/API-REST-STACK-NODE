@@ -157,6 +157,20 @@ Criterio de aceptacion:
 - La pantalla opera sobre `data.security` sin endpoint alternativo.
 - El formulario conserva estado consistente tras refetch.
 
+### E2E-05D Platform audit list
+
+1. Abrir la vista de auditoria platform-scoped con usuario autorizado.
+2. Verificar carga de `GET /api/v1/platform/audit`.
+3. Aplicar filtros basicos por accion, actor y rango de fechas.
+4. Verificar paginacion y estado vacio.
+5. Validar `401/403` como estado de acceso restringido sin fallback tenant.
+
+Criterio de aceptacion:
+
+- La vista consume exclusivamente contrato platform-scoped.
+- Los filtros quedan reproducibles por URL si la pantalla adopta persistencia en query params.
+- La UX diferencia falta de autenticacion, falta de permisos y ausencia de resultados.
+
 ### E2E-06 Inventory CRUD + conflicto
 
 1. Crear categoria e item.
@@ -284,7 +298,7 @@ Casos implementados y validados localmente:
 
 Pendiente de cobertura local explicita:
 
-- Ninguna dentro de la matriz critica actualmente priorizada.
+- E2E-05D Platform audit list, en espera de contrato/runtime `GET /api/v1/platform/audit`.
 
 Archivos actuales:
 

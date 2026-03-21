@@ -326,6 +326,7 @@ Reglas duras:
 ### Casos de uso
 
 - Listado de auditoria tenant-scoped con filtros y paginacion.
+- Extension futura: auditoria platform-scoped para usuarios internos con permisos globales.
 
 ### Endpoints
 
@@ -333,10 +334,20 @@ Reglas duras:
 |---|---|---|---|---|---|
 | GET | `/api/v1/audit` | Si | Si | No | 200,401,403 |
 
+Contratos futuros recomendados para retomar sin redescubrir alcance:
+
+- `GET /api/v1/platform/audit`
+- scope platform-only, sin `X-Tenant-Id`
+- permiso minimo esperado: `platform:audit:read`
+- filtros minimos recomendados: `page`, `limit`, `action` o `eventKey`, `actorUserId`, `from`, `to`
+- respuesta paginada consistente con otros listados: `items`, `page`, `limit`, `total`, `totalPages`
+
 ### Validaciones FE obligatorias
 
 - Persistir filtros en URL.
 - Mantener `traceId` visible para soporte en errores.
+- Si se implementa `platform/audit`, mantener pantalla y cliente separados de la auditoria tenant-scoped.
+- Tratar `401/403` de platform audit como estado de acceso restringido, no como fallback a contexto tenant.
 
 ## 4.8 Inventory
 
@@ -471,6 +482,7 @@ Tareas:
 3. Pantallas de tenant settings y runtime efectivo.
 4. Pantallas de platform settings y `settings/security` usando `platform/settings`.
 5. Auditoria tenant con filtros y paginacion.
+6. Dejar documentada como siguiente extension la auditoria platform-scoped con contrato minimo GET /api/v1/platform/audit y UX separada por scope.
 
 Validaciones:
 

@@ -55,14 +55,28 @@ Centralizar bloqueos reales de frontend que dependen de contrato o runtime backe
 
 ### 5.3 BE-FE-006 Platform audit endpoint
 
-- Necesidad UX: auditoria platform-scoped.
+- Necesidad UX: auditoria platform-scoped para usuarios internos con permisos globales, separada de la auditoria tenant-scoped actual.
+- Usuarios objetivo:
+  - `platform admin`
+  - operador interno o rol equivalente con `platform:audit:read`
 - Situacion actual:
   - existe ruta tenant audit publica (`GET /api/v1/audit`)
   - no existe exposicion formal de auditoria platform en router principal/OpenAPI
+- Contrato minimo recomendado para destrabar FE y QA:
+  - `GET /api/v1/platform/audit`
+  - filtros basicos: `page`, `limit`, `action` o `eventKey`, `actorUserId`, `from`, `to`
+  - respuesta paginada consistente: `items`, `page`, `limit`, `total`, `totalPages`
+  - item minimo util para tabla: `auditId`, `occurredAt`, `actorUserId`, `actorEmail` o `actorDisplayName`, `action`, `targetType`, `targetId`, `status`, `traceId` cuando aplique
 - Entregable backend minimo:
   - ruta montada en router raiz
   - referencia OpenAPI
   - permisos platform documentados
+- Resultado esperado en frontend:
+  - vista platform-scoped con tabla, filtros, paginacion y estados `401/403/empty/error`
+  - sin mezclar datos tenant con eventos globales del sistema
+- Evolucion posterior no incluida en este minimo:
+  - detalle por evento
+  - metadata enriquecida, `before/after`, exportacion o correlacion avanzada
 
 ## 6. Dependencias cerradas recientemente
 

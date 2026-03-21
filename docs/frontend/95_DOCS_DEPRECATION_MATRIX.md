@@ -73,6 +73,12 @@ Mantener como abiertas solo las dependencias con contrato/runtime aun faltante p
 - Exposicion formal de auditoria platform-scoped para frontend
 - Endpoint de documentacion runtime (si se exige como requisito operativo)
 
+Nota para evitar ruido documental:
+
+- mientras `Platform Audit` siga siendo una unica dependencia abierta, no crear una guia o plan principal nuevo
+- documentar su alcance futuro dentro de `10_IMPLEMENTATION_GUIDE_V2.md`, `70_E2E_CRITICAL_FLOWS.md` y `80_BACKEND_DEPENDENCIES.md`
+- crear documento dedicado solo si luego aparecen decisiones de producto o arquitectura que ya no quepan de forma limpia en esas fuentes
+
 ## 5. Politica de mantenimiento
 
 1. Toda nueva guia principal entra en `docs/frontend` y debe declararse en `README.md`.
