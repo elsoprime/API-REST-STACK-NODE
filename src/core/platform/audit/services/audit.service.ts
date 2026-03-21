@@ -5,6 +5,8 @@ import { type AuthScope } from '@/constants/security';
 import { AuditLogModel } from '@/core/platform/audit/models/audit-log.model';
 import { AuditOutboxModel } from '@/core/platform/audit/models/audit-outbox.model';
 import {
+  type AuditModuleKey,
+  type GetTenantAuditMetricsInput,
   type ListPlatformAuditLogsInput,
   type ListTenantAuditLogsInput
 } from '@/core/platform/audit/types/audit-query.types';
@@ -17,6 +19,7 @@ import {
   type AuditSeverity,
   type CreateAuditLogInput,
   type ListAuditLogsResult,
+  type TenantAuditMetricsResult,
   type RecordAuditLogOptions
 } from '@/core/platform/audit/types/audit.types';
 import {
@@ -339,6 +342,52 @@ function buildPlatformListQuery(input: ListPlatformAuditLogsInput) {
   );
 }
 
+
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function buildTenantMetricsBaseQuery(input: GetTenantAuditMetricsInput, range: { from: Date; to: Date }) {
+  const query: Record<string, unknown> = {
+    scope: 'tenant',
+    'tenant.tenantId': new Types.ObjectId(input.tenantId),
+    createdAt: {
+      $gte: range.from,
+      $lt: range.to
+    }
+  };
+
+  if (input.severities?.length) {
+    query.severity = { $in: input.severities };
+  }
+
+  if (input.modules?.length) {
+    query.$or = input.modules.map((moduleKey) => ({
+      action: {
+        $regex: `^${escapeRegex(moduleKey)}\\.`,
+        $options: 'i'
+      }
+    }));
+  }
+
+  return query;
+}
+
+function safePct(count: number, total: number): number {
+  if (total <= 0) {
+    return 0;
+  }
+
+  return Number(((count / total) * 100).toFixed(2));
+}
+
+function resolveBucketLabel(start: Date, granularity: 'day' | 'week'): string {
+  if (granularity === 'week') {
+    return start.toISOString().slice(0, 10);
+  }
+
+  return start.toISOString().slice(0, 10);
+}
 function normalizeAuditPayload(input: CreateAuditLogInput): NormalizedAuditPayload {
   assertAuditScopeConsistency(input);
 
@@ -574,6 +623,129 @@ export class AuditService implements AuditServiceContract {
     };
   }
 
+
+  async getTenantMetrics(input: GetTenantAuditMetricsInput): Promise<TenantAuditMetricsResult> {
+    await this.flushPendingOutbox({
+      scope: 'tenant',
+      tenantId: input.tenantId
+    });
+
+    const fromDate = new Date(input.from);
+    const toDate = new Date(input.to);
+    const windowMs = toDate.getTime() - fromDate.getTime();
+    const previousFromDate = new Date(fromDate.getTime() - windowMs);
+    const previousToDate = new Date(fromDate.getTime());
+
+    const currentQuery = buildTenantMetricsBaseQuery(input, { from: fromDate, to: toDate });
+    const previousQuery = buildTenantMetricsBaseQuery(input, { from: previousFromDate, to: previousToDate });
+
+    const [currentTotal, previousTotal, severityRows, trendRows, actionRows, moduleRows] = await Promise.all([
+      AuditLogModel.countDocuments(currentQuery),
+      AuditLogModel.countDocuments(previousQuery),
+      AuditLogModel.aggregate([
+        { $match: currentQuery },
+        { $group: { _id: '$severity', count: { $sum: 1 } } }
+      ]),
+      AuditLogModel.aggregate([
+        { $match: currentQuery },
+        {
+          $group: {
+            _id: {
+              $dateTrunc: {
+                date: '$createdAt',
+                unit: input.granularity,
+                timezone: 'UTC'
+              }
+            },
+            total: { $sum: 1 },
+            info: { $sum: { $cond: [{ $eq: ['$severity', 'info'] }, 1, 0] } },
+            warning: { $sum: { $cond: [{ $eq: ['$severity', 'warning'] }, 1, 0] } },
+            critical: { $sum: { $cond: [{ $eq: ['$severity', 'critical'] }, 1, 0] } }
+          }
+        },
+        { $sort: { _id: 1 } }
+      ]),
+      AuditLogModel.aggregate([
+        { $match: currentQuery },
+        { $group: { _id: '$action', count: { $sum: 1 } } },
+        { $sort: { count: -1, _id: 1 } },
+        { $limit: input.topN }
+      ]),
+      AuditLogModel.aggregate([
+        { $match: currentQuery },
+        {
+          $project: {
+            module: {
+              $arrayElemAt: [{ $split: ['$action', '.'] }, 0]
+            }
+          }
+        },
+        { $group: { _id: '$module', count: { $sum: 1 } } },
+        { $sort: { count: -1, _id: 1 } },
+        { $limit: input.topN }
+      ])
+    ]);
+
+    const severityMap = new Map<string, number>(
+      (severityRows as Array<{ _id: string; count: number }>).map((row) => [row._id, row.count])
+    );
+
+    const criticalEvents = severityMap.get('critical') ?? 0;
+    const trendPct = previousTotal === 0 ? (currentTotal > 0 ? 100 : 0) : ((currentTotal - previousTotal) / previousTotal) * 100;
+
+    const trend = (trendRows as Array<{ _id: Date; total: number; info: number; warning: number; critical: number }>).map((row) => {
+      const start = new Date(row._id);
+      return {
+        bucketStart: start.toISOString(),
+        bucketLabel: resolveBucketLabel(start, input.granularity),
+        total: row.total,
+        info: row.info,
+        warning: row.warning,
+        critical: row.critical
+      };
+    });
+
+    const severityDistribution = ['info', 'warning', 'critical'].map((key) => {
+      const count = severityMap.get(key) ?? 0;
+      return {
+        key,
+        count,
+        pct: safePct(count, currentTotal)
+      };
+    });
+
+    const topActions = (actionRows as Array<{ _id: string; count: number }>).map((row) => ({
+      key: row._id,
+      count: row.count,
+      pct: safePct(row.count, currentTotal)
+    }));
+
+    const moduleAllowList = new Set<AuditModuleKey>(['auth', 'tenant', 'billing', 'inventory', 'crm', 'hr', 'audit', 'expenses']);
+    const topModules = (moduleRows as Array<{ _id: string; count: number }>)
+      .filter((row) => moduleAllowList.has(row._id as AuditModuleKey))
+      .map((row) => ({
+        key: row._id,
+        count: row.count,
+        pct: safePct(row.count, currentTotal)
+      }));
+
+    return {
+      from: fromDate.toISOString(),
+      to: toDate.toISOString(),
+      granularity: input.granularity,
+      summary: {
+        totalEvents: currentTotal,
+        criticalEvents,
+        criticalPct: safePct(criticalEvents, currentTotal),
+        previousTotal,
+        trendPct: Number(trendPct.toFixed(2))
+      },
+      trend,
+      severityDistribution,
+      topActions,
+      topModules
+    };
+  }
   private async flushPendingOutbox(input: { scope: 'platform' | 'tenant'; tenantId?: string }): Promise<void> {
     const query: Record<string, unknown> = {
       scope: input.scope,
@@ -680,3 +852,6 @@ export class AuditService implements AuditServiceContract {
 }
 
 export const auditService = new AuditService();
+
+
+

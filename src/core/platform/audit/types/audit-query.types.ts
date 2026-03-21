@@ -16,3 +16,16 @@ export interface ListTenantAuditLogsInput extends AuditListFilters {
 }
 
 export type ListPlatformAuditLogsInput = AuditListFilters;
+
+export type AuditMetricsGranularity = 'day' | 'week';
+export type AuditModuleKey = 'auth' | 'tenant' | 'billing' | 'inventory' | 'crm' | 'hr' | 'audit' | 'expenses';
+
+export interface GetTenantAuditMetricsInput {
+  tenantId: string;
+  from: string;
+  to: string;
+  granularity: AuditMetricsGranularity;
+  modules?: AuditModuleKey[];
+  severities?: AuditSeverity[];
+  topN: number;
+}
