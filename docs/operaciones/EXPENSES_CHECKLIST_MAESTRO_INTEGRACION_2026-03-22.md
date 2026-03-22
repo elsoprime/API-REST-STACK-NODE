@@ -1,4 +1,4 @@
-# Expenses Checklist Maestro de Integracion
+﻿# Expenses Checklist Maestro de Integracion
 
 Fecha de corte: 2026-03-22
 Tipo: checklist maestro de planificacion y control
@@ -15,8 +15,8 @@ Este documento sirve para retomar trabajo futuro con contexto operativo suficien
 ## Snapshot Actual
 
 Estado de repositorios al corte:
-- Backend: `API-REST-STACK-NODE`, rama `main`, snapshot limpio en `94b13f4`.
-- Frontend: `FRONTEND-STACK-NEXT-TAILWIND`, rama `main`, snapshot limpio en `714f7bd`.
+- Backend: `API-REST-STACK-NODE`, rama `main`, snapshot limpio en `b8bd326`.
+- Frontend: `FRONTEND-STACK-NEXT-TAILWIND`, rama `main`, snapshot limpio en `8378d77`.
 
 Integraciones ya cerradas o activas:
 - Requests base del modulo.
@@ -26,11 +26,12 @@ Integraciones ya cerradas o activas:
 - Catalogo de categorias con alta individual.
 - Importacion masiva CSV de categorias.
 - Dashboard de reportes en frontend.
+- Metricas nativas backend para reports/dashboard.
 - Gobernanza inicial del catalogo en frontend.
 - Ajuste de limites de query frontend para respetar validacion backend (`max 100`).
 
 Gaps todavia abiertos:
-- Metricas nativas backend para dashboard.
+- Hotfix runtime de create-request por contrato de fecha.
 - Subcategorias como entidad real y no solo convencion de key.
 - Workflow multi-step real por politicas.
 - Integracion de pagos y conciliacion.
@@ -51,6 +52,9 @@ Regla de prioridad documental:
 2. arquitectura y contratos
 3. cierres tecnicos
 4. checklist maestro
+
+Documento complementario recomendado:
+- `docs/operaciones/EXPENSES_PROPUESTA_REFACTORIZACION_TAXONOMIA_Y_RUNTIME_2026-03-22.md`
 
 ## Regla de Trabajo Recomendada
 
@@ -101,6 +105,20 @@ Antes de mergear una ola:
 - [x] Ola Dashboard frontend en reports
 - [x] Ola Gobernanza inicial del catalogo
 - [x] Hotfix limites de query frontend (`100`)
+- [x] Ola Metricas nativas backend/frontend
+
+## Prioridad Operativa Inmediata
+
+### Hotfix previo a nuevas olas
+
+Objetivo:
+- corregir la brecha de runtime de `create-request` antes de considerar cerrado el flujo operativo de solicitudes
+
+Estado:
+- [ ] pendiente
+
+Referencia tecnica:
+- ver `docs/operaciones/EXPENSES_PROPUESTA_REFACTORIZACION_TAXONOMIA_Y_RUNTIME_2026-03-22.md`
 
 ## Pendientes Priorizados
 
@@ -296,3 +314,9 @@ Si una ola falla:
 
 - [x] creado en backend
 - [ ] proximo paso: crear espejo frontend y registrar referencia en README operativo
+
+
+
+
+
+
