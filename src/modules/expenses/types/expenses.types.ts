@@ -11,9 +11,12 @@ export const EXPENSE_REQUEST_STATUSES = [
 ] as const;
 
 export const EXPENSE_APPROVAL_MODES = ['single_step', 'multi_step'] as const;
+export const EXPENSE_DASHBOARD_DATE_WINDOWS = [7, 30, 90] as const;
 
 export type ExpenseRequestStatus = (typeof EXPENSE_REQUEST_STATUSES)[number];
 export type ExpenseApprovalMode = (typeof EXPENSE_APPROVAL_MODES)[number];
+export type ExpenseDashboardDateWindow = (typeof EXPENSE_DASHBOARD_DATE_WINDOWS)[number];
+export type ExpenseDashboardAlertSeverity = 'info' | 'warning' | 'critical';
 
 export interface ExpenseRequestView {
   id: string;
@@ -107,6 +110,68 @@ export interface ExpenseSummaryView {
   totalPaidAmount: number;
 }
 
+export interface ExpenseDashboardFiltersView {
+  dateWindowDays: ExpenseDashboardDateWindow;
+  status: ExpenseRequestStatus | null;
+  categoryKey: string | null;
+}
+
+export interface ExpenseDashboardKpisView {
+  totalRequests: number;
+  pendingRequests: number;
+  approvedRequests: number;
+  rejectedRequests: number;
+  totalAmount: number;
+  pendingAmount: number;
+}
+
+export interface ExpenseDashboardTrendPointView {
+  day: string;
+  requested: number;
+  approved: number;
+  rejected: number;
+}
+
+export interface ExpenseDashboardCategoryBreakdownView {
+  categoryKey: string;
+  label: string;
+  totalAmount: number;
+  requests: number;
+}
+
+export interface ExpenseDashboardAlertView {
+  id: string;
+  severity: ExpenseDashboardAlertSeverity;
+  title: string;
+  description: string;
+}
+
+export interface ExpenseDashboardAvailableCategoryView {
+  key: string;
+  name: string;
+}
+
+export interface ExpenseDashboardCurrencyTotalsView {
+  currency: string;
+  requestCount: number;
+  totalAmount: number;
+  pendingAmount: number;
+  approvedAmount: number;
+  paidAmount: number;
+}
+
+export interface ExpenseDashboardView {
+  filters: ExpenseDashboardFiltersView;
+  primaryCurrency: string | null;
+  hasMixedCurrencies: boolean;
+  totalsByCurrency: ExpenseDashboardCurrencyTotalsView[];
+  availableCategories: ExpenseDashboardAvailableCategoryView[];
+  kpis: ExpenseDashboardKpisView;
+  trends: ExpenseDashboardTrendPointView[];
+  categories: ExpenseDashboardCategoryBreakdownView[];
+  alerts: ExpenseDashboardAlertView[];
+}
+
 export interface ExpenseCountersView {
   total: number;
   draft: number;
@@ -181,6 +246,13 @@ export interface ListExpenseQueueResult {
   page: number;
   limit: number;
   total: number;
+}
+
+export interface GetExpenseDashboardInput {
+  tenantId: string;
+  dateWindowDays: ExpenseDashboardDateWindow;
+  status?: ExpenseRequestStatus;
+  categoryKey?: string;
 }
 
 export interface CreateExpenseCategoryInput {
@@ -388,6 +460,7 @@ export interface ExpenseServiceContract {
     input: BulkMarkPaidExpenseRequestsInput
   ) => Promise<ExpenseBulkOperationResult>;
   bulkExportRequests: (input: BulkExportExpenseRequestsInput) => Promise<ExpenseExportRow[]>;
+  getDashboard: (input: GetExpenseDashboardInput) => Promise<ExpenseDashboardView>;
   getSummary: (tenantId: string) => Promise<ExpenseSummaryView>;
   exportRequestsCsv: (tenantId: string) => Promise<ExpenseCsvExportView>;
 }

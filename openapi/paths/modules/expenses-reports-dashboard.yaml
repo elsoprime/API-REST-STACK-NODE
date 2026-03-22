@@ -1,0 +1,42 @@
+get:
+  tags:
+    - Expenses
+  summary: Get expenses dashboard report
+  operationId: getExpensesDashboard
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+    - name: dateWindowDays
+      in: query
+      required: false
+      schema:
+        type: integer
+        enum: [7, 30, 90]
+        default: 30
+    - name: status
+      in: query
+      required: false
+      schema:
+        $ref: ../../components/schemas/expenses.yaml#/ExpenseRequestStatus
+    - name: categoryKey
+      in: query
+      required: false
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 80
+  responses:
+    '200':
+      description: Expenses dashboard report
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/expenses.yaml#/ExpenseDashboardSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError

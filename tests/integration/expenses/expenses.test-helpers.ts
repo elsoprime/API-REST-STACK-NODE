@@ -90,6 +90,7 @@ export function buildExpensesServiceMock() {
     bulkRejectRequests: vi.fn(),
     bulkMarkRequestsAsPaid: vi.fn(),
     bulkExportRequests: vi.fn(),
+    getDashboard: vi.fn(),
     getSummary: vi.fn(),
     exportRequestsCsv: vi.fn()
   };

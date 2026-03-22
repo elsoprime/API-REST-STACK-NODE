@@ -171,6 +171,8 @@ paths:
     $ref: ./paths/modules/expenses-bulk-mark-paid.yaml
   /api/v1/modules/expenses/requests/bulk/export:
     $ref: ./paths/modules/expenses-bulk-export.yaml
+  /api/v1/modules/expenses/reports/dashboard:
+    $ref: ./paths/modules/expenses-reports-dashboard.yaml
   /api/v1/modules/expenses/reports/summary:
     $ref: ./paths/modules/expenses-reports-summary.yaml
   /api/v1/modules/expenses/exports/requests.csv:
@@ -200,6 +202,7 @@ components:
     $ref: ./components/parameters/_index.yaml
   securitySchemes:
     $ref: ./components/securitySchemes/_index.yaml
+
 
 
 

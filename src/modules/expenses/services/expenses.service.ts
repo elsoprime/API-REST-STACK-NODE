@@ -33,6 +33,14 @@ import {
   type CreateExpenseRequestInput,
   type DeleteExpenseAttachmentInput,
   type ExpenseAttachmentView,
+  type ExpenseDashboardAlertView,
+  type ExpenseDashboardAvailableCategoryView,
+  type ExpenseDashboardCategoryBreakdownView,
+  type ExpenseDashboardCurrencyTotalsView,
+  type ExpenseDashboardDateWindow,
+  type ExpenseDashboardKpisView,
+  type ExpenseDashboardTrendPointView,
+  type ExpenseDashboardView,
   type ExpenseBulkOperationItemResult,
   type ExpenseBulkOperationResult,
   type ExpenseCategoryView,
@@ -50,6 +58,7 @@ import {
   type ExpenseServiceContract,
   type ExpenseSettingsView,
   type GetExpenseRequestInput,
+  type GetExpenseDashboardInput,
   type ListExpenseAttachmentsInput,
   type ListExpenseCategoriesInput,
   type ListExpenseCategoriesResult,
@@ -308,6 +317,151 @@ function escapeCsvCell(value: string): string {
   }
 
   return normalized;
+}
+
+const DASHBOARD_PENDING_STATUSES: ExpenseRequestStatus[] = ['submitted', 'returned'];
+const DASHBOARD_PENDING_THRESHOLD = 15;
+const DASHBOARD_SLA_DAYS_THRESHOLD = 4;
+const DASHBOARD_REJECTION_RATE_THRESHOLD = 0.35;
+const DASHBOARD_TOP_CATEGORIES_LIMIT = 6;
+
+function resolveDashboardWindowStart(windowDays: ExpenseDashboardDateWindow): Date {
+  const startDate = new Date();
+  startDate.setUTCHours(0, 0, 0, 0);
+  startDate.setUTCDate(startDate.getUTCDate() - (windowDays - 1));
+  return startDate;
+}
+
+function toDashboardDayKey(value: Date): string {
+  return value.toISOString().slice(0, 10);
+}
+
+function formatDashboardShortDay(value: Date): string {
+  return new Intl.DateTimeFormat('es-CL', {
+    timeZone: 'UTC',
+    day: '2-digit',
+    month: '2-digit'
+  }).format(value);
+}
+
+function buildDashboardTrendSeries(
+  windowDays: ExpenseDashboardDateWindow,
+  trendMap: Map<string, Omit<ExpenseDashboardTrendPointView, 'day'>>
+): ExpenseDashboardTrendPointView[] {
+  const startDate = resolveDashboardWindowStart(windowDays);
+
+  return Array.from({ length: windowDays }, (_, index) => {
+    const date = new Date(startDate);
+    date.setUTCDate(startDate.getUTCDate() + index);
+
+    const dayKey = toDashboardDayKey(date);
+    const current = trendMap.get(dayKey);
+
+    return {
+      day: formatDashboardShortDay(date),
+      requested: current?.requested ?? 0,
+      approved: current?.approved ?? 0,
+      rejected: current?.rejected ?? 0
+    };
+  });
+}
+
+function selectPrimaryCurrency(
+  totalsByCurrency: ExpenseDashboardCurrencyTotalsView[],
+  fallbackCurrency: string | null
+): string | null {
+  if (totalsByCurrency.length === 0) {
+    return fallbackCurrency;
+  }
+
+  const [primary] = [...totalsByCurrency].sort((left, right) => {
+    if (right.totalAmount !== left.totalAmount) {
+      return right.totalAmount - left.totalAmount;
+    }
+
+    if (right.requestCount !== left.requestCount) {
+      return right.requestCount - left.requestCount;
+    }
+
+    return left.currency.localeCompare(right.currency);
+  });
+
+  return primary.currency;
+}
+
+function buildDashboardKpis(
+  counts: {
+    totalRequests: number;
+    pendingRequests: number;
+    approvedRequests: number;
+    rejectedRequests: number;
+  },
+  primaryCurrencyTotals?: ExpenseDashboardCurrencyTotalsView
+): ExpenseDashboardKpisView {
+  return {
+    totalRequests: counts.totalRequests,
+    pendingRequests: counts.pendingRequests,
+    approvedRequests: counts.approvedRequests,
+    rejectedRequests: counts.rejectedRequests,
+    totalAmount: primaryCurrencyTotals?.totalAmount ?? 0,
+    pendingAmount: primaryCurrencyTotals?.pendingAmount ?? 0
+  };
+}
+
+function buildDashboardAlerts(input: {
+  totalRequests: number;
+  pendingRequests: number;
+  rejectedRequests: number;
+  oldestPendingCreatedAt: Date | null;
+}): ExpenseDashboardAlertView[] {
+  const alerts: ExpenseDashboardAlertView[] = [];
+
+  if (input.pendingRequests >= DASHBOARD_PENDING_THRESHOLD) {
+    alerts.push({
+      id: 'pending-high',
+      severity: 'warning',
+      title: 'Cola pendiente alta',
+      description: `Hay ${input.pendingRequests} solicitudes pendientes para revision o decision.`
+    });
+  }
+
+  if (input.oldestPendingCreatedAt) {
+    const ageInDays = Math.floor(
+      (Date.now() - input.oldestPendingCreatedAt.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    if (ageInDays >= DASHBOARD_SLA_DAYS_THRESHOLD) {
+      alerts.push({
+        id: 'sla-aging',
+        severity: 'critical',
+        title: 'Riesgo de SLA',
+        description: `La solicitud pendiente mas antigua supera ${ageInDays} dias.`
+      });
+    }
+  }
+
+  const rejectionRate =
+    input.totalRequests > 0 ? input.rejectedRequests / input.totalRequests : 0;
+
+  if (rejectionRate >= DASHBOARD_REJECTION_RATE_THRESHOLD) {
+    alerts.push({
+      id: 'rejection-rate',
+      severity: 'info',
+      title: 'Tasa de rechazo elevada',
+      description: 'Revisa politicas de categoria o calidad de captura en solicitudes.'
+    });
+  }
+
+  if (alerts.length === 0) {
+    alerts.push({
+      id: 'healthy',
+      severity: 'info',
+      title: 'Operacion estable',
+      description: 'No se detectaron alertas operativas para el rango seleccionado.'
+    });
+  }
+
+  return alerts;
 }
 
 export class ExpensesService implements ExpenseServiceContract {
@@ -588,6 +742,248 @@ export class ExpensesService implements ExpenseServiceContract {
       rejected,
       paid,
       canceled
+    };
+  }
+
+  async getDashboard(input: GetExpenseDashboardInput): Promise<ExpenseDashboardView> {
+    const tenantObjectId = parseObjectIdInput(input.tenantId, 'tenantId');
+    const startDate = resolveDashboardWindowStart(input.dateWindowDays);
+    const baseMatch: Record<string, unknown> = {
+      tenantId: tenantObjectId,
+      expenseDate: { $gte: startDate }
+    };
+
+    if (input.status) {
+      baseMatch.status = input.status;
+    }
+
+    if (input.categoryKey) {
+      baseMatch.categoryKey = input.categoryKey;
+    }
+
+    const [aggregateResult, catalog, settings] = await Promise.all([
+      ExpenseRequestModel.aggregate<{
+        kpis: Array<{
+          _id: null;
+          totalRequests: number;
+          pendingRequests: number;
+          approvedRequests: number;
+          rejectedRequests: number;
+        }>;
+        totalsByCurrency: Array<{
+          _id: string;
+          requestCount: number;
+          totalAmount: number;
+          pendingAmount: number;
+          approvedAmount: number;
+          paidAmount: number;
+        }>;
+        trends: Array<{
+          _id: string;
+          requested: number;
+          approved: number;
+          rejected: number;
+        }>;
+        categories: Array<{
+          _id: string;
+          totalAmount: number;
+          requests: number;
+        }>;
+        pendingStats: Array<{
+          _id: null;
+          pendingRequests: number;
+          oldestCreatedAt: Date | null;
+        }>;
+      }>([
+        { $match: baseMatch },
+        {
+          $facet: {
+            kpis: [
+              {
+                $group: {
+                  _id: null,
+                  totalRequests: { $sum: 1 },
+                  pendingRequests: {
+                    $sum: {
+                      $cond: [{ $in: ['$status', DASHBOARD_PENDING_STATUSES] }, 1, 0]
+                    }
+                  },
+                  approvedRequests: {
+                    $sum: {
+                      $cond: [{ $eq: ['$status', 'approved'] }, 1, 0]
+                    }
+                  },
+                  rejectedRequests: {
+                    $sum: {
+                      $cond: [{ $eq: ['$status', 'rejected'] }, 1, 0]
+                    }
+                  }
+                }
+              }
+            ],
+            totalsByCurrency: [
+              {
+                $group: {
+                  _id: '$currency',
+                  requestCount: { $sum: 1 },
+                  totalAmount: { $sum: '$amount' },
+                  pendingAmount: {
+                    $sum: {
+                      $cond: [{ $in: ['$status', DASHBOARD_PENDING_STATUSES] }, '$amount', 0]
+                    }
+                  },
+                  approvedAmount: {
+                    $sum: {
+                      $cond: [{ $eq: ['$status', 'approved'] }, '$amount', 0]
+                    }
+                  },
+                  paidAmount: {
+                    $sum: {
+                      $cond: [{ $eq: ['$status', 'paid'] }, '$amount', 0]
+                    }
+                  }
+                }
+              },
+              { $sort: { totalAmount: -1, _id: 1 } }
+            ],
+            trends: [
+              {
+                $group: {
+                  _id: {
+                    $dateToString: {
+                      format: '%Y-%m-%d',
+                      date: '$expenseDate',
+                      timezone: 'UTC'
+                    }
+                  },
+                  requested: { $sum: 1 },
+                  approved: {
+                    $sum: {
+                      $cond: [{ $eq: ['$status', 'approved'] }, 1, 0]
+                    }
+                  },
+                  rejected: {
+                    $sum: {
+                      $cond: [{ $eq: ['$status', 'rejected'] }, 1, 0]
+                    }
+                  }
+                }
+              },
+              { $sort: { _id: 1 } }
+            ],
+            categories: [
+              {
+                $group: {
+                  _id: '$categoryKey',
+                  totalAmount: { $sum: '$amount' },
+                  requests: { $sum: 1 }
+                }
+              },
+              { $sort: { totalAmount: -1, _id: 1 } },
+              { $limit: DASHBOARD_TOP_CATEGORIES_LIMIT }
+            ],
+            pendingStats: [
+              {
+                $match: {
+                  status: { $in: DASHBOARD_PENDING_STATUSES }
+                }
+              },
+              {
+                $group: {
+                  _id: null,
+                  pendingRequests: { $sum: 1 },
+                  oldestCreatedAt: { $min: '$createdAt' }
+                }
+              }
+            ]
+          }
+        }
+      ]),
+      ExpenseCategoryModel.find({
+        tenantId: tenantObjectId
+      })
+        .sort({ name: 1 })
+        .select({ key: 1, name: 1 })
+        .lean(),
+      this.getSettings(input.tenantId)
+    ]);
+
+    const dashboardAggregate = aggregateResult[0] ?? {
+      kpis: [],
+      totalsByCurrency: [],
+      trends: [],
+      categories: [],
+      pendingStats: []
+    };
+
+    const availableCategories: ExpenseDashboardAvailableCategoryView[] = catalog.map((category) => ({
+      key: category.key,
+      name: category.name
+    }));
+    const categoryLabelMap = new Map(availableCategories.map((category) => [category.key, category.name]));
+
+    const totalsByCurrency: ExpenseDashboardCurrencyTotalsView[] = dashboardAggregate.totalsByCurrency.map(
+      (currencyTotals) => ({
+        currency: currencyTotals._id,
+        requestCount: currencyTotals.requestCount,
+        totalAmount: currencyTotals.totalAmount,
+        pendingAmount: currencyTotals.pendingAmount,
+        approvedAmount: currencyTotals.approvedAmount,
+        paidAmount: currencyTotals.paidAmount
+      })
+    );
+
+    const primaryCurrency = selectPrimaryCurrency(
+      totalsByCurrency,
+      settings.allowedCurrencies[0] ?? null
+    );
+    const primaryCurrencyTotals = primaryCurrency
+      ? totalsByCurrency.find((currencyTotals) => currencyTotals.currency === primaryCurrency)
+      : undefined;
+    const currentCounts = dashboardAggregate.kpis[0] ?? {
+      totalRequests: 0,
+      pendingRequests: 0,
+      approvedRequests: 0,
+      rejectedRequests: 0
+    };
+    const trendMap = new Map<string, Omit<ExpenseDashboardTrendPointView, 'day'>>(
+      dashboardAggregate.trends.map((trend) => [
+        trend._id,
+        {
+          requested: trend.requested,
+          approved: trend.approved,
+          rejected: trend.rejected
+        }
+      ])
+    );
+    const categories: ExpenseDashboardCategoryBreakdownView[] = dashboardAggregate.categories.map(
+      (category) => ({
+        categoryKey: category._id,
+        label: categoryLabelMap.get(category._id) ?? category._id,
+        totalAmount: category.totalAmount,
+        requests: category.requests
+      })
+    );
+
+    return {
+      filters: {
+        dateWindowDays: input.dateWindowDays,
+        status: input.status ?? null,
+        categoryKey: input.categoryKey ?? null
+      },
+      primaryCurrency,
+      hasMixedCurrencies: totalsByCurrency.length > 1,
+      totalsByCurrency,
+      availableCategories,
+      kpis: buildDashboardKpis(currentCounts, primaryCurrencyTotals),
+      trends: buildDashboardTrendSeries(input.dateWindowDays, trendMap),
+      categories,
+      alerts: buildDashboardAlerts({
+        totalRequests: currentCounts.totalRequests,
+        pendingRequests: dashboardAggregate.pendingStats[0]?.pendingRequests ?? 0,
+        rejectedRequests: currentCounts.rejectedRequests,
+        oldestPendingCreatedAt: dashboardAggregate.pendingStats[0]?.oldestCreatedAt ?? null
+      })
     };
   }
 
