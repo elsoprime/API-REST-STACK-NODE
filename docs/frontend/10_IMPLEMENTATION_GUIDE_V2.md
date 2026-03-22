@@ -373,6 +373,9 @@ Contratos futuros recomendados para retomar sin redescubrir alcance:
 
 - En `INV_STOCK_CONFLICT`: rollback de estado optimista y refetch.
 - En `INV_STOCK_UNDERFLOW`: bloqueo UX y guia de correccion, sin retry.
+- Tratar el hardening actual de Inventory como trabajo de integracion/UX, no como dependencia backend nueva.
+- Si un listado ya llega paginado desde backend pero la busqueda textual sigue siendo local a la pagina cargada, documentarlo como limitacion operativa hasta contar con filtro server-side equivalente.
+- Mantener errores de formulario dentro del modal y reservar banners de pagina para errores operativos o de accion.
 
 ## 4.9 CRM
 

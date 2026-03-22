@@ -1,0 +1,34 @@
+﻿post:
+  tags:
+    - Expenses
+  summary: Bulk mark expense requests as paid
+  operationId: bulkMarkPaidExpenseRequests
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      schema:
+        type: string
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../../components/schemas/expenses.yaml#/BulkMarkPaidExpenseRequestsRequest
+  responses:
+    '200':
+      description: Bulk mark-paid result
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/expenses.yaml#/ExpenseBulkOperationSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
