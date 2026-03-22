@@ -30,7 +30,7 @@ Ejemplos:
 - cambiar una funcionalidad existente
 - corregir bugs
 - ajustar un flujo de aprobacion
-- rediseñar una vista ya integrada
+- alinear visualmente una vista ya integrada
 
 ### Caso 2. Rescatar trabajo que no entro a `main`
 
@@ -59,24 +59,52 @@ git switch -c feat/rescate-o-ajuste
 
 ## Tarea activa
 
-### Rediseñar modulo Expenses en frontend
+### Paridad visual y UX del modulo Expenses en frontend
 
 Estado: pendiente
 
+Tipo de trabajo:
+
+- refactor visual
+- alineacion UX
+- sin cambio funcional de negocio
+
 Objetivo:
 
-- homologar `Expenses` al lenguaje visual del dashboard
-- revisar layout, jerarquia visual, tablas, formularios y feedback de acciones
-- mantener compatibilidad con permisos, plan gating y contratos API actuales
+- corregir la desviacion visual de `Expenses` respecto del dashboard actual
+- homologar `Expenses` con el lenguaje UI de modulos maduros como `Inventory`
+- mantener intacto el funcionamiento ya integrado del modulo
+
+Se va a hacer concretamente:
+
+- alinear el layout general del workspace con el patron del dashboard existente
+- corregir jerarquia visual de titulos, subtitulos, barras de acciones y tabs
+- normalizar tablas y listados para que sigan el mismo patron visual de `Inventory`
+- ajustar formularios y drawers para que usen el mismo estilo, espaciado y feedback visual del resto de modulos
+- revisar badges, estados empty/loading/error y mensajes de accion para que se vean nativos del sistema
+- revisar bulk actions bar y acciones contextuales para que mantengan consistencia visual con las demas pantallas
+- corregir paddings, gaps, cards, shells y contenedores que hoy hacen que `Expenses` se vea como un modulo paralelo
+
+No se va a tocar:
+
+- contratos API
+- cliente API
+- permisos
+- plan gating
+- workflow de negocio
+- reglas de aprobacion, rechazo, pago o cancelacion
+- OpenAPI
+- logica backend
 
 Base recomendada:
 
 - frontend `main`
-- rama sugerida: `feat/expenses-frontend-redesign`
+- rama sugerida: `feat/expenses-ui-parity`
 
 DoD minimo:
 
-- UI de `Expenses` coherente con modulos maduros del dashboard
-- sin regresion en rutas `/app/expenses` y `/app/expenses/[requestId]`
-- permisos y estados read-only respetados
-- documentacion operativa actualizada si cambia el flujo
+- `Expenses` se percibe visualmente parte del mismo dashboard que `Inventory`, `CRM` y los workspaces tenant
+- `/app/expenses` y `/app/expenses/[requestId]` mantienen el mismo comportamiento funcional actual
+- estados read-only por permisos siguen intactos
+- no se introducen cambios de contrato ni acoplamientos nuevos con backend
+- si cambia la navegacion visual o estructura del workspace, se actualiza documentacion operativa minima
