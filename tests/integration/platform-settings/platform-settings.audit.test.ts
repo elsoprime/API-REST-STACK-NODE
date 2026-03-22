@@ -23,6 +23,30 @@ function createPlatformSettingsAuditApp(service: PlatformSettingsService) {
   });
 }
 
+function buildSecurityDocument() {
+  return {
+    allowUserRegistration: true,
+    requireEmailVerification: true,
+    requireTwoFactorForPrivilegedUsers: false,
+    passwordPolicy: {
+      minLength: 12,
+      preventReuseCount: 5,
+      requireUppercase: true,
+      requireLowercase: true,
+      requireNumber: true,
+      requireSpecialChar: false
+    },
+    sessionPolicy: {
+      browserSessionTtlMinutes: 1440,
+      idleTimeoutMinutes: null
+    },
+    riskControls: {
+      allowRecoveryCodes: true,
+      enforceVerifiedEmailForPrivilegedAccess: true
+    }
+  };
+}
+
 describe('platform settings audit', () => {
   afterEach(() => {
     vi.restoreAllMocks();
@@ -60,10 +84,7 @@ describe('platform settings audit', () => {
         defaultCurrency: 'USD',
         defaultLanguage: 'en'
       },
-      security: {
-        allowUserRegistration: true,
-        requireEmailVerification: true
-      },
+      security: buildSecurityDocument(),
       operations: {
         maintenanceMode: false
       },
@@ -79,7 +100,12 @@ describe('platform settings audit', () => {
           singletonKey: this.singletonKey,
           branding: { ...this.branding },
           localization: { ...this.localization },
-          security: { ...this.security },
+          security: {
+            ...this.security,
+            passwordPolicy: { ...this.security.passwordPolicy },
+            sessionPolicy: { ...this.security.sessionPolicy },
+            riskControls: { ...this.security.riskControls }
+          },
           operations: { ...this.operations },
           modules: {
             disabledModuleKeys: [...this.modules.disabledModuleKeys]
@@ -107,8 +133,11 @@ describe('platform settings audit', () => {
       .patch('/api/v1/platform/settings')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
-        operations: {
-          maintenanceMode: true
+        security: {
+          requireTwoFactorForPrivilegedUsers: true,
+          passwordPolicy: {
+            minLength: 16
+          }
         }
       });
 
@@ -120,7 +149,10 @@ describe('platform settings audit', () => {
         resource: {
           type: 'platform_settings',
           id: settingsId.toString()
-        }
+        },
+        changes: expect.objectContaining({
+          fields: ['security']
+        })
       }),
       {
         session: sessionMock

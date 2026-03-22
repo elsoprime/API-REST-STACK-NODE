@@ -106,6 +106,38 @@ export interface ListAuditLogsResult {
   total: number;
 }
 
+export interface AuditMetricsPoint {
+  bucketStart: string;
+  bucketLabel: string;
+  total: number;
+  info: number;
+  warning: number;
+  critical: number;
+}
+
+export interface AuditMetricsShare {
+  key: string;
+  count: number;
+  pct: number;
+}
+
+export interface TenantAuditMetricsResult {
+  from: string;
+  to: string;
+  granularity: 'day' | 'week';
+  summary: {
+    totalEvents: number;
+    criticalEvents: number;
+    criticalPct: number;
+    previousTotal: number;
+    trendPct: number;
+  };
+  trend: AuditMetricsPoint[];
+  severityDistribution: AuditMetricsShare[];
+  topActions: AuditMetricsShare[];
+  topModules: AuditMetricsShare[];
+}
+
 export interface AuditServiceContract {
   record: (input: CreateAuditLogInput, options?: RecordAuditLogOptions) => Promise<AuditLogView>;
   list: (
@@ -114,4 +146,7 @@ export interface AuditServiceContract {
   listPlatform: (
     input: import('@/core/platform/audit/types/audit-query.types').ListPlatformAuditLogsInput
   ) => Promise<ListAuditLogsResult>;
+  getTenantMetrics: (
+    input: import('@/core/platform/audit/types/audit-query.types').GetTenantAuditMetricsInput
+  ) => Promise<TenantAuditMetricsResult>;
 }

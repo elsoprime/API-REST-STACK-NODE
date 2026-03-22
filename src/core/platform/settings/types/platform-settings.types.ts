@@ -14,9 +14,32 @@ export interface PlatformSettingsLocalization {
   defaultLanguage: string;
 }
 
+export interface PlatformSettingsPasswordPolicy {
+  minLength: number;
+  preventReuseCount: number;
+  requireUppercase: boolean;
+  requireLowercase: boolean;
+  requireNumber: boolean;
+  requireSpecialChar: boolean;
+}
+
+export interface PlatformSettingsSessionPolicy {
+  browserSessionTtlMinutes: number;
+  idleTimeoutMinutes: number | null;
+}
+
+export interface PlatformSettingsRiskControls {
+  allowRecoveryCodes: boolean;
+  enforceVerifiedEmailForPrivilegedAccess: boolean;
+}
+
 export interface PlatformSettingsSecurity {
   allowUserRegistration: boolean;
   requireEmailVerification: boolean;
+  requireTwoFactorForPrivilegedUsers: boolean;
+  passwordPolicy: PlatformSettingsPasswordPolicy;
+  sessionPolicy: PlatformSettingsSessionPolicy;
+  riskControls: PlatformSettingsRiskControls;
 }
 
 export interface PlatformSettingsOperations {
@@ -53,7 +76,14 @@ export interface GetPlatformSettingsSnapshotInput {
 export interface UpdatePlatformSettingsPatch {
   branding?: Partial<PlatformSettingsBranding>;
   localization?: Partial<PlatformSettingsLocalization>;
-  security?: Partial<PlatformSettingsSecurity>;
+  security?: {
+    allowUserRegistration?: boolean;
+    requireEmailVerification?: boolean;
+    requireTwoFactorForPrivilegedUsers?: boolean;
+    passwordPolicy?: Partial<PlatformSettingsPasswordPolicy>;
+    sessionPolicy?: Partial<PlatformSettingsSessionPolicy>;
+    riskControls?: Partial<PlatformSettingsRiskControls>;
+  };
   operations?: Partial<PlatformSettingsOperations>;
   modules?: {
     disabledModuleKeys?: string[];

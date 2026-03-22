@@ -88,6 +88,16 @@ AuditLog:
   $ref: ./audit.yaml#/AuditLog
 AuditLogListSuccessResponse:
   $ref: ./audit.yaml#/AuditLogListSuccessResponse
+AuditMetricsShare:
+  $ref: ./audit.yaml#/AuditMetricsShare
+AuditMetricsPoint:
+  $ref: ./audit.yaml#/AuditMetricsPoint
+AuditMetricsSummary:
+  $ref: ./audit.yaml#/AuditMetricsSummary
+TenantAuditMetrics:
+  $ref: ./audit.yaml#/TenantAuditMetrics
+AuditMetricsSuccessResponse:
+  $ref: ./audit.yaml#/AuditMetricsSuccessResponse
 PlatformSettings:
   $ref: ./platform-settings.yaml#/PlatformSettings
 UpdatePlatformSettingsRequest:
@@ -106,6 +116,8 @@ TenantSettingsEffectiveSuccessResponse:
   $ref: ./tenant-settings.yaml#/TenantSettingsEffectiveSuccessResponse
 InventoryCategory:
   $ref: ./inventory.yaml#/InventoryCategory
+InventoryWarehouse:
+  $ref: ./inventory.yaml#/InventoryWarehouse
 InventoryItem:
   $ref: ./inventory.yaml#/InventoryItem
 InventoryStockMovement:
@@ -116,6 +128,10 @@ CreateInventoryCategoryRequest:
   $ref: ./inventory.yaml#/CreateInventoryCategoryRequest
 UpdateInventoryCategoryRequest:
   $ref: ./inventory.yaml#/UpdateInventoryCategoryRequest
+CreateInventoryWarehouseRequest:
+  $ref: ./inventory.yaml#/CreateInventoryWarehouseRequest
+UpdateInventoryWarehouseRequest:
+  $ref: ./inventory.yaml#/UpdateInventoryWarehouseRequest
 CreateInventoryItemRequest:
   $ref: ./inventory.yaml#/CreateInventoryItemRequest
 UpdateInventoryItemRequest:
@@ -126,6 +142,10 @@ InventoryCategorySuccessResponse:
   $ref: ./inventory.yaml#/InventoryCategorySuccessResponse
 InventoryCategoryListSuccessResponse:
   $ref: ./inventory.yaml#/InventoryCategoryListSuccessResponse
+InventoryWarehouseSuccessResponse:
+  $ref: ./inventory.yaml#/InventoryWarehouseSuccessResponse
+InventoryWarehouseListSuccessResponse:
+  $ref: ./inventory.yaml#/InventoryWarehouseListSuccessResponse
 InventoryItemSuccessResponse:
   $ref: ./inventory.yaml#/InventoryItemSuccessResponse
 InventoryItemListSuccessResponse:
@@ -224,3 +244,132 @@ BillingWebhookProcessSuccessResponse:
   $ref: ./billing.yaml#/BillingWebhookProcessSuccessResponse
 TenantSubscriptionSuccessResponse:
   $ref: ./billing.yaml#/TenantSubscriptionSuccessResponse
+
+InventoryLot:
+  $ref: ./inventory.yaml#/InventoryLot
+InventoryExpiringLotAlert:
+  $ref: ./inventory.yaml#/InventoryExpiringLotAlert
+InventorySettings:
+  $ref: ./inventory.yaml#/InventorySettings
+InventoryCapabilities:
+  $ref: ./inventory.yaml#/InventoryCapabilities
+InventoryReconciliation:
+  $ref: ./inventory.yaml#/InventoryReconciliation
+CreateInventoryLotRequest:
+  $ref: ./inventory.yaml#/CreateInventoryLotRequest
+UpdateInventoryLotRequest:
+  $ref: ./inventory.yaml#/UpdateInventoryLotRequest
+UpdateInventorySettingsRequest:
+  $ref: ./inventory.yaml#/UpdateInventorySettingsRequest
+InventoryLotSuccessResponse:
+  $ref: ./inventory.yaml#/InventoryLotSuccessResponse
+InventoryLotListSuccessResponse:
+  $ref: ./inventory.yaml#/InventoryLotListSuccessResponse
+InventoryExpiringLotAlertListSuccessResponse:
+  $ref: ./inventory.yaml#/InventoryExpiringLotAlertListSuccessResponse
+InventorySettingsSuccessResponse:
+  $ref: ./inventory.yaml#/InventorySettingsSuccessResponse
+InventoryReconciliationSuccessResponse:
+  $ref: ./inventory.yaml#/InventoryReconciliationSuccessResponse
+InventoryStocktakeLine:
+  $ref: ./inventory.yaml#/InventoryStocktakeLine
+InventoryStocktake:
+  $ref: ./inventory.yaml#/InventoryStocktake
+CreateInventoryStocktakeRequest:
+  $ref: ./inventory.yaml#/CreateInventoryStocktakeRequest
+UpsertInventoryStocktakeCountsRequest:
+  $ref: ./inventory.yaml#/UpsertInventoryStocktakeCountsRequest
+InventoryStocktakeSuccessResponse:
+  $ref: ./inventory.yaml#/InventoryStocktakeSuccessResponse
+InventoryStocktakeListSuccessResponse:
+  $ref: ./inventory.yaml#/InventoryStocktakeListSuccessResponse
+
+
+TenantMembershipListItem:
+  $ref: ./tenant.yaml#/TenantMembershipListItem
+TenantMembershipListSuccessResponse:
+  $ref: ./tenant.yaml#/TenantMembershipListSuccessResponse
+UpdateTenantMembershipRequest:
+  $ref: ./tenant.yaml#/UpdateTenantMembershipRequest
+TenantMembershipMutationSuccessResponse:
+  $ref: ./tenant.yaml#/TenantMembershipMutationSuccessResponse
+
+ExpenseRequestStatus:
+  $ref: ./expenses.yaml#/ExpenseRequestStatus
+ExpenseApprovalMode:
+  $ref: ./expenses.yaml#/ExpenseApprovalMode
+ExpenseRequest:
+  $ref: ./expenses.yaml#/ExpenseRequest
+ExpenseCategory:
+  $ref: ./expenses.yaml#/ExpenseCategory
+ExpenseSettings:
+  $ref: ./expenses.yaml#/ExpenseSettings
+ExpenseCounters:
+  $ref: ./expenses.yaml#/ExpenseCounters
+CreateExpenseRequest:
+  $ref: ./expenses.yaml#/CreateExpenseRequest
+UpdateExpenseRequest:
+  $ref: ./expenses.yaml#/UpdateExpenseRequest
+CreateExpenseCategoryRequest:
+  $ref: ./expenses.yaml#/CreateExpenseCategoryRequest
+UpdateExpenseCategoryRequest:
+  $ref: ./expenses.yaml#/UpdateExpenseCategoryRequest
+UpdateExpenseSettingsRequest:
+  $ref: ./expenses.yaml#/UpdateExpenseSettingsRequest
+ExpenseRequestSuccessResponse:
+  $ref: ./expenses.yaml#/ExpenseRequestSuccessResponse
+ExpenseRequestListSuccessResponse:
+  $ref: ./expenses.yaml#/ExpenseRequestListSuccessResponse
+ExpenseCategorySuccessResponse:
+  $ref: ./expenses.yaml#/ExpenseCategorySuccessResponse
+ExpenseCategoryListSuccessResponse:
+  $ref: ./expenses.yaml#/ExpenseCategoryListSuccessResponse
+ExpenseSettingsSuccessResponse:
+  $ref: ./expenses.yaml#/ExpenseSettingsSuccessResponse
+ExpenseCountersSuccessResponse:
+  $ref: ./expenses.yaml#/ExpenseCountersSuccessResponse
+ReviewExpenseRequest:
+  $ref: ./expenses.yaml#/ReviewExpenseRequest
+RejectExpenseRequest:
+  $ref: ./expenses.yaml#/RejectExpenseRequest
+CancelExpenseRequest:
+  $ref: ./expenses.yaml#/CancelExpenseRequest
+MarkPaidExpenseRequest:
+  $ref: ./expenses.yaml#/MarkPaidExpenseRequest
+ExpenseAttachment:
+  $ref: ./expenses.yaml#/ExpenseAttachment
+ExpenseUploadPresign:
+  $ref: ./expenses.yaml#/ExpenseUploadPresign
+CreateExpenseUploadPresignRequest:
+  $ref: ./expenses.yaml#/CreateExpenseUploadPresignRequest
+CreateExpenseAttachmentRequest:
+  $ref: ./expenses.yaml#/CreateExpenseAttachmentRequest
+ExpenseUploadPresignSuccessResponse:
+  $ref: ./expenses.yaml#/ExpenseUploadPresignSuccessResponse
+ExpenseAttachmentSuccessResponse:
+  $ref: ./expenses.yaml#/ExpenseAttachmentSuccessResponse
+ExpenseAttachmentListSuccessResponse:
+  $ref: ./expenses.yaml#/ExpenseAttachmentListSuccessResponse
+ExpenseBulkOperationItemResult:
+  $ref: ./expenses.yaml#/ExpenseBulkOperationItemResult
+ExpenseBulkOperationResult:
+  $ref: ./expenses.yaml#/ExpenseBulkOperationResult
+ExpenseExportRow:
+  $ref: ./expenses.yaml#/ExpenseExportRow
+ExpenseSummary:
+  $ref: ./expenses.yaml#/ExpenseSummary
+BulkApproveExpenseRequestsRequest:
+  $ref: ./expenses.yaml#/BulkApproveExpenseRequestsRequest
+BulkRejectExpenseRequestsRequest:
+  $ref: ./expenses.yaml#/BulkRejectExpenseRequestsRequest
+BulkMarkPaidExpenseRequestsRequest:
+  $ref: ./expenses.yaml#/BulkMarkPaidExpenseRequestsRequest
+BulkExportExpenseRequestsRequest:
+  $ref: ./expenses.yaml#/BulkExportExpenseRequestsRequest
+ExpenseBulkOperationSuccessResponse:
+  $ref: ./expenses.yaml#/ExpenseBulkOperationSuccessResponse
+ExpenseBulkExportSuccessResponse:
+  $ref: ./expenses.yaml#/ExpenseBulkExportSuccessResponse
+ExpenseSummarySuccessResponse:
+  $ref: ./expenses.yaml#/ExpenseSummarySuccessResponse
+

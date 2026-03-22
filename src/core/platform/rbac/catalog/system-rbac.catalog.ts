@@ -1,4 +1,4 @@
-import {
+﻿import {
   type FeatureFlagDefinition,
   type ModuleDefinition,
   type PermissionDefinition,
@@ -29,6 +29,18 @@ const SYSTEM_PERMISSION_DEFINITIONS: PermissionDefinition[] = [
     key: 'tenant:memberships:read',
     scope: 'tenant',
     description: 'Read tenant membership information.',
+    moduleKey: null
+  },
+  {
+    key: 'tenant:memberships:update',
+    scope: 'tenant',
+    description: 'Update tenant membership information.',
+    moduleKey: null
+  },
+  {
+    key: 'tenant:memberships:delete',
+    scope: 'tenant',
+    description: 'Delete tenant memberships.',
     moduleKey: null
   },
   {
@@ -108,6 +120,90 @@ const SYSTEM_PERMISSION_DEFINITIONS: PermissionDefinition[] = [
     scope: 'tenant',
     description: 'Use the CRM module.',
     moduleKey: 'crm'
+  },
+  {
+    key: 'tenant:modules:expenses:use',
+    scope: 'tenant',
+    description: 'Use the Expenses module.',
+    moduleKey: 'expenses'
+  },
+  {
+    key: 'tenant:expenses:request:create',
+    scope: 'tenant',
+    description: 'Create expense requests.',
+    moduleKey: 'expenses'
+  },
+  {
+    key: 'tenant:expenses:request:read:own',
+    scope: 'tenant',
+    description: 'Read own expense requests.',
+    moduleKey: 'expenses'
+  },
+  {
+    key: 'tenant:expenses:request:update:own',
+    scope: 'tenant',
+    description: 'Update own expense requests.',
+    moduleKey: 'expenses'
+  },
+  {
+    key: 'tenant:expenses:request:cancel:own',
+    scope: 'tenant',
+    description: 'Cancel own expense requests.',
+    moduleKey: 'expenses'
+  },
+  {
+    key: 'tenant:expenses:request:read',
+    scope: 'tenant',
+    description: 'Read expense requests.',
+    moduleKey: 'expenses'
+  },
+  {
+    key: 'tenant:expenses:request:review',
+    scope: 'tenant',
+    description: 'Review and return expense requests.',
+    moduleKey: 'expenses'
+  },
+  {
+    key: 'tenant:expenses:request:approve',
+    scope: 'tenant',
+    description: 'Approve expense requests.',
+    moduleKey: 'expenses'
+  },
+  {
+    key: 'tenant:expenses:request:reject',
+    scope: 'tenant',
+    description: 'Reject expense requests.',
+    moduleKey: 'expenses'
+  },
+  {
+    key: 'tenant:expenses:payment:mark-paid',
+    scope: 'tenant',
+    description: 'Mark expense requests as paid.',
+    moduleKey: 'expenses'
+  },
+  {
+    key: 'tenant:expenses:settings:read',
+    scope: 'tenant',
+    description: 'Read expenses settings.',
+    moduleKey: 'expenses'
+  },
+  {
+    key: 'tenant:expenses:settings:update',
+    scope: 'tenant',
+    description: 'Update expenses settings.',
+    moduleKey: 'expenses'
+  },
+  {
+    key: 'tenant:expenses:report:read',
+    scope: 'tenant',
+    description: 'Read expenses counters and queue.',
+    moduleKey: 'expenses'
+  },
+  {
+    key: 'tenant:expenses:export',
+    scope: 'tenant',
+    description: 'Export expenses reports.',
+    moduleKey: 'expenses'
   },
   {
     key: 'tenant:crm:read',
@@ -198,6 +294,8 @@ const SYSTEM_ROLE_DEFINITIONS: RoleDefinition[] = [
     hierarchyLevel: 200,
     permissions: [
       'tenant:memberships:read',
+      'tenant:memberships:update',
+      'tenant:memberships:delete',
       'tenant:invitations:create',
       'tenant:invitations:revoke',
       'tenant:audit:read',
@@ -211,11 +309,25 @@ const SYSTEM_ROLE_DEFINITIONS: RoleDefinition[] = [
       'tenant:modules:inventory:delete',
       'tenant:modules:inventory:stock:write',
       'tenant:modules:crm:use',
+      'tenant:modules:expenses:use',
       'tenant:modules:hr:use',
       'tenant:crm:read',
       'tenant:crm:write',
       'tenant:crm:delete',
       'tenant:crm:stage:update',
+      'tenant:expenses:request:create',
+      'tenant:expenses:request:read:own',
+      'tenant:expenses:request:update:own',
+      'tenant:expenses:request:cancel:own',
+      'tenant:expenses:request:read',
+      'tenant:expenses:request:review',
+      'tenant:expenses:request:approve',
+      'tenant:expenses:request:reject',
+      'tenant:expenses:payment:mark-paid',
+      'tenant:expenses:settings:read',
+      'tenant:expenses:settings:update',
+      'tenant:expenses:report:read',
+      'tenant:expenses:export',
       'tenant:hr:employee:read',
       'tenant:hr:employee:write',
       'tenant:hr:employee:delete',
@@ -234,6 +346,8 @@ const SYSTEM_ROLE_DEFINITIONS: RoleDefinition[] = [
     hierarchyLevel: 150,
     permissions: [
       'tenant:memberships:read',
+      'tenant:memberships:update',
+      'tenant:memberships:delete',
       'tenant:invitations:create',
       'tenant:invitations:revoke',
       'tenant:audit:read',
@@ -246,11 +360,25 @@ const SYSTEM_ROLE_DEFINITIONS: RoleDefinition[] = [
       'tenant:modules:inventory:delete',
       'tenant:modules:inventory:stock:write',
       'tenant:modules:crm:use',
+      'tenant:modules:expenses:use',
       'tenant:modules:hr:use',
       'tenant:crm:read',
       'tenant:crm:write',
       'tenant:crm:delete',
       'tenant:crm:stage:update',
+      'tenant:expenses:request:create',
+      'tenant:expenses:request:read:own',
+      'tenant:expenses:request:update:own',
+      'tenant:expenses:request:cancel:own',
+      'tenant:expenses:request:read',
+      'tenant:expenses:request:review',
+      'tenant:expenses:request:approve',
+      'tenant:expenses:request:reject',
+      'tenant:expenses:payment:mark-paid',
+      'tenant:expenses:settings:read',
+      'tenant:expenses:settings:update',
+      'tenant:expenses:report:read',
+      'tenant:expenses:export',
       'tenant:hr:employee:read',
       'tenant:hr:employee:write',
       'tenant:hr:employee:delete',
@@ -273,8 +401,13 @@ const SYSTEM_ROLE_DEFINITIONS: RoleDefinition[] = [
       'tenant:modules:inventory:use',
       'tenant:modules:inventory:read',
       'tenant:modules:crm:use',
+      'tenant:modules:expenses:use',
       'tenant:modules:hr:use',
       'tenant:crm:read',
+      'tenant:expenses:request:create',
+      'tenant:expenses:request:read:own',
+      'tenant:expenses:request:update:own',
+      'tenant:expenses:request:cancel:own',
       'tenant:hr:employee:read'
     ]
   }
@@ -294,6 +427,11 @@ const SYSTEM_MODULE_DEFINITIONS: ModuleDefinition[] = [
     key: 'hr',
     name: 'HR',
     description: 'Human resources module.'
+  },
+  {
+    key: 'expenses',
+    name: 'Expenses',
+    description: 'Expense management module.'
   }
 ];
 
@@ -325,6 +463,13 @@ const SYSTEM_FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     description: 'Base HR features enabled by plan.',
     moduleKey: 'hr',
     allowAdminBypass: false
+  },
+  {
+    key: 'expenses:base',
+    name: 'Expenses Base',
+    description: 'Base Expenses features enabled by plan.',
+    moduleKey: 'expenses',
+    allowAdminBypass: false
   }
 ];
 
@@ -343,8 +488,8 @@ const SYSTEM_PLAN_DEFINITIONS: PlanDefinition[] = [
     name: 'Growth',
     description: 'Expanded plan for active tenants.',
     rank: 200,
-    allowedModuleKeys: ['inventory', 'crm', 'hr'],
-    featureFlagKeys: ['inventory:base', 'inventory:analytics', 'crm:base', 'hr:base'],
+    allowedModuleKeys: ['inventory', 'crm', 'hr', 'expenses'],
+    featureFlagKeys: ['inventory:base', 'inventory:analytics', 'crm:base', 'hr:base', 'expenses:base'],
     memberLimit: 25
   }
 ];
@@ -434,3 +579,12 @@ export const systemRbacCatalog = {
     return featureFlag ? cloneFeatureFlag(featureFlag) : null;
   }
 };
+
+
+
+
+
+
+
+
+

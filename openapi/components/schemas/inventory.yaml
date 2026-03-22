@@ -18,6 +18,26 @@ InventoryCategory:
       nullable: true
     isActive:
       type: boolean
+InventoryWarehouse:
+  type: object
+  required:
+    - id
+    - tenantId
+    - name
+    - description
+    - isActive
+  properties:
+    id:
+      type: string
+    tenantId:
+      type: string
+    name:
+      type: string
+    description:
+      type: string
+      nullable: true
+    isActive:
+      type: boolean
 InventoryItem:
   type: object
   required:
@@ -62,10 +82,15 @@ InventoryStockMovement:
     - tenantId
     - itemId
     - direction
+    - movementType
     - quantity
     - stockBefore
     - stockAfter
     - reason
+    - warehouseId
+    - sourceWarehouseId
+    - destinationWarehouseId
+    - idempotencyKey
     - performedByUserId
     - createdAt
   properties:
@@ -78,6 +103,9 @@ InventoryStockMovement:
     direction:
       type: string
       enum: [in, out]
+    movementType:
+      type: string
+      enum: [entry, exit, adjust, transfer, return]
     quantity:
       type: integer
       minimum: 1
@@ -89,6 +117,18 @@ InventoryStockMovement:
       minimum: 0
     reason:
       type: string
+    warehouseId:
+      type: string
+      nullable: true
+    sourceWarehouseId:
+      type: string
+      nullable: true
+    destinationWarehouseId:
+      type: string
+      nullable: true
+    idempotencyKey:
+      type: string
+      nullable: true
     performedByUserId:
       type: string
       nullable: true
@@ -131,6 +171,33 @@ UpdateInventoryCategoryRequest:
       type: string
       nullable: true
       maxLength: 500
+CreateInventoryWarehouseRequest:
+  type: object
+  required:
+    - name
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 120
+    description:
+      type: string
+      nullable: true
+      maxLength: 500
+UpdateInventoryWarehouseRequest:
+  type: object
+  minProperties: 1
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 120
+    description:
+      type: string
+      nullable: true
+      maxLength: 500
+    isActive:
+      type: boolean
 CreateInventoryItemRequest:
   type: object
   required:
@@ -206,6 +273,129 @@ CreateInventoryStockMovementRequest:
       type: string
       minLength: 1
       maxLength: 240
+CreateInventoryMovementEntryRequest:
+  type: object
+  required:
+    - itemId
+    - warehouseId
+    - quantity
+    - reason
+  properties:
+    itemId:
+      type: string
+      pattern: '^[a-fA-F0-9]{24}$'
+    warehouseId:
+      type: string
+      pattern: '^[a-fA-F0-9]{24}$'
+    quantity:
+      type: integer
+      minimum: 1
+    reason:
+      type: string
+      minLength: 1
+      maxLength: 240
+    idempotencyKey:
+      type: string
+CreateInventoryMovementExitRequest:
+  type: object
+  required:
+    - itemId
+    - warehouseId
+    - quantity
+    - reason
+  properties:
+    itemId:
+      type: string
+      pattern: '^[a-fA-F0-9]{24}$'
+    warehouseId:
+      type: string
+      pattern: '^[a-fA-F0-9]{24}$'
+    quantity:
+      type: integer
+      minimum: 1
+    reason:
+      type: string
+      minLength: 1
+      maxLength: 240
+    idempotencyKey:
+      type: string
+CreateInventoryMovementAdjustRequest:
+  type: object
+  required:
+    - itemId
+    - warehouseId
+    - direction
+    - quantity
+    - reason
+  properties:
+    itemId:
+      type: string
+      pattern: '^[a-fA-F0-9]{24}$'
+    warehouseId:
+      type: string
+      pattern: '^[a-fA-F0-9]{24}$'
+    direction:
+      type: string
+      enum: [in, out]
+    quantity:
+      type: integer
+      minimum: 1
+    reason:
+      type: string
+      minLength: 1
+      maxLength: 240
+    idempotencyKey:
+      type: string
+CreateInventoryMovementTransferRequest:
+  type: object
+  required:
+    - itemId
+    - sourceWarehouseId
+    - destinationWarehouseId
+    - quantity
+    - reason
+  properties:
+    itemId:
+      type: string
+      pattern: '^[a-fA-F0-9]{24}$'
+    sourceWarehouseId:
+      type: string
+      pattern: '^[a-fA-F0-9]{24}$'
+    destinationWarehouseId:
+      type: string
+      pattern: '^[a-fA-F0-9]{24}$'
+    quantity:
+      type: integer
+      minimum: 1
+    reason:
+      type: string
+      minLength: 1
+      maxLength: 240
+    idempotencyKey:
+      type: string
+CreateInventoryMovementReturnRequest:
+  type: object
+  required:
+    - itemId
+    - warehouseId
+    - quantity
+    - reason
+  properties:
+    itemId:
+      type: string
+      pattern: '^[a-fA-F0-9]{24}$'
+    warehouseId:
+      type: string
+      pattern: '^[a-fA-F0-9]{24}$'
+    quantity:
+      type: integer
+      minimum: 1
+    reason:
+      type: string
+      minLength: 1
+      maxLength: 240
+    idempotencyKey:
+      type: string
 InventoryCategorySuccessResponse:
   type: object
   required:
@@ -245,6 +435,67 @@ InventoryCategoryListSuccessResponse:
           type: array
           items:
             $ref: '#/InventoryCategory'
+    pagination:
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+    traceId:
+      type: string
+InventoryWarehouseSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - warehouse
+      properties:
+        warehouse:
+          $ref: '#/InventoryWarehouse'
+    traceId:
+      type: string
+InventoryWarehouseListSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - pagination
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/InventoryWarehouse'
     pagination:
       type: object
       required:
@@ -431,3 +682,459 @@ InventoryLowStockAlertListSuccessResponse:
           minimum: 0
     traceId:
       type: string
+
+
+InventoryLot:
+  type: object
+  required:
+    - id
+    - tenantId
+    - itemId
+    - warehouseId
+    - lotCode
+    - receivedAt
+    - expiresAt
+    - initialQuantity
+    - currentQuantity
+    - isActive
+  properties:
+    id:
+      type: string
+    tenantId:
+      type: string
+    itemId:
+      type: string
+    warehouseId:
+      type: string
+    lotCode:
+      type: string
+    receivedAt:
+      type: string
+      format: date-time
+    expiresAt:
+      type: string
+      format: date-time
+      nullable: true
+    initialQuantity:
+      type: integer
+      minimum: 0
+    currentQuantity:
+      type: integer
+      minimum: 0
+    isActive:
+      type: boolean
+InventoryExpiringLotAlert:
+  type: object
+  required:
+    - lot
+    - daysToExpiry
+  properties:
+    lot:
+      $ref: '#/InventoryLot'
+    daysToExpiry:
+      type: integer
+InventoryCapabilities:
+  type: object
+  required:
+    - warehouses
+    - lots
+    - stocktakes
+  properties:
+    warehouses:
+      type: boolean
+    lots:
+      type: boolean
+    stocktakes:
+      type: boolean
+InventorySettings:
+  type: object
+  required:
+    - tenantId
+    - lotAllocationPolicy
+    - rolloutPhase
+    - capabilities
+  properties:
+    tenantId:
+      type: string
+    lotAllocationPolicy:
+      type: string
+      enum: [FIFO, FEFO]
+    rolloutPhase:
+      type: string
+      enum: [pilot, cohort, general]
+    capabilities:
+      $ref: '#/InventoryCapabilities'
+CreateInventoryLotRequest:
+  type: object
+  required:
+    - itemId
+    - warehouseId
+    - lotCode
+    - quantity
+  properties:
+    itemId:
+      type: string
+      pattern: '^[a-fA-F0-9]{24}$'
+    warehouseId:
+      type: string
+      pattern: '^[a-fA-F0-9]{24}$'
+    lotCode:
+      type: string
+      minLength: 1
+      maxLength: 80
+      pattern: '^[a-zA-Z0-9._:-]+$'
+    quantity:
+      type: integer
+      minimum: 1
+    receivedAt:
+      type: string
+      format: date-time
+    expiresAt:
+      type: string
+      format: date-time
+      nullable: true
+UpdateInventoryLotRequest:
+  type: object
+  minProperties: 1
+  properties:
+    expiresAt:
+      type: string
+      format: date-time
+      nullable: true
+    isActive:
+      type: boolean
+UpdateInventorySettingsRequest:
+  type: object
+  minProperties: 1
+  properties:
+    lotAllocationPolicy:
+      type: string
+      enum: [FIFO, FEFO]
+    rolloutPhase:
+      type: string
+      enum: [pilot, cohort, general]
+    capabilities:
+      type: object
+      properties:
+        warehouses:
+          type: boolean
+        lots:
+          type: boolean
+        stocktakes:
+          type: boolean
+InventoryLotSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - lot
+      properties:
+        lot:
+          $ref: '#/InventoryLot'
+    traceId:
+      type: string
+InventoryLotListSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - pagination
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/InventoryLot'
+    pagination:
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+    traceId:
+      type: string
+InventoryExpiringLotAlertListSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - pagination
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/InventoryExpiringLotAlert'
+    pagination:
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+    traceId:
+      type: string
+
+InventorySettingsSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - settings
+      properties:
+        settings:
+          $ref: '#/InventorySettings'
+    traceId:
+      type: string
+
+InventoryReconciliation:
+  type: object
+  required:
+    - tenantId
+    - comparedAt
+    - movementCount
+    - movementIn
+    - movementOut
+    - balanceTotal
+    - itemStockTotal
+    - drift
+    - status
+  properties:
+    tenantId:
+      type: string
+    comparedAt:
+      type: string
+      format: date-time
+    movementCount:
+      type: integer
+      minimum: 0
+    movementIn:
+      type: integer
+      minimum: 0
+    movementOut:
+      type: integer
+      minimum: 0
+    balanceTotal:
+      type: integer
+    itemStockTotal:
+      type: integer
+    drift:
+      type: integer
+    status:
+      type: string
+      enum: [ok, drift_detected]
+InventoryReconciliationSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - report
+      properties:
+        report:
+          $ref: '#/InventoryReconciliation'
+    traceId:
+      type: string
+InventoryStocktakeLine:
+  type: object
+  required:
+    - itemId
+    - countedStock
+    - lotId
+  properties:
+    itemId:
+      type: string
+    countedStock:
+      type: integer
+      minimum: 0
+    lotId:
+      type: string
+      nullable: true
+InventoryStocktake:
+  type: object
+  required:
+    - id
+    - tenantId
+    - warehouseId
+    - name
+    - status
+    - lines
+    - createdAt
+    - updatedAt
+  properties:
+    id:
+      type: string
+    tenantId:
+      type: string
+    warehouseId:
+      type: string
+    name:
+      type: string
+    status:
+      type: string
+      enum: [draft, in_progress, review, applied, cancelled]
+    lines:
+      type: array
+      items:
+        $ref: '#/InventoryStocktakeLine'
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+CreateInventoryStocktakeRequest:
+  type: object
+  required:
+    - warehouseId
+    - name
+  properties:
+    warehouseId:
+      type: string
+      pattern: '^[a-fA-F0-9]{24}$'
+    name:
+      type: string
+      minLength: 1
+      maxLength: 140
+    lines:
+      type: array
+      items:
+        $ref: '#/InventoryStocktakeLine'
+UpsertInventoryStocktakeCountsRequest:
+  type: object
+  required:
+    - lines
+  properties:
+    lines:
+      type: array
+      items:
+        $ref: '#/InventoryStocktakeLine'
+InventoryStocktakeSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - stocktake
+      properties:
+        stocktake:
+          $ref: '#/InventoryStocktake'
+    traceId:
+      type: string
+InventoryStocktakeListSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - pagination
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/InventoryStocktake'
+    pagination:
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+    traceId:
+      type: string
+
+

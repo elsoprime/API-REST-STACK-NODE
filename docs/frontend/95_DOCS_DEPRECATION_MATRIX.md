@@ -1,8 +1,8 @@
 # Matriz de Deprecacion Documental Frontend
 
-Version: 1.2.0
+Version: 1.3.0
 Estado: Activo
-Ultima actualizacion: 2026-03-11
+Ultima actualizacion: 2026-03-20
 
 ## 1. Objetivo
 
@@ -19,16 +19,18 @@ Clasificar la documentacion de `docs/frontend/*` para eliminar ruido, conservar 
 | Documento | Estado | Motivo | Accion |
 |---|---|---|---|
 | `README.md` | Vigente | Indice oficial de `docs/frontend` | Mantener y actualizar referencia principal a V2 |
-| `10_IMPLEMENTATION_GUIDE_V2.md` | Vigente | Guia principal por fases y etapas, incluyendo billing/provisioning | Fuente principal para ejecucion FE |
+| `10_IMPLEMENTATION_GUIDE_V2.md` | Vigente | Guia principal por fases y etapas, incluyendo members y seguridad de plataforma | Fuente principal para ejecucion FE |
 | `_deprecated/90_INTEGRATION_PLAN_V1.md` | Deprecado controlado | Referencias historicas y rol superado por V2 | Mantener en `_deprecated` con redireccion a V2 |
-| `20_ACCESS_MATRIX.md` | Vigente | Matriz alineada con OpenAPI vigente, incluyendo billing/provisioning | Mantener sincronizada por cambios de contrato |
+| `20_ACCESS_MATRIX.md` | Vigente | Matriz alineada con OpenAPI/runtime vigente, incluyendo memberships CRUD y `settings/security` | Mantener sincronizada por cambios de contrato |
 | `30_API_CLIENT_STANDARD.md` | Vigente | Reglas de headers y clasificacion de rutas actualizadas | Mantener y validar contra cliente real |
 | `40_STATE_AND_CACHE_POLICY.md` | Vigente | Base de aislamiento tenant/cache actualizada con provisioning | Mantener |
-| `50_ERROR_CATALOG.md` | Vigente con correccion | Faltaban codigos de password reset/change | Completar codigos y acciones UX |
-| `60_MOCKING_GUIDE.md` | Vigente | Incluye escenarios de billing/provisioning en MSW | Mantener |
-| `70_E2E_CRITICAL_FLOWS.md` | Vigente | Flujos criticos incluyen provisioning billing | Mantener |
+| `50_ERROR_CATALOG.md` | Vigente con correccion | Debe reflejar codigos nuevos de memberships y seguridad | Completar codigos y acciones UX |
+| `60_MOCKING_GUIDE.md` | Vigente con correccion | Debe marcar retiro de mocks en `Members > Equipo` cuando frontend integre el runtime real | Actualizar junto con la integracion FE |
+| `70_E2E_CRITICAL_FLOWS.md` | Vigente con correccion | Debe incorporar escenarios criticos de memberships y `settings/security` | Ampliar cobertura cuando frontend conecte los nuevos contratos |
 | `80_BACKEND_DEPENDENCIES.md` | Vigente | Dependencias cerradas/abiertas actualizadas | Mantener trazabilidad |
-| `90_DOD_CHECKLIST.md` | Vigente | Criterios de cierre incluyen billing/provisioning | Mantener |
+| `90_DOD_CHECKLIST.md` | Vigente | Criterios de cierre siguen validos | Mantener |
+| `100_ALIGNMENT_PLAN_BACKEND_FRONTEND_TENANT_WORKSPACES.md` | Vigente con correccion | Acta de cierre y trazabilidad de alineacion ya ejecutada | Mantener como registro; usar `10_IMPLEMENTATION_GUIDE_V2.md` y `20_ACCESS_MATRIX.md` como fuente operativa |
+| `operaciones/BILLING_LOCAL_DEMO_RUNBOOK.md` | Vigente | Runbook operativo para cierre practico checkout -> webhook -> activacion | Mantener y actualizar junto a cambios de billing/provisioning |
 
 ## 4. Inconsistencias detectadas y tratamiento
 
@@ -45,7 +47,7 @@ Reemplazar por:
 - `docs/frontend/*`
 - `docs/cierres/*`
 
-### 4.2 OpenAPI ya disponible, pero marcado como faltante en frontend docs
+### 4.2 OpenAPI ya disponible, pero marcado como faltante o pendiente en frontend docs
 
 Corregir menciones de ausencia para:
 
@@ -57,15 +59,27 @@ Corregir menciones de ausencia para:
 - `POST /api/v1/billing/webhooks/provider`
 - `PATCH /api/v1/tenant/subscription`
 - `DELETE /api/v1/tenant/subscription`
+- `GET /api/v1/tenant/memberships`
+- `PATCH /api/v1/tenant/memberships/{membershipId}`
+- `DELETE /api/v1/tenant/memberships/{membershipId}`
+- `GET /api/v1/platform/settings` para `settings/security`
+- `PATCH /api/v1/platform/settings` para `settings/security`
 
 ### 4.3 Dependencias que siguen realmente abiertas
 
 Mantener como abiertas solo las dependencias con contrato/runtime aun faltante para FE:
 
-- Memberships tenant CRUD (`/api/v1/tenant/memberships*`)
 - Gestion publica de roles/permisos tenant
 - Exposicion formal de auditoria platform-scoped para frontend
 - Endpoint de documentacion runtime (si se exige como requisito operativo)
+
+Nota para evitar ruido documental:
+
+- mientras `Platform Audit` siga siendo una unica dependencia abierta, no crear una guia o plan principal nuevo
+- documentar su alcance futuro dentro de `10_IMPLEMENTATION_GUIDE_V2.md`, `70_E2E_CRITICAL_FLOWS.md` y `80_BACKEND_DEPENDENCIES.md`
+- crear documento dedicado solo si luego aparecen decisiones de producto o arquitectura que ya no quepan de forma limpia en esas fuentes
+- aplicar la misma regla al hardening de `Inventory`: si sigue siendo una sola linea de integracion/UX, mantenerlo en `15_INVENTORY_MODULO_IMPLEMENTATION_GUIDE_V2.md`, `10_IMPLEMENTATION_GUIDE_V2.md` y `70_E2E_CRITICAL_FLOWS.md`
+- no registrar hardening de Inventory en `80_BACKEND_DEPENDENCIES.md` salvo que aparezca un contrato backend realmente faltante
 
 ## 5. Politica de mantenimiento
 
@@ -75,4 +89,3 @@ Mantener como abiertas solo las dependencias con contrato/runtime aun faltante p
    1. `openapi/openapi.yaml` + `openapi/paths/*`
    2. `10_IMPLEMENTATION_GUIDE_V2.md`
    3. documentos especializados (`ACCESS_MATRIX`, `API_CLIENT_STANDARD`, `ERROR_CATALOG`, etc.)
-

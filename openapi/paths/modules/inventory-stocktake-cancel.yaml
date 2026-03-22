@@ -1,0 +1,42 @@
+﻿post:
+  tags:
+    - Inventory
+  summary: Cancel stocktake
+  operationId: cancelInventoryStocktake
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  x-permissions:
+    module: tenant:modules:inventory:use
+    required:
+      - tenant:modules:inventory:stock:write
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+    - name: stocktakeId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-fA-F0-9]{24}$'
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      schema:
+        type: string
+  responses:
+    '200':
+      description: Inventory stocktake cancelled
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/inventory.yaml#/InventoryStocktakeSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '404':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '409':
+      $ref: ../../components/responses/_index.yaml#/GenericError

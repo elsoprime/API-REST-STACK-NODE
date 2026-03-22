@@ -1,6 +1,9 @@
-import { model, Schema, type HydratedDocument, type InferSchemaType } from 'mongoose';
+﻿import { model, Schema, type HydratedDocument, type InferSchemaType } from 'mongoose';
 
-import { INVENTORY_MOVEMENT_DIRECTIONS } from '@/modules/inventory/types/inventory.types';
+import {
+  INVENTORY_MOVEMENT_DIRECTIONS,
+  INVENTORY_MOVEMENT_TYPES
+} from '@/modules/inventory/types/inventory.types';
 import { baseDocumentPlugin } from '@/infrastructure/database/plugins/baseDocument.plugin';
 
 const inventoryStockMovementSchema = new Schema(
@@ -22,6 +25,12 @@ const inventoryStockMovementSchema = new Schema(
       enum: [...INVENTORY_MOVEMENT_DIRECTIONS],
       required: true
     },
+    movementType: {
+      type: String,
+      enum: [...INVENTORY_MOVEMENT_TYPES],
+      required: true,
+      default: 'adjust'
+    },
     quantity: {
       type: Number,
       min: 1,
@@ -41,6 +50,27 @@ const inventoryStockMovementSchema = new Schema(
       type: String,
       required: true,
       trim: true
+    },
+    warehouseId: {
+      type: Schema.Types.ObjectId,
+      ref: 'InventoryWarehouse',
+      default: null,
+      index: true
+    },
+    sourceWarehouseId: {
+      type: Schema.Types.ObjectId,
+      ref: 'InventoryWarehouse',
+      default: null
+    },
+    destinationWarehouseId: {
+      type: Schema.Types.ObjectId,
+      ref: 'InventoryWarehouse',
+      default: null
+    },
+    idempotencyKey: {
+      type: String,
+      trim: true,
+      default: null
     },
     performedByUserId: {
       type: Schema.Types.ObjectId,
@@ -62,6 +92,25 @@ inventoryStockMovementSchema.index({
   tenantId: 1,
   createdAt: -1
 });
+inventoryStockMovementSchema.index({
+  tenantId: 1,
+  movementType: 1,
+  createdAt: -1
+});
+inventoryStockMovementSchema.index(
+  {
+    tenantId: 1,
+    idempotencyKey: 1
+  },
+  {
+    unique: true,
+    partialFilterExpression: {
+      idempotencyKey: {
+        $type: 'string'
+      }
+    }
+  }
+);
 
 inventoryStockMovementSchema.plugin(baseDocumentPlugin);
 

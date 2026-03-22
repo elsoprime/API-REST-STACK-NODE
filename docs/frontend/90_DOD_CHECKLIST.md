@@ -1,8 +1,8 @@
 ﻿# Definition of Done Frontend
 
-Version: 1.3.0
+Version: 1.4.0
 Estado: Activo
-Ultima actualizacion: 2026-03-13
+Ultima actualizacion: 2026-03-21
 
 ## 1. Proposito
 
@@ -73,6 +73,13 @@ Checklist:
 - [ ] Runtime efectivo refetch e invalidacion de cache tras cambios de plan.
 - [ ] UI robusta ante runtime incompleto o nulo (sin crashes de render).
 
+### 4.5 Expenses
+
+- [ ] Workspace de Expenses visible solo si modulo/plan lo habilitan.
+- [ ] `settings` en modo solo lectura cuando falta `tenant:expenses:settings:update`.
+- [ ] Ciclo de vida de categorias (activar/desactivar) funcional y consistente con backend.
+- [ ] Flujos `requests` y `settings` cubiertos por E2E critico.
+
 ## 5. DoD de seguridad y compliance
 
 - [ ] No se exponen datos sensibles en logs frontend.
@@ -93,6 +100,7 @@ Checklist:
 - [ ] `50_ERROR_CATALOG.md` actualizado si aparece nuevo `error.code`.
 - [ ] `80_BACKEND_DEPENDENCIES.md` actualizado si se abre/cierra bloqueo.
 - [ ] `95_DOCS_DEPRECATION_MATRIX.md` actualizado si cambia estado documental.
+- [ ] Documentacion de `expenses` en modo espejo backend/frontend al mismo corte de fecha y version.
 
 ## 8. Criterio de rechazo de PR
 

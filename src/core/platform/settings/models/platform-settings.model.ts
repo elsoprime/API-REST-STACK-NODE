@@ -55,6 +55,56 @@ const platformSettingsSchema = new Schema(
       requireEmailVerification: {
         type: Boolean,
         required: true
+      },
+      requireTwoFactorForPrivilegedUsers: {
+        type: Boolean,
+        required: true
+      },
+      passwordPolicy: {
+        minLength: {
+          type: Number,
+          required: true
+        },
+        preventReuseCount: {
+          type: Number,
+          required: true
+        },
+        requireUppercase: {
+          type: Boolean,
+          required: true
+        },
+        requireLowercase: {
+          type: Boolean,
+          required: true
+        },
+        requireNumber: {
+          type: Boolean,
+          required: true
+        },
+        requireSpecialChar: {
+          type: Boolean,
+          required: true
+        }
+      },
+      sessionPolicy: {
+        browserSessionTtlMinutes: {
+          type: Number,
+          required: true
+        },
+        idleTimeoutMinutes: {
+          type: Number,
+          default: null
+        }
+      },
+      riskControls: {
+        allowRecoveryCodes: {
+          type: Boolean,
+          required: true
+        },
+        enforceVerifiedEmailForPrivilegedAccess: {
+          type: Boolean,
+          required: true
+        }
       }
     },
     operations: {

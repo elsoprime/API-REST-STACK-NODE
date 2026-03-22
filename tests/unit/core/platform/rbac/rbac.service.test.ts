@@ -108,7 +108,7 @@ describe('RbacService', () => {
     });
   });
 
-  it('denies module-bound permissions when the effective tenant modules do not enable them', async () => {
+  it('falls back to plan modules when tenant active modules are empty', async () => {
     const service = new RbacService();
     const ownerUserId = new Types.ObjectId().toString();
     const authorization = await service.resolveTenantAuthorization({
@@ -122,10 +122,7 @@ describe('RbacService', () => {
 
     await expect(
       service.assertPermissionGranted(authorization, 'tenant:modules:inventory:use')
-    ).rejects.toMatchObject({
-      code: 'RBAC_MODULE_DENIED',
-      statusCode: 403
-    });
+    ).resolves.toBeUndefined();
   });
 
   it('resolves tenant-scoped custom required roles against the current tenant context', async () => {

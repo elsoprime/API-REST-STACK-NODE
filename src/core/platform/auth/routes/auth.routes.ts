@@ -21,6 +21,7 @@ import { type AuthServiceContract } from '@/core/platform/auth/types/auth.types'
 import {
   authEmailRateLimiter,
   authRateLimiter,
+  refreshRateLimiter,
   sensitiveEmailRateLimiter,
   sensitiveRateLimiter
 } from '@/infrastructure/middleware/rateLimiter.middleware';
@@ -80,10 +81,10 @@ export function createAuthRouter(service: AuthServiceContract = authService): Ro
     validateBody(verifyEmailSchema),
     controller.verifyEmail
   );
-  authRouter.post('/refresh/browser', sensitiveRateLimiter, requireCsrfToken, controller.refreshBrowser);
+  authRouter.post('/refresh/browser', refreshRateLimiter, requireCsrfToken, controller.refreshBrowser);
   authRouter.post(
     '/refresh/headless',
-    sensitiveRateLimiter,
+    refreshRateLimiter,
     validateBody(refreshHeadlessSchema),
     controller.refreshHeadless
   );

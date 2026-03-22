@@ -1,6 +1,7 @@
 import { Router } from 'express';
 
 import { createTenantController } from '@/core/tenant/controllers/tenant.controller';
+import { tenantMembershipsRouter } from '@/core/tenant/memberships/routes/tenant-memberships.routes';
 import { tenantSettingsRouter } from '@/core/tenant/settings/routes/tenant-settings.routes';
 import {
   acceptInvitationSchema,
@@ -39,6 +40,7 @@ export function createTenantRouter(service: TenantServiceContract = tenantServic
   const tenantRouter = Router();
   const controller = createTenantController(service);
 
+  tenantRouter.use('/memberships', tenantMembershipsRouter);
   tenantRouter.use('/settings', tenantSettingsRouter);
 
   tenantRouter.post(
@@ -110,3 +112,4 @@ export function createTenantRouter(service: TenantServiceContract = tenantServic
 }
 
 export const tenantRouter = createTenantRouter();
+

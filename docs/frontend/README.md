@@ -6,11 +6,13 @@
 - Guia principal de implementacion FE: `docs/frontend/10_IMPLEMENTATION_GUIDE_V2.md`
 - Matriz de estado documental: `docs/frontend/95_DOCS_DEPRECATION_MATRIX.md`
 - Evidencia de etapas/cierres: `docs/cierres/*`
+- Cierres operativos modulares: `docs/operaciones/*`
 
 ## Estructura del directorio
 
 - `docs/frontend/*.md` -> documentos vigentes para operacion
 - `docs/frontend/_deprecated/*` -> documentos deprecados mantenidos solo para trazabilidad
+- `docs/operaciones/*.md` -> cierres operativos, runbooks y propuestas por modulo
 
 ## Indice documental
 
@@ -18,6 +20,8 @@
   Manual principal por fases y etapas (API -> Frontend).
 - `95_DOCS_DEPRECATION_MATRIX.md`
   Estado de cada documento frontend (vigente/corregir/deprecado).
+- `15_INVENTORY_MODULO_IMPLEMENTATION_GUIDE_V2.md`
+  Guia operativa especifica para implementar el modulo Inventario escalable en Frontend.
 - `20_ACCESS_MATRIX.md`
   Matriz ruta UI -> endpoint -> permiso -> modulo/plan.
 - `30_API_CLIENT_STANDARD.md`
@@ -34,6 +38,8 @@
   Backlog formal de bloqueos frontend dependientes de backend.
 - `90_DOD_CHECKLIST.md`
   Definition of Done para historias, pantallas y modulos frontend.
+- `docs/operaciones/*.md`
+  Cierres operativos, handoff y propuestas modulares de implementacion (incluye Expenses).
 - `_deprecated/90_INTEGRATION_PLAN_V1.md`
   Documento deprecado controlado, mantenido solo para trazabilidad.
 
@@ -52,4 +58,5 @@
 4. Actualizar matriz de deprecacion si cambia estado de algun documento.
 5. Si se depreca un documento, moverlo a `docs/frontend/_deprecated/`.
 6. Vincular el PR a secciones modificadas de `docs/frontend`.
+
 

@@ -1,0 +1,80 @@
+patch:
+  tags:
+    - TenantMemberships
+  summary: Update a tenant membership
+  operationId: updateTenantMembership
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+    - name: membershipId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-fA-F0-9]{24}$'
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      description: Required when authenticating with access token cookie; not required for Bearer auth.
+      schema:
+        type: string
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../../components/schemas/tenant.yaml#/UpdateTenantMembershipRequest
+  responses:
+    '200':
+      description: Tenant membership updated
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/tenant.yaml#/TenantMembershipMutationSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '404':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+delete:
+  tags:
+    - TenantMemberships
+  summary: Delete a tenant membership
+  operationId: deleteTenantMembership
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+    - name: membershipId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-fA-F0-9]{24}$'
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      description: Required when authenticating with access token cookie; not required for Bearer auth.
+      schema:
+        type: string
+  responses:
+    '200':
+      description: Tenant membership deleted
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/tenant.yaml#/TenantMembershipMutationSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '404':
+      $ref: ../../components/responses/_index.yaml#/GenericError

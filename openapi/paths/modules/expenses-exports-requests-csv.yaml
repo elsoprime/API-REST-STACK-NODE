@@ -1,0 +1,23 @@
+﻿get:
+  tags:
+    - Expenses
+  summary: Export all expense requests as CSV
+  operationId: exportExpenseRequestsCsv
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+  responses:
+    '200':
+      description: CSV export file
+      content:
+        text/csv:
+          schema:
+            type: string
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError

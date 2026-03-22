@@ -26,6 +26,30 @@ function createPlatformSettingsTestApp(service: {
   });
 }
 
+function buildSecurityView() {
+  return {
+    allowUserRegistration: true,
+    requireEmailVerification: true,
+    requireTwoFactorForPrivilegedUsers: false,
+    passwordPolicy: {
+      minLength: 12,
+      preventReuseCount: 5,
+      requireUppercase: true,
+      requireLowercase: true,
+      requireNumber: true,
+      requireSpecialChar: false
+    },
+    sessionPolicy: {
+      browserSessionTtlMinutes: 1440,
+      idleTimeoutMinutes: null
+    },
+    riskControls: {
+      allowRecoveryCodes: true,
+      enforceVerifiedEmailForPrivilegedAccess: true
+    }
+  };
+}
+
 describe('platform settings routes', () => {
   const platformScopeGrants = new PlatformScopeGrantService(['admin@example.com']);
 
@@ -49,10 +73,7 @@ describe('platform settings routes', () => {
           defaultCurrency: 'USD',
           defaultLanguage: 'en'
         },
-        security: {
-          allowUserRegistration: true,
-          requireEmailVerification: true
-        },
+        security: buildSecurityView(),
         operations: {
           maintenanceMode: false
         },
@@ -94,17 +115,10 @@ describe('platform settings routes', () => {
         })
       })
     );
-    expect(response.body).toMatchObject({
-      success: true,
-      data: {
-        settings: {
-          singletonKey: 'platform_settings'
-        }
-      }
-    });
+    expect(response.body.data.settings.security.passwordPolicy.minLength).toBe(12);
   });
 
-  it('updates the singleton through PATCH with platform permission guard', async () => {
+  it('updates the singleton through PATCH with expanded security fields', async () => {
     const userId = new Types.ObjectId();
     const service = {
       getSettings: vi.fn(),
@@ -122,8 +136,12 @@ describe('platform settings routes', () => {
           defaultLanguage: 'en'
         },
         security: {
-          allowUserRegistration: true,
-          requireEmailVerification: true
+          ...buildSecurityView(),
+          requireTwoFactorForPrivilegedUsers: true,
+          passwordPolicy: {
+            ...buildSecurityView().passwordPolicy,
+            minLength: 16
+          }
         },
         operations: {
           maintenanceMode: true
@@ -154,14 +172,14 @@ describe('platform settings routes', () => {
       .patch('/api/v1/platform/settings')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
-        branding: {
-          supportEmail: 'support@example.com'
+        security: {
+          requireTwoFactorForPrivilegedUsers: true,
+          passwordPolicy: {
+            minLength: 16
+          }
         },
         operations: {
           maintenanceMode: true
-        },
-        modules: {
-          disabledModuleKeys: ['inventory']
         }
       });
 
@@ -169,19 +187,19 @@ describe('platform settings routes', () => {
     expect(service.updateSettings).toHaveBeenCalledWith(
       expect.objectContaining({
         patch: {
-          branding: {
-            supportEmail: 'support@example.com'
+          security: {
+            requireTwoFactorForPrivilegedUsers: true,
+            passwordPolicy: {
+              minLength: 16
+            }
           },
           operations: {
             maintenanceMode: true
-          },
-          modules: {
-            disabledModuleKeys: ['inventory']
           }
         }
       })
     );
-    expect(response.body.data.settings.operations.maintenanceMode).toBe(true);
+    expect(response.body.data.settings.security.requireTwoFactorForPrivilegedUsers).toBe(true);
   });
 
   it('denies platform settings access when the authenticated scope lacks the required permission', async () => {
@@ -267,10 +285,7 @@ describe('platform settings routes', () => {
           defaultCurrency: 'USD',
           defaultLanguage: 'en'
         },
-        security: {
-          allowUserRegistration: true,
-          requireEmailVerification: true
-        },
+        security: buildSecurityView(),
         operations: {
           maintenanceMode: true
         },
@@ -321,14 +336,14 @@ describe('platform settings routes', () => {
     );
   });
 
-  it('rejects unknown module keys through the public platform settings contract', async () => {
+  it('rejects invalid expanded security ranges through the public contract', async () => {
     const userId = new Types.ObjectId();
     const service = {
       getSettings: vi.fn(),
       updateSettings: vi.fn().mockRejectedValue(
         new AppError({
           code: 'GEN_VALIDATION_ERROR',
-          message: 'Unknown module keys: unknown-module',
+          message: 'security.passwordPolicy.minLength must be between 8 and 128',
           statusCode: 400
         })
       )
@@ -351,8 +366,10 @@ describe('platform settings routes', () => {
       .patch('/api/v1/platform/settings')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
-        modules: {
-          disabledModuleKeys: ['unknown-module']
+        security: {
+          passwordPolicy: {
+            minLength: 4
+          }
         }
       });
 

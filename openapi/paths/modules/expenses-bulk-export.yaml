@@ -1,0 +1,29 @@
+﻿post:
+  tags:
+    - Expenses
+  summary: Bulk export selected expense requests
+  operationId: bulkExportExpenseRequests
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../../components/schemas/expenses.yaml#/BulkExportExpenseRequestsRequest
+  responses:
+    '200':
+      description: Bulk export rows
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/expenses.yaml#/ExpenseBulkExportSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError

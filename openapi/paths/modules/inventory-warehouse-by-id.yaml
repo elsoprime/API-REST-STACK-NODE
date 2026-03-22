@@ -1,0 +1,49 @@
+﻿patch:
+  tags:
+    - Inventory
+  summary: Update inventory warehouse
+  operationId: updateInventoryWarehouse
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  x-permissions:
+    module: tenant:modules:inventory:use
+    required:
+      - tenant:modules:inventory:update
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+    - name: warehouseId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-fA-F0-9]{24}$'
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      description: Required when authenticating with access token cookie; not required for Bearer auth.
+      schema:
+        type: string
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../../components/schemas/inventory.yaml#/UpdateInventoryWarehouseRequest
+  responses:
+    '200':
+      description: Inventory warehouse updated
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/inventory.yaml#/InventoryWarehouseSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '404':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '409':
+      $ref: ../../components/responses/_index.yaml#/GenericError

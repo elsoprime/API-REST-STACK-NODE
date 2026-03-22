@@ -1,0 +1,88 @@
+﻿get:
+  tags:
+    - Inventory
+  summary: List inventory warehouses
+  operationId: listInventoryWarehouses
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  x-permissions:
+    module: tenant:modules:inventory:use
+    required:
+      - tenant:modules:inventory:read
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+    - name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    - name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    - name: search
+      in: query
+      required: false
+      schema:
+        type: string
+  responses:
+    '200':
+      description: Inventory warehouses list
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/inventory.yaml#/InventoryWarehouseListSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+post:
+  tags:
+    - Inventory
+  summary: Create inventory warehouse
+  operationId: createInventoryWarehouse
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  x-permissions:
+    module: tenant:modules:inventory:use
+    required:
+      - tenant:modules:inventory:create
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      description: Required when authenticating with access token cookie; not required for Bearer auth.
+      schema:
+        type: string
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../../components/schemas/inventory.yaml#/CreateInventoryWarehouseRequest
+  responses:
+    '201':
+      description: Inventory warehouse created
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/inventory.yaml#/InventoryWarehouseSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '409':
+      $ref: ../../components/responses/_index.yaml#/GenericError
