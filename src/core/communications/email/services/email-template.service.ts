@@ -36,6 +36,19 @@ export class EmailTemplateService {
       };
     }
 
+    if (input.key === 'expense-status-update') {
+      const template = emailTemplates['expense-status-update'];
+      const variables = input.variables as EmailTemplateVariablesMap['expense-status-update'];
+
+      return {
+        key: template.key as TKey,
+        version: template.version,
+        subject: template.renderSubject(variables),
+        html: template.renderHtml(variables),
+        text: template.renderText(variables)
+      };
+    }
+
     const template = emailTemplates['tenant-invitation'];
     const variables = input.variables as EmailTemplateVariablesMap['tenant-invitation'];
 

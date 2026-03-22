@@ -1,8 +1,8 @@
 # Dependencias Frontend del Backend
 
-Version: 1.5.0
+Version: 1.6.0
 Estado: Activo
-Ultima actualizacion: 2026-03-20
+Ultima actualizacion: 2026-03-21
 
 ## 1. Proposito
 
@@ -36,6 +36,7 @@ Centralizar bloqueos reales de frontend que dependen de contrato o runtime backe
 | BE-FE-011 | Billing webhook provider | Cerrada (backend disponible) | `POST /api/v1/billing/webhooks/provider` en OpenAPI/runtime |
 | BE-FE-012 | Tenant subscription assign/cancel | Cerrada (backend disponible) | `PATCH/DELETE /api/v1/tenant/subscription` en OpenAPI/runtime |
 | BE-FE-013 | Platform settings security ampliado | Cerrada (backend disponible) | `GET/PATCH /api/v1/platform/settings` expone `security` ampliado con validaciones y tests |
+| BE-FE-014 | Expenses settings/categorias/permisos base | Cerrada (backend disponible) | `GET/PUT /api/v1/modules/expenses/settings`, `GET/POST/PATCH /api/v1/modules/expenses/categories` en OpenAPI/runtime + `tests/integration/expenses/expenses.settings.routes.test.ts` |
 
 ## 5. Detalle de vigentes
 
@@ -99,6 +100,18 @@ Backend ya entrega en `platform/settings.security`:
 - `sessionPolicy`
 - `riskControls`
 - compatibilidad con `PATCH` parcial
+
+### 6.3 BE-FE-014 Expenses settings/categorias/permisos base
+
+Backend ya entrega:
+
+- `GET /api/v1/modules/expenses/settings`
+- `PUT /api/v1/modules/expenses/settings`
+- `GET /api/v1/modules/expenses/categories`
+- `POST /api/v1/modules/expenses/categories`
+- `PATCH /api/v1/modules/expenses/categories/{categoryId}`
+- guardas por permisos `tenant:expenses:settings:read` y `tenant:expenses:settings:update`
+- pruebas de integracion especificas de permisos y contratos settings/categorias
 
 ## 7. Flujo de cierre de dependencia
 

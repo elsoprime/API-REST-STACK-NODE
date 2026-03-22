@@ -1,4 +1,9 @@
-export const EMAIL_TEMPLATE_KEYS = ['verify-email', 'reset-password', 'tenant-invitation'] as const;
+export const EMAIL_TEMPLATE_KEYS = [
+  'verify-email',
+  'reset-password',
+  'tenant-invitation',
+  'expense-status-update'
+] as const;
 
 export type EmailTemplateKey = (typeof EMAIL_TEMPLATE_KEYS)[number];
 
@@ -30,10 +35,23 @@ export interface ResetPasswordTemplateVariables {
   supportEmail: string | null;
 }
 
+export interface ExpenseStatusUpdateTemplateVariables {
+  applicationName: string;
+  recipientEmail: string;
+  recipientFirstName?: string | null;
+  requestNumber: string;
+  status: string;
+  amount: number;
+  currency: string;
+  comment?: string | null;
+  supportEmail: string | null;
+}
+
 export interface EmailTemplateVariablesMap {
   'verify-email': VerifyEmailTemplateVariables;
   'reset-password': ResetPasswordTemplateVariables;
   'tenant-invitation': TenantInvitationTemplateVariables;
+  'expense-status-update': ExpenseStatusUpdateTemplateVariables;
 }
 
 export interface EmailTemplateDefinition<TKey extends EmailTemplateKey> {

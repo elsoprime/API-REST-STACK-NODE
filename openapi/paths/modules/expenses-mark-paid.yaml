@@ -1,0 +1,45 @@
+﻿post:
+  tags:
+    - Expenses
+  summary: Mark expense request as paid
+  operationId: markExpenseRequestAsPaid
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      description: Required when authenticating with access token cookie; not required for Bearer auth.
+      schema:
+        type: string
+    - name: requestId
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-fA-F0-9]{24}$'
+  requestBody:
+    required: false
+    content:
+      application/json:
+        schema:
+          $ref: ../../components/schemas/expenses.yaml#/MarkPaidExpenseRequest
+  responses:
+    '200':
+      description: Expense request marked as paid
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/expenses.yaml#/ExpenseRequestSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '404':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '409':
+      $ref: ../../components/responses/_index.yaml#/GenericError

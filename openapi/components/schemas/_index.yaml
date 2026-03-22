@@ -88,6 +88,16 @@ AuditLog:
   $ref: ./audit.yaml#/AuditLog
 AuditLogListSuccessResponse:
   $ref: ./audit.yaml#/AuditLogListSuccessResponse
+AuditMetricsShare:
+  $ref: ./audit.yaml#/AuditMetricsShare
+AuditMetricsPoint:
+  $ref: ./audit.yaml#/AuditMetricsPoint
+AuditMetricsSummary:
+  $ref: ./audit.yaml#/AuditMetricsSummary
+TenantAuditMetrics:
+  $ref: ./audit.yaml#/TenantAuditMetrics
+AuditMetricsSuccessResponse:
+  $ref: ./audit.yaml#/AuditMetricsSuccessResponse
 PlatformSettings:
   $ref: ./platform-settings.yaml#/PlatformSettings
 UpdatePlatformSettingsRequest:
@@ -283,3 +293,83 @@ UpdateTenantMembershipRequest:
   $ref: ./tenant.yaml#/UpdateTenantMembershipRequest
 TenantMembershipMutationSuccessResponse:
   $ref: ./tenant.yaml#/TenantMembershipMutationSuccessResponse
+
+ExpenseRequestStatus:
+  $ref: ./expenses.yaml#/ExpenseRequestStatus
+ExpenseApprovalMode:
+  $ref: ./expenses.yaml#/ExpenseApprovalMode
+ExpenseRequest:
+  $ref: ./expenses.yaml#/ExpenseRequest
+ExpenseCategory:
+  $ref: ./expenses.yaml#/ExpenseCategory
+ExpenseSettings:
+  $ref: ./expenses.yaml#/ExpenseSettings
+ExpenseCounters:
+  $ref: ./expenses.yaml#/ExpenseCounters
+CreateExpenseRequest:
+  $ref: ./expenses.yaml#/CreateExpenseRequest
+UpdateExpenseRequest:
+  $ref: ./expenses.yaml#/UpdateExpenseRequest
+CreateExpenseCategoryRequest:
+  $ref: ./expenses.yaml#/CreateExpenseCategoryRequest
+UpdateExpenseCategoryRequest:
+  $ref: ./expenses.yaml#/UpdateExpenseCategoryRequest
+UpdateExpenseSettingsRequest:
+  $ref: ./expenses.yaml#/UpdateExpenseSettingsRequest
+ExpenseRequestSuccessResponse:
+  $ref: ./expenses.yaml#/ExpenseRequestSuccessResponse
+ExpenseRequestListSuccessResponse:
+  $ref: ./expenses.yaml#/ExpenseRequestListSuccessResponse
+ExpenseCategorySuccessResponse:
+  $ref: ./expenses.yaml#/ExpenseCategorySuccessResponse
+ExpenseCategoryListSuccessResponse:
+  $ref: ./expenses.yaml#/ExpenseCategoryListSuccessResponse
+ExpenseSettingsSuccessResponse:
+  $ref: ./expenses.yaml#/ExpenseSettingsSuccessResponse
+ExpenseCountersSuccessResponse:
+  $ref: ./expenses.yaml#/ExpenseCountersSuccessResponse
+ReviewExpenseRequest:
+  $ref: ./expenses.yaml#/ReviewExpenseRequest
+RejectExpenseRequest:
+  $ref: ./expenses.yaml#/RejectExpenseRequest
+CancelExpenseRequest:
+  $ref: ./expenses.yaml#/CancelExpenseRequest
+MarkPaidExpenseRequest:
+  $ref: ./expenses.yaml#/MarkPaidExpenseRequest
+ExpenseAttachment:
+  $ref: ./expenses.yaml#/ExpenseAttachment
+ExpenseUploadPresign:
+  $ref: ./expenses.yaml#/ExpenseUploadPresign
+CreateExpenseUploadPresignRequest:
+  $ref: ./expenses.yaml#/CreateExpenseUploadPresignRequest
+CreateExpenseAttachmentRequest:
+  $ref: ./expenses.yaml#/CreateExpenseAttachmentRequest
+ExpenseUploadPresignSuccessResponse:
+  $ref: ./expenses.yaml#/ExpenseUploadPresignSuccessResponse
+ExpenseAttachmentSuccessResponse:
+  $ref: ./expenses.yaml#/ExpenseAttachmentSuccessResponse
+ExpenseAttachmentListSuccessResponse:
+  $ref: ./expenses.yaml#/ExpenseAttachmentListSuccessResponse
+ExpenseBulkOperationItemResult:
+  $ref: ./expenses.yaml#/ExpenseBulkOperationItemResult
+ExpenseBulkOperationResult:
+  $ref: ./expenses.yaml#/ExpenseBulkOperationResult
+ExpenseExportRow:
+  $ref: ./expenses.yaml#/ExpenseExportRow
+ExpenseSummary:
+  $ref: ./expenses.yaml#/ExpenseSummary
+BulkApproveExpenseRequestsRequest:
+  $ref: ./expenses.yaml#/BulkApproveExpenseRequestsRequest
+BulkRejectExpenseRequestsRequest:
+  $ref: ./expenses.yaml#/BulkRejectExpenseRequestsRequest
+BulkMarkPaidExpenseRequestsRequest:
+  $ref: ./expenses.yaml#/BulkMarkPaidExpenseRequestsRequest
+BulkExportExpenseRequestsRequest:
+  $ref: ./expenses.yaml#/BulkExportExpenseRequestsRequest
+ExpenseBulkOperationSuccessResponse:
+  $ref: ./expenses.yaml#/ExpenseBulkOperationSuccessResponse
+ExpenseBulkExportSuccessResponse:
+  $ref: ./expenses.yaml#/ExpenseBulkExportSuccessResponse
+ExpenseSummarySuccessResponse:
+  $ref: ./expenses.yaml#/ExpenseSummarySuccessResponse
+
