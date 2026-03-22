@@ -92,6 +92,37 @@ export const expenseCategoryParamsSchema = z.object({
   categoryId: objectIdSchema
 });
 
+export const listExpenseSubcategoriesQuerySchema = z.object({
+  categoryId: objectIdSchema,
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  search: z.string().trim().min(1).max(120).optional(),
+  includeInactive: z.coerce.boolean().default(false)
+});
+
+export const createExpenseSubcategorySchema = z.object({
+  categoryId: objectIdSchema,
+  key: z.string().trim().min(1).max(80).regex(/^[a-zA-Z0-9._:-]+$/),
+  name: z.string().trim().min(1).max(120),
+  requiresAttachment: z.boolean().optional(),
+  monthlyLimit: z.union([z.coerce.number().min(0), z.null()]).optional()
+});
+
+export const updateExpenseSubcategorySchema = z
+  .object({
+    name: z.string().trim().min(1).max(120).optional(),
+    requiresAttachment: z.boolean().optional(),
+    isActive: z.boolean().optional(),
+    monthlyLimit: z.union([z.coerce.number().min(0), z.null()]).optional()
+  })
+  .refine((value) => Object.keys(value).length > 0, {
+    message: 'At least one subcategory field is required'
+  });
+
+export const expenseSubcategoryParamsSchema = z.object({
+  subcategoryId: objectIdSchema
+});
+
 export const updateExpenseSettingsSchema = z
   .object({
     allowedCurrencies: z.array(currencySchema).min(1).max(10).optional(),

@@ -20,6 +20,7 @@ import { ExpenseAttachmentModel } from '@/modules/expenses/models/expense-attach
 import { ExpenseCategoryModel } from '@/modules/expenses/models/expense-category.model';
 import { ExpenseRequestModel } from '@/modules/expenses/models/expense-request.model';
 import { ExpenseSettingsModel } from '@/modules/expenses/models/expense-settings.model';
+import { ExpenseSubcategoryModel } from '@/modules/expenses/models/expense-subcategory.model';
 import {
   type ApproveExpenseRequestInput,
   type BulkApproveExpenseRequestsInput,
@@ -30,6 +31,7 @@ import {
   type CreateExpenseAttachmentInput,
   type CreateExpenseCategoryInput,
   type CreateExpenseUploadPresignInput,
+  type CreateExpenseSubcategoryInput,
   type CreateExpenseRequestInput,
   type DeleteExpenseAttachmentInput,
   type ExpenseAttachmentView,
@@ -44,6 +46,7 @@ import {
   type ExpenseBulkOperationItemResult,
   type ExpenseBulkOperationResult,
   type ExpenseCategoryView,
+  type ExpenseSubcategoryView,
   type ExpenseCsvExportView,
   type ExpenseCountersView,
   type ExpenseExportRow,
@@ -64,9 +67,12 @@ import {
   type ListExpenseCategoriesResult,
   type ListExpenseQueueInput,
   type ListExpenseQueueResult,
+  type ListExpenseSubcategoriesInput,
+  type ListExpenseSubcategoriesResult,
   type ListExpenseRequestsInput,
   type ListExpenseRequestsResult,
   type UpdateExpenseCategoryInput,
+  type UpdateExpenseSubcategoryInput,
   type UpdateExpenseRequestInput,
   type UpdateExpenseSettingsInput
 } from '@/modules/expenses/types/expenses.types';
@@ -217,6 +223,39 @@ function toCategoryView(category: {
     monthlyLimit: category.monthlyLimit ?? null,
     createdAt: formatDate(category.createdAt) ?? new Date().toISOString(),
     updatedAt: formatDate(category.updatedAt) ?? new Date().toISOString()
+  };
+}
+
+function toSubcategoryView(subcategory: {
+  id?: string;
+  _id?: Types.ObjectId;
+  tenantId: Types.ObjectId | string;
+  categoryId: Types.ObjectId | string;
+  key: string;
+  name: string;
+  requiresAttachment?: boolean;
+  isActive?: boolean;
+  monthlyLimit?: number | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+}): ExpenseSubcategoryView {
+  return {
+    id: subcategory.id ?? subcategory._id?.toString() ?? '',
+    tenantId:
+      typeof subcategory.tenantId === 'string'
+        ? subcategory.tenantId
+        : subcategory.tenantId.toString(),
+    categoryId:
+      typeof subcategory.categoryId === 'string'
+        ? subcategory.categoryId
+        : subcategory.categoryId.toString(),
+    key: subcategory.key,
+    name: subcategory.name,
+    requiresAttachment: subcategory.requiresAttachment ?? true,
+    isActive: subcategory.isActive ?? true,
+    monthlyLimit: subcategory.monthlyLimit ?? null,
+    createdAt: formatDate(subcategory.createdAt) ?? new Date().toISOString(),
+    updatedAt: formatDate(subcategory.updatedAt) ?? new Date().toISOString()
   };
 }
 
@@ -1110,6 +1149,171 @@ export class ExpensesService implements ExpenseServiceContract {
       action: 'expenses.category.update',
       resource: {
         type: 'expense_category',
+        id: view.id
+      },
+      severity: 'info',
+      changes: {
+        fields: Object.keys(input.patch),
+        after: {
+          name: view.name,
+          isActive: view.isActive
+        }
+      }
+    });
+
+    return view;
+  }
+
+  async createSubcategory(input: CreateExpenseSubcategoryInput): Promise<ExpenseSubcategoryView> {
+    assertTenantContextConsistency(input.tenantId, input.context);
+    const tenantId = parseObjectIdInput(input.tenantId, 'tenantId');
+    const categoryId = parseObjectIdInput(input.categoryId, 'categoryId');
+
+    const category = await ExpenseCategoryModel.findOne({
+      _id: categoryId,
+      tenantId,
+      isActive: true
+    }).lean();
+
+    if (!category) {
+      throw buildExpensesError(
+        ERROR_CODES.EXPENSE_CATEGORY_NOT_FOUND,
+        'Expense category not found',
+        HTTP_STATUS.NOT_FOUND
+      );
+    }
+
+    try {
+      const created = await ExpenseSubcategoryModel.create({
+        tenantId,
+        categoryId,
+        key: input.key.trim(),
+        normalizedKey: normalizeCategoryKey(input.key),
+        name: input.name.trim(),
+        requiresAttachment: input.requiresAttachment ?? true,
+        isActive: true,
+        monthlyLimit: input.monthlyLimit ?? null
+      });
+
+      const view = toSubcategoryView(created.toObject());
+      await this.recordAuditLog({
+        context: input.context,
+        tenantId: input.tenantId,
+        action: 'expenses.subcategory.create',
+        resource: {
+          type: 'expense_subcategory',
+          id: view.id
+        },
+        severity: 'info',
+        changes: {
+          after: {
+            categoryId: view.categoryId,
+            key: view.key,
+            name: view.name
+          }
+        }
+      });
+
+      return view;
+    } catch (error) {
+      if (isMongoDuplicateKeyError(error)) {
+        throw buildExpensesError(
+          ERROR_CODES.EXPENSE_CATEGORY_ALREADY_EXISTS,
+          'Expense subcategory already exists in category',
+          HTTP_STATUS.CONFLICT
+        );
+      }
+      throw error;
+    }
+  }
+
+  async listSubcategories(
+    input: ListExpenseSubcategoriesInput
+  ): Promise<ListExpenseSubcategoriesResult> {
+    const tenantId = parseObjectIdInput(input.tenantId, 'tenantId');
+    const categoryId = parseObjectIdInput(input.categoryId, 'categoryId');
+
+    const query: Record<string, unknown> = {
+      tenantId,
+      categoryId
+    };
+
+    if (!input.includeInactive) {
+      query.isActive = true;
+    }
+
+    if (input.search) {
+      query.$or = [
+        { key: { $regex: escapeRegexLiteral(input.search), $options: 'i' } },
+        { name: { $regex: escapeRegexLiteral(input.search), $options: 'i' } }
+      ];
+    }
+
+    const skip = (input.page - 1) * input.limit;
+    const [subcategories, total] = await Promise.all([
+      ExpenseSubcategoryModel.find(query)
+        .sort({ name: 1 })
+        .skip(skip)
+        .limit(input.limit)
+        .lean(),
+      ExpenseSubcategoryModel.countDocuments(query)
+    ]);
+
+    return {
+      items: subcategories.map((subcategory) => toSubcategoryView(subcategory)),
+      page: input.page,
+      limit: input.limit,
+      total
+    };
+  }
+
+  async updateSubcategory(input: UpdateExpenseSubcategoryInput): Promise<ExpenseSubcategoryView> {
+    assertTenantContextConsistency(input.tenantId, input.context);
+    const tenantId = parseObjectIdInput(input.tenantId, 'tenantId');
+    const subcategoryId = parseObjectIdInput(input.subcategoryId, 'subcategoryId');
+    const updateData: Record<string, unknown> = {};
+
+    if (typeof input.patch.name === 'string') {
+      updateData.name = input.patch.name.trim();
+    }
+    if (typeof input.patch.requiresAttachment === 'boolean') {
+      updateData.requiresAttachment = input.patch.requiresAttachment;
+    }
+    if (typeof input.patch.isActive === 'boolean') {
+      updateData.isActive = input.patch.isActive;
+    }
+    if (typeof input.patch.monthlyLimit !== 'undefined') {
+      updateData.monthlyLimit = input.patch.monthlyLimit;
+    }
+
+    const updated = await ExpenseSubcategoryModel.findOneAndUpdate(
+      {
+        _id: subcategoryId,
+        tenantId
+      },
+      {
+        $set: updateData
+      },
+      {
+        new: true
+      }
+    );
+
+    if (!updated) {
+      throw buildExpensesError(
+        ERROR_CODES.EXPENSE_CATEGORY_NOT_FOUND,
+        'Expense subcategory not found',
+        HTTP_STATUS.NOT_FOUND
+      );
+    }
+
+    const view = toSubcategoryView(updated.toObject());
+    await this.recordAuditLog({
+      context: input.context,
+      tenantId: input.tenantId,
+      action: 'expenses.subcategory.update',
+      resource: {
+        type: 'expense_subcategory',
         id: view.id
       },
       severity: 'info',

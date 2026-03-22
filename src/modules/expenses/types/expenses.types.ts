@@ -53,6 +53,19 @@ export interface ExpenseCategoryView {
   updatedAt: string;
 }
 
+export interface ExpenseSubcategoryView {
+  id: string;
+  tenantId: string;
+  categoryId: string;
+  key: string;
+  name: string;
+  requiresAttachment: boolean;
+  isActive: boolean;
+  monthlyLimit: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ExpenseSettingsView {
   tenantId: string;
   allowedCurrencies: string[];
@@ -303,6 +316,46 @@ export interface UpdateExpenseSettingsInput {
   context?: ExecutionContext;
 }
 
+export interface CreateExpenseSubcategoryInput {
+  tenantId: string;
+  categoryId: string;
+  key: string;
+  name: string;
+  requiresAttachment?: boolean;
+  monthlyLimit?: number | null;
+  context?: ExecutionContext;
+}
+
+export interface UpdateExpenseSubcategoryPatch {
+  name?: string;
+  requiresAttachment?: boolean;
+  isActive?: boolean;
+  monthlyLimit?: number | null;
+}
+
+export interface UpdateExpenseSubcategoryInput {
+  tenantId: string;
+  subcategoryId: string;
+  patch: UpdateExpenseSubcategoryPatch;
+  context?: ExecutionContext;
+}
+
+export interface ListExpenseSubcategoriesInput {
+  tenantId: string;
+  categoryId: string;
+  page: number;
+  limit: number;
+  search?: string;
+  includeInactive?: boolean;
+}
+
+export interface ListExpenseSubcategoriesResult {
+  items: ExpenseSubcategoryView[];
+  page: number;
+  limit: number;
+  total: number;
+}
+
 export interface CreateExpenseUploadPresignInput {
   tenantId: string;
   requestId: string;
@@ -442,6 +495,11 @@ export interface ExpenseServiceContract {
   createCategory: (input: CreateExpenseCategoryInput) => Promise<ExpenseCategoryView>;
   listCategories: (input: ListExpenseCategoriesInput) => Promise<ListExpenseCategoriesResult>;
   updateCategory: (input: UpdateExpenseCategoryInput) => Promise<ExpenseCategoryView>;
+  createSubcategory: (input: CreateExpenseSubcategoryInput) => Promise<ExpenseSubcategoryView>;
+  listSubcategories: (
+    input: ListExpenseSubcategoriesInput
+  ) => Promise<ListExpenseSubcategoriesResult>;
+  updateSubcategory: (input: UpdateExpenseSubcategoryInput) => Promise<ExpenseSubcategoryView>;
   getSettings: (tenantId: string) => Promise<ExpenseSettingsView>;
   updateSettings: (input: UpdateExpenseSettingsInput) => Promise<ExpenseSettingsView>;
   submitRequest: (input: SubmitExpenseRequestInput) => Promise<ExpenseRequestView>;
