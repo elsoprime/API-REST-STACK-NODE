@@ -38,6 +38,8 @@
   Backlog formal de bloqueos frontend dependientes de backend.
 - `90_DOD_CHECKLIST.md`
   Definition of Done para historias, pantallas y modulos frontend.
+- `docs/operaciones/RETOMADA_CHECKLIST.md`
+  Checklist corto para retomar cambios desde `main`, `wip/*` o una nueva rama `feat/*`.
 - `docs/operaciones/*.md`
   Cierres operativos, handoff y propuestas modulares de implementacion (incluye Expenses).
 - `_deprecated/90_INTEGRATION_PLAN_V1.md`
@@ -58,5 +60,3 @@
 4. Actualizar matriz de deprecacion si cambia estado de algun documento.
 5. Si se depreca un documento, moverlo a `docs/frontend/_deprecated/`.
 6. Vincular el PR a secciones modificadas de `docs/frontend`.
-
-
