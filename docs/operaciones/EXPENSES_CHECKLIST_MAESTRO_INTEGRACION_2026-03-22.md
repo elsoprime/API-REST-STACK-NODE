@@ -1,4 +1,4 @@
-﻿# Expenses Checklist Maestro de Integracion
+# Expenses Checklist Maestro de Integracion
 
 Fecha de corte: 2026-03-22
 Tipo: checklist maestro de planificacion y control
@@ -31,7 +31,6 @@ Integraciones ya cerradas o activas:
 - Ajuste de limites de query frontend para respetar validacion backend (`max 100`).
 
 Gaps todavia abiertos:
-- Hotfix runtime de create-request por contrato de fecha.
 - Subcategorias como entidad real y no solo convencion de key.
 - Workflow multi-step real por politicas.
 - Integracion de pagos y conciliacion.
@@ -106,6 +105,7 @@ Antes de mergear una ola:
 - [x] Ola Gobernanza inicial del catalogo
 - [x] Hotfix limites de query frontend (`100`)
 - [x] Ola Metricas nativas backend/frontend
+- [x] Hotfix create-request date ISO (Ola 6.0)
 
 ## Prioridad Operativa Inmediata
 
@@ -115,10 +115,11 @@ Objetivo:
 - corregir la brecha de runtime de `create-request` antes de considerar cerrado el flujo operativo de solicitudes
 
 Estado:
-- [ ] pendiente
+- [x] completado (Ola 6.0)
 
 Referencia tecnica:
 - ver `docs/operaciones/EXPENSES_PROPUESTA_REFACTORIZACION_TAXONOMIA_Y_RUNTIME_2026-03-22.md`
+- ver `docs/operaciones/EXPENSES_HOTFIX_CREATE_REQUEST_CIERRE_2026-03-22.md`
 
 ## Pendientes Priorizados
 
@@ -314,9 +315,3 @@ Si una ola falla:
 
 - [x] creado en backend
 - [ ] proximo paso: crear espejo frontend y registrar referencia en README operativo
-
-
-
-
-
-
