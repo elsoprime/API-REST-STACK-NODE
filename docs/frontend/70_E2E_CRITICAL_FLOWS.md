@@ -1,8 +1,8 @@
 # Flujos E2E Criticos Frontend
 
-Version: 1.6.0
+Version: 1.7.0
 Estado: Activo
-Ultima actualizacion: 2026-03-20
+Ultima actualizacion: 2026-03-21
 
 ## 1. Proposito
 
@@ -171,6 +171,20 @@ Criterio de aceptacion:
 - Los filtros quedan reproducibles por URL si la pantalla adopta persistencia en query params.
 - La UX diferencia falta de autenticacion, falta de permisos y ausencia de resultados.
 
+### E2E-05E Expenses settings permissions + category lifecycle
+
+1. Abrir `/app/expenses?tab=settings` con usuario `tenant:admin`.
+2. Verificar carga de `GET /api/v1/modules/expenses/settings` y `GET /api/v1/modules/expenses/categories`.
+3. Ejecutar `PUT /api/v1/modules/expenses/settings` y confirmar feedback + refetch.
+4. Ejecutar `PATCH /api/v1/modules/expenses/categories/{categoryId}` para `isActive` y confirmar estado activo/inactivo.
+5. Repetir flujo con usuario sin permiso update y verificar modo solo lectura sin mutaciones.
+
+Criterio de aceptacion:
+
+- UI solo permite mutaciones a roles con permiso update.
+- La vista muestra estado solo lectura cuando falta permiso.
+- El ciclo de vida de categoria (activar/desactivar) queda reflejado en tabla y sin desalineacion con backend.
+
 ### E2E-06 Inventory CRUD + conflicto
 
 1. Crear categoria e item.
@@ -181,6 +195,12 @@ Criterio de aceptacion:
 Criterio de aceptacion:
 
 - Usuario recibe guia clara y estado consistente.
+
+Pendientes de cobertura explicita al retomar hardening Inventory:
+
+- validar que alertas de formulario en `warehouses`, `lots`, `stock-movements` y `stocktakes` se rendericen dentro del modal, no detras de la tabla
+- validar selector de filas por pagina y reset a pagina 1 al cambiar busqueda o filtros
+- validar comportamiento esperado de busqueda textual en listados donde hoy pueda seguir siendo local a la pagina cargada
 
 ### E2E-07 CRM pipeline
 
@@ -249,11 +269,11 @@ Criterio de aceptacion:
 
 ### 5.1 Pull Request
 
-- E2E-01, E2E-03, E2E-04, E2E-04D, E2E-05, E2E-05B, E2E-05C, E2E-11
+- E2E-01, E2E-03, E2E-04, E2E-04D, E2E-05, E2E-05B, E2E-05C, E2E-05E, E2E-11
 
 ### 5.2 Pre-release / staging
 
-- Todos los casos E2E-01 a E2E-12 + E2E-04D/E2E-04E + E2E-05B/E2E-05C
+- Todos los casos E2E-01 a E2E-12 + E2E-04D/E2E-04E + E2E-05B/E2E-05C/E2E-05E
 
 ## 6. Evidencia requerida por corrida
 
@@ -288,6 +308,7 @@ Casos implementados y validados localmente:
 - E2E-05 Guardas por permisos en workspace members sin acceso
 - E2E-05B Members team list/update/remove
 - E2E-05C Platform security settings
+- E2E-05E Expenses settings permissions + category lifecycle
 - E2E-06 Inventory CRUD/listados operativos
 - E2E-07 CRM pipeline/listados operativos
 - E2E-08 HR empleados y permisos base
@@ -312,4 +333,6 @@ Archivos actuales:
 - `tests/e2e/auth-recovery.spec.ts`
 - `tests/e2e/members.spec.ts`
 - `tests/e2e/platform-security.spec.ts`
+- `tests/e2e/expenses-settings-critical.spec.ts`
+- `tests/e2e/expenses-settings-permissions.spec.ts`
 - `tests/e2e/guards.spec.ts`

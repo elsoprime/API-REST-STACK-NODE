@@ -1,0 +1,37 @@
+﻿post:
+  tags:
+    - Expenses
+  summary: Generate upload presign for expense attachment
+  operationId: createExpenseUploadPresign
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      description: Required when authenticating with access token cookie; not required for Bearer auth.
+      schema:
+        type: string
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../../components/schemas/expenses.yaml#/CreateExpenseUploadPresignRequest
+  responses:
+    '200':
+      description: Upload presign generated
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/expenses.yaml#/ExpenseUploadPresignSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '404':
+      $ref: ../../components/responses/_index.yaml#/GenericError

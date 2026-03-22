@@ -1,0 +1,23 @@
+﻿get:
+  tags:
+    - Expenses
+  summary: Get expense counters
+  operationId: getExpenseCounters
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+  responses:
+    '200':
+      description: Expense counters
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/expenses.yaml#/ExpenseCountersSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
