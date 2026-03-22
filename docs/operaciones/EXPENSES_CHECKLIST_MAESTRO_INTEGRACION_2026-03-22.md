@@ -106,27 +106,31 @@ Antes de mergear una ola:
 
 ### Ola 5 - Metricas Nativas Backend
 
+Estado:
+- [x] completada
+
 Objetivo:
 - mover el dashboard de reports a un contrato backend agregado, sin depender de combinar `requests` y `categories` en frontend
 
 Backend:
-- [ ] definir endpoint agregado, por ejemplo `GET /api/v1/modules/expenses/reports/dashboard`
-- [ ] exponer KPIs
-- [ ] exponer tendencias por rango
-- [ ] exponer distribucion por categoria
-- [ ] exponer alertas operativas derivadas
-- [ ] documentar contrato en OpenAPI
-- [ ] agregar tests de integracion
+- [x] definido endpoint agregado `GET /api/v1/modules/expenses/reports/dashboard`
+- [x] expuestos KPIs
+- [x] expuestas tendencias por rango
+- [x] expuesta distribucion por categoria
+- [x] expuestas alertas operativas derivadas
+- [x] documentado contrato en OpenAPI
+- [x] agregados tests de integracion
 
 Frontend:
-- [ ] reemplazar agregacion local por hook basado en endpoint dedicado
-- [ ] mantener filtros actuales
-- [ ] validar fallback/error states
+- [x] reemplazada agregacion local por hook basado en endpoint dedicado
+- [x] mantenidos filtros actuales
+- [x] validados fallback/error states
 
 DoD:
-- [ ] dashboard deja de depender de combinacion local paginada
-- [ ] OpenAPI actualizado
-- [ ] backend y frontend con pruebas verdes
+- [x] dashboard deja de depender de combinacion local paginada
+- [x] OpenAPI actualizado
+- [x] backend y frontend con pruebas verdes
+- [x] `reports/summary` sigue compatible
 
 ### Ola 6 - Subcategorias Reales
 

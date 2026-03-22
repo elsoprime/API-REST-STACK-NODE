@@ -23,6 +23,7 @@ import {
   createExpenseUploadPresignSchema,
   expenseAttachmentParamsSchema,
   expenseCategoryParamsSchema,
+  listExpenseDashboardQuerySchema,
   expenseRequestParamsSchema,
   listExpenseCategoriesQuerySchema,
   listExpenseQueueQuerySchema,
@@ -247,6 +248,12 @@ export function createExpensesRouter(service: ExpenseServiceContract = expensesS
     '/counters',
     requirePermission(EXPENSES_PERMISSIONS.REPORT_READ),
     controller.getCounters
+  );
+  router.get(
+    '/reports/dashboard',
+    requirePermission(EXPENSES_PERMISSIONS.REPORT_READ),
+    validateQuery(listExpenseDashboardQuerySchema),
+    controller.getDashboard
   );
   router.get('/reports/summary', requirePermission(EXPENSES_PERMISSIONS.REPORT_READ), controller.getSummary);
   router.get(

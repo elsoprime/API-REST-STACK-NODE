@@ -2,12 +2,19 @@ import { z } from 'zod';
 
 import {
   EXPENSE_APPROVAL_MODES,
+  EXPENSE_DASHBOARD_DATE_WINDOWS,
   EXPENSE_REQUEST_STATUSES
 } from '@/modules/expenses/types/expenses.types';
 
 const objectIdSchema = z.string().trim().regex(/^[a-f0-9]{24}$/i, 'Invalid ObjectId');
 const isoDateStringSchema = z.string().datetime({ offset: true });
 const currencySchema = z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/);
+const expenseDashboardDateWindowSchema = z.coerce
+  .number()
+  .int()
+  .refine((value) => EXPENSE_DASHBOARD_DATE_WINDOWS.includes(value as (typeof EXPENSE_DASHBOARD_DATE_WINDOWS)[number]), {
+    message: 'dateWindowDays must be one of 7, 30 or 90'
+  });
 
 export const listExpenseRequestsQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -48,6 +55,12 @@ export const expenseRequestParamsSchema = z.object({
 export const listExpenseQueueQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20)
+});
+
+export const listExpenseDashboardQuerySchema = z.object({
+  dateWindowDays: expenseDashboardDateWindowSchema.default(30),
+  status: z.enum(EXPENSE_REQUEST_STATUSES).optional(),
+  categoryKey: z.string().trim().min(1).max(80).optional()
 });
 
 export const listExpenseCategoriesQuerySchema = z.object({

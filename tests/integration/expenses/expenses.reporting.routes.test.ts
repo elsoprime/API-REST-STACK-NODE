@@ -98,11 +98,19 @@ describe('expenses reporting routes', () => {
     const userId = new Types.ObjectId();
     const service = buildExpensesServiceMock();
     service.getSummary.mockResolvedValue({
-      totalAmount: 1200,
-      approvedAmount: 700,
-      paidAmount: 600,
-      pendingCount: 2,
-      currency: 'USD'
+      counters: {
+        total: 5,
+        draft: 1,
+        submitted: 1,
+        returned: 0,
+        approved: 2,
+        rejected: 1,
+        paid: 0,
+        canceled: 0
+      },
+      totalRequestedAmount: 1200,
+      totalApprovedAmount: 700,
+      totalPaidAmount: 600
     });
     const app = createExpensesTestApp(service);
     mockTenantMembership({

@@ -8,6 +8,7 @@ import { type TenantContext } from '@/core/tenant/types/tenant.types';
 import { AppError } from '@/infrastructure/errors/app-error';
 import { ERROR_CODES } from '@/infrastructure/errors/error-codes';
 import {
+  type ExpenseDashboardDateWindow,
   type ExpenseRequestStatus,
   type ExpenseServiceContract
 } from '@/modules/expenses/types/expenses.types';
@@ -184,6 +185,23 @@ export function createExpensesController(service: ExpenseServiceContract) {
         const counters = await service.getCounters(tenantContext.tenantId);
 
         res.status(HTTP_STATUS.OK).json(buildSuccess({ counters }, getTraceId(res)));
+      } catch (error) {
+        next(error);
+      }
+    },
+
+    getDashboard: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+      try {
+        const tenantContext = getTenantContext(res);
+        const query = req.query as Record<string, string | number | undefined>;
+        const dashboard = await service.getDashboard({
+          tenantId: tenantContext.tenantId,
+          dateWindowDays: Number(query.dateWindowDays) as ExpenseDashboardDateWindow,
+          status: typeof query.status === 'string' ? (query.status as ExpenseRequestStatus) : undefined,
+          categoryKey: typeof query.categoryKey === 'string' ? query.categoryKey : undefined
+        });
+
+        res.status(HTTP_STATUS.OK).json(buildSuccess({ dashboard }, getTraceId(res)));
       } catch (error) {
         next(error);
       }
