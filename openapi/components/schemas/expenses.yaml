@@ -13,9 +13,18 @@ ExpenseRequest:
     - tenantId
     - requestNumber
     - requesterUserId
+    - submittedByUserId
+    - reviewedByUserId
+    - approvedByUserId
+    - rejectedByUserId
+    - canceledByUserId
+    - paidByUserId
     - title
     - description
     - categoryKey
+    - categoryId
+    - subcategoryId
+    - subcategoryKey
     - amount
     - currency
     - expenseDate
@@ -38,6 +47,24 @@ ExpenseRequest:
       type: string
     requesterUserId:
       type: string
+    submittedByUserId:
+      type: string
+      nullable: true
+    reviewedByUserId:
+      type: string
+      nullable: true
+    approvedByUserId:
+      type: string
+      nullable: true
+    rejectedByUserId:
+      type: string
+      nullable: true
+    canceledByUserId:
+      type: string
+      nullable: true
+    paidByUserId:
+      type: string
+      nullable: true
     title:
       type: string
     description:
@@ -45,6 +72,15 @@ ExpenseRequest:
       nullable: true
     categoryKey:
       type: string
+    categoryId:
+      type: string
+      nullable: true
+    subcategoryId:
+      type: string
+      nullable: true
+    subcategoryKey:
+      type: string
+      nullable: true
     amount:
       type: number
       minimum: 0

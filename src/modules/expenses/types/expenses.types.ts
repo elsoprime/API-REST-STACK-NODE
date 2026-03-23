@@ -23,9 +23,18 @@ export interface ExpenseRequestView {
   tenantId: string;
   requestNumber: string;
   requesterUserId: string;
+  submittedByUserId: string | null;
+  reviewedByUserId: string | null;
+  approvedByUserId: string | null;
+  rejectedByUserId: string | null;
+  canceledByUserId: string | null;
+  paidByUserId: string | null;
   title: string;
   description: string | null;
   categoryKey: string;
+  categoryId: string | null;
+  subcategoryId: string | null;
+  subcategoryKey: string | null;
   amount: number;
   currency: string;
   expenseDate: string;

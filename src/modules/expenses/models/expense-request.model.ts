@@ -22,6 +22,36 @@ const expenseRequestSchema = new Schema(
       required: true,
       index: true
     },
+    submittedByUserId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
+    },
+    reviewedByUserId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
+    },
+    approvedByUserId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
+    },
+    rejectedByUserId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
+    },
+    canceledByUserId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
+    },
+    paidByUserId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
+    },
     title: {
       type: String,
       required: true,
@@ -35,6 +65,20 @@ const expenseRequestSchema = new Schema(
       type: String,
       required: true,
       trim: true
+    },
+    categoryId: {
+      type: Schema.Types.ObjectId,
+      ref: 'ExpenseCategory',
+      default: null
+    },
+    subcategoryId: {
+      type: Schema.Types.ObjectId,
+      ref: 'ExpenseSubcategory',
+      default: null
+    },
+    subcategoryKey: {
+      type: String,
+      default: null
     },
     amount: {
       type: Number,
