@@ -1,4 +1,4 @@
-﻿ExpenseRequestStatus:
+ExpenseRequestStatus:
   type: string
   enum: [draft, submitted, returned, approved, rejected, paid, canceled]
 
@@ -13,9 +13,18 @@ ExpenseRequest:
     - tenantId
     - requestNumber
     - requesterUserId
+    - submittedByUserId
+    - reviewedByUserId
+    - approvedByUserId
+    - rejectedByUserId
+    - canceledByUserId
+    - paidByUserId
     - title
     - description
     - categoryKey
+    - categoryId
+    - subcategoryId
+    - subcategoryKey
     - amount
     - currency
     - expenseDate
@@ -38,6 +47,24 @@ ExpenseRequest:
       type: string
     requesterUserId:
       type: string
+    submittedByUserId:
+      type: string
+      nullable: true
+    reviewedByUserId:
+      type: string
+      nullable: true
+    approvedByUserId:
+      type: string
+      nullable: true
+    rejectedByUserId:
+      type: string
+      nullable: true
+    canceledByUserId:
+      type: string
+      nullable: true
+    paidByUserId:
+      type: string
+      nullable: true
     title:
       type: string
     description:
@@ -45,6 +72,15 @@ ExpenseRequest:
       nullable: true
     categoryKey:
       type: string
+    categoryId:
+      type: string
+      nullable: true
+    subcategoryId:
+      type: string
+      nullable: true
+    subcategoryKey:
+      type: string
+      nullable: true
     amount:
       type: number
       minimum: 0
@@ -123,6 +159,43 @@ ExpenseCategory:
       type: string
       format: date-time
 
+ExpenseSubcategory:
+  type: object
+  required:
+    - id
+    - tenantId
+    - categoryId
+    - key
+    - name
+    - requiresAttachment
+    - isActive
+    - monthlyLimit
+    - createdAt
+    - updatedAt
+  properties:
+    id:
+      type: string
+    tenantId:
+      type: string
+    categoryId:
+      type: string
+    key:
+      type: string
+    name:
+      type: string
+    requiresAttachment:
+      type: boolean
+    isActive:
+      type: boolean
+    monthlyLimit:
+      type: number
+      nullable: true
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
 ExpenseSettings:
   type: object
   required:
@@ -301,6 +374,48 @@ UpdateExpenseCategoryRequest:
       minimum: 0
       nullable: true
 
+CreateExpenseSubcategoryRequest:
+  type: object
+  required:
+    - categoryId
+    - key
+    - name
+  properties:
+    categoryId:
+      type: string
+      pattern: '^[a-fA-F0-9]{24}$'
+    key:
+      type: string
+      minLength: 1
+      maxLength: 80
+      pattern: '^[a-zA-Z0-9._:-]+$'
+    name:
+      type: string
+      minLength: 1
+      maxLength: 120
+    requiresAttachment:
+      type: boolean
+    monthlyLimit:
+      type: number
+      minimum: 0
+      nullable: true
+
+UpdateExpenseSubcategoryRequest:
+  type: object
+  minProperties: 1
+  properties:
+    name:
+      type: string
+      minLength: 1
+      maxLength: 120
+    requiresAttachment:
+      type: boolean
+    isActive:
+      type: boolean
+    monthlyLimit:
+      type: number
+      minimum: 0
+      nullable: true
 UpdateExpenseSettingsRequest:
   type: object
   minProperties: 1
@@ -684,6 +799,68 @@ ExpenseCategoryListSuccessResponse:
     traceId:
       type: string
 
+ExpenseSubcategorySuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - subcategory
+      properties:
+        subcategory:
+          $ref: '#/ExpenseSubcategory'
+    traceId:
+      type: string
+
+ExpenseSubcategoryListSuccessResponse:
+  type: object
+  required:
+    - success
+    - data
+    - pagination
+    - traceId
+  properties:
+    success:
+      type: boolean
+      enum: [true]
+    data:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/ExpenseSubcategory'
+    pagination:
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+    traceId:
+      type: string
 ExpenseSettingsSuccessResponse:
   type: object
   required:

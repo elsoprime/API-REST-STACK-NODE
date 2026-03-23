@@ -20,6 +20,7 @@ import { ExpenseAttachmentModel } from '@/modules/expenses/models/expense-attach
 import { ExpenseCategoryModel } from '@/modules/expenses/models/expense-category.model';
 import { ExpenseRequestModel } from '@/modules/expenses/models/expense-request.model';
 import { ExpenseSettingsModel } from '@/modules/expenses/models/expense-settings.model';
+import { ExpenseSubcategoryModel } from '@/modules/expenses/models/expense-subcategory.model';
 import {
   type ApproveExpenseRequestInput,
   type BulkApproveExpenseRequestsInput,
@@ -30,6 +31,7 @@ import {
   type CreateExpenseAttachmentInput,
   type CreateExpenseCategoryInput,
   type CreateExpenseUploadPresignInput,
+  type CreateExpenseSubcategoryInput,
   type CreateExpenseRequestInput,
   type DeleteExpenseAttachmentInput,
   type ExpenseAttachmentView,
@@ -44,6 +46,7 @@ import {
   type ExpenseBulkOperationItemResult,
   type ExpenseBulkOperationResult,
   type ExpenseCategoryView,
+  type ExpenseSubcategoryView,
   type ExpenseCsvExportView,
   type ExpenseCountersView,
   type ExpenseExportRow,
@@ -64,9 +67,12 @@ import {
   type ListExpenseCategoriesResult,
   type ListExpenseQueueInput,
   type ListExpenseQueueResult,
+  type ListExpenseSubcategoriesInput,
+  type ListExpenseSubcategoriesResult,
   type ListExpenseRequestsInput,
   type ListExpenseRequestsResult,
   type UpdateExpenseCategoryInput,
+  type UpdateExpenseSubcategoryInput,
   type UpdateExpenseRequestInput,
   type UpdateExpenseSettingsInput
 } from '@/modules/expenses/types/expenses.types';
@@ -145,15 +151,56 @@ function formatDate(value: string | Date | null | undefined): string | null {
   return value.toISOString();
 }
 
+function toOptionalIdString(value: Types.ObjectId | string | null | undefined): string | null {
+  if (!value) {
+    return null;
+  }
+
+  return typeof value === 'string' ? value : value.toString();
+}
+
+function resolveLegacyTaxonomyFromMetadata(metadata: Record<string, unknown> | null | undefined): {
+  categoryId: string | null;
+  subcategoryId: string | null;
+  subcategoryKey: string | null;
+} {
+  if (!metadata || typeof metadata !== 'object') {
+    return { categoryId: null, subcategoryId: null, subcategoryKey: null };
+  }
+
+  const taxonomy = metadata.taxonomy;
+  if (!taxonomy || typeof taxonomy !== 'object') {
+    return { categoryId: null, subcategoryId: null, subcategoryKey: null };
+  }
+
+  const taxonomyRecord = taxonomy as Record<string, unknown>;
+  return {
+    categoryId: typeof taxonomyRecord.categoryId === 'string' ? taxonomyRecord.categoryId : null,
+    subcategoryId:
+      typeof taxonomyRecord.subcategoryId === 'string' ? taxonomyRecord.subcategoryId : null,
+    subcategoryKey:
+      typeof taxonomyRecord.subcategoryKey === 'string' ? taxonomyRecord.subcategoryKey : null
+  };
+}
+
 function toRequestView(request: {
   id?: string;
   _id?: Types.ObjectId;
   tenantId: Types.ObjectId | string;
   requestNumber: string;
   requesterUserId: Types.ObjectId | string;
+  submittedByUserId?: Types.ObjectId | string | null;
+  reviewedByUserId?: Types.ObjectId | string | null;
+  approvedByUserId?: Types.ObjectId | string | null;
+  rejectedByUserId?: Types.ObjectId | string | null;
+  canceledByUserId?: Types.ObjectId | string | null;
+  paidByUserId?: Types.ObjectId | string | null;
   title: string;
   description?: string | null;
   categoryKey: string;
+  categoryId?: Types.ObjectId | string | null;
+  subcategoryId?: Types.ObjectId | string | null;
+  subcategoryKey?: string | null;
   amount: number;
   currency: string;
   expenseDate: Date | string;
@@ -168,6 +215,8 @@ function toRequestView(request: {
   createdAt?: Date | string;
   updatedAt?: Date | string;
 }): ExpenseRequestView {
+  const legacyTaxonomy = resolveLegacyTaxonomyFromMetadata(request.metadata);
+
   return {
     id: request.id ?? request._id?.toString() ?? '',
     tenantId: typeof request.tenantId === 'string' ? request.tenantId : request.tenantId.toString(),
@@ -176,9 +225,18 @@ function toRequestView(request: {
       typeof request.requesterUserId === 'string'
         ? request.requesterUserId
         : request.requesterUserId.toString(),
+    submittedByUserId: toOptionalIdString(request.submittedByUserId),
+    reviewedByUserId: toOptionalIdString(request.reviewedByUserId),
+    approvedByUserId: toOptionalIdString(request.approvedByUserId),
+    rejectedByUserId: toOptionalIdString(request.rejectedByUserId),
+    canceledByUserId: toOptionalIdString(request.canceledByUserId),
+    paidByUserId: toOptionalIdString(request.paidByUserId),
     title: request.title,
     description: request.description ?? null,
     categoryKey: request.categoryKey,
+    categoryId: toOptionalIdString(request.categoryId) ?? legacyTaxonomy.categoryId,
+    subcategoryId: toOptionalIdString(request.subcategoryId) ?? legacyTaxonomy.subcategoryId,
+    subcategoryKey: request.subcategoryKey ?? legacyTaxonomy.subcategoryKey,
     amount: request.amount,
     currency: request.currency,
     expenseDate: formatDate(request.expenseDate) ?? new Date().toISOString(),
@@ -217,6 +275,39 @@ function toCategoryView(category: {
     monthlyLimit: category.monthlyLimit ?? null,
     createdAt: formatDate(category.createdAt) ?? new Date().toISOString(),
     updatedAt: formatDate(category.updatedAt) ?? new Date().toISOString()
+  };
+}
+
+function toSubcategoryView(subcategory: {
+  id?: string;
+  _id?: Types.ObjectId;
+  tenantId: Types.ObjectId | string;
+  categoryId: Types.ObjectId | string;
+  key: string;
+  name: string;
+  requiresAttachment?: boolean;
+  isActive?: boolean;
+  monthlyLimit?: number | null;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+}): ExpenseSubcategoryView {
+  return {
+    id: subcategory.id ?? subcategory._id?.toString() ?? '',
+    tenantId:
+      typeof subcategory.tenantId === 'string'
+        ? subcategory.tenantId
+        : subcategory.tenantId.toString(),
+    categoryId:
+      typeof subcategory.categoryId === 'string'
+        ? subcategory.categoryId
+        : subcategory.categoryId.toString(),
+    key: subcategory.key,
+    name: subcategory.name,
+    requiresAttachment: subcategory.requiresAttachment ?? true,
+    isActive: subcategory.isActive ?? true,
+    monthlyLimit: subcategory.monthlyLimit ?? null,
+    createdAt: formatDate(subcategory.createdAt) ?? new Date().toISOString(),
+    updatedAt: formatDate(subcategory.updatedAt) ?? new Date().toISOString()
   };
 }
 
@@ -308,6 +399,48 @@ function normalizeOptionalText(value: string | null | undefined): string | null 
 
   const normalized = value.trim();
   return normalized.length > 0 ? normalized : null;
+}
+
+async function resolveRequestTaxonomyFromMetadata(input: {
+  tenantId: Types.ObjectId;
+  categoryId: Types.ObjectId;
+  metadata: Record<string, unknown> | null | undefined;
+}): Promise<{
+  subcategoryId: Types.ObjectId | null;
+  subcategoryKey: string | null;
+}> {
+  if (!input.metadata || typeof input.metadata !== 'object') {
+    return { subcategoryId: null, subcategoryKey: null };
+  }
+
+  const taxonomy = input.metadata.taxonomy;
+  if (!taxonomy || typeof taxonomy !== 'object') {
+    return { subcategoryId: null, subcategoryKey: null };
+  }
+
+  const taxonomyRecord = taxonomy as Record<string, unknown>;
+  const rawSubcategoryId = taxonomyRecord.subcategoryId;
+  if (typeof rawSubcategoryId !== 'string' || !Types.ObjectId.isValid(rawSubcategoryId)) {
+    return { subcategoryId: null, subcategoryKey: null };
+  }
+
+  const subcategoryId = new Types.ObjectId(rawSubcategoryId);
+  const subcategory = await ExpenseSubcategoryModel.findOne({
+    _id: subcategoryId,
+    tenantId: input.tenantId,
+    categoryId: input.categoryId
+  })
+    .select({ _id: 1, key: 1 })
+    .lean();
+
+  if (!subcategory) {
+    return { subcategoryId: null, subcategoryKey: null };
+  }
+
+  return {
+    subcategoryId: subcategory._id,
+    subcategoryKey: subcategory.key
+  };
 }
 
 function escapeCsvCell(value: string): string {
@@ -490,6 +623,12 @@ export class ExpensesService implements ExpenseServiceContract {
     const requestNumber = `EXP-${Date.now()}-${Math.floor(Math.random() * 1000)
       .toString()
       .padStart(3, '0')}`;
+    const metadata = input.metadata ?? {};
+    const taxonomy = await resolveRequestTaxonomyFromMetadata({
+      tenantId,
+      categoryId: category._id,
+      metadata
+    });
 
     try {
       const created = await ExpenseRequestModel.create({
@@ -499,11 +638,14 @@ export class ExpensesService implements ExpenseServiceContract {
         title: input.title.trim(),
         description: input.description ?? null,
         categoryKey: category.key,
+        categoryId: category._id,
+        subcategoryId: taxonomy.subcategoryId,
+        subcategoryKey: taxonomy.subcategoryKey,
         amount: input.amount,
         currency: normalizeCurrency(input.currency),
         expenseDate: new Date(input.expenseDate),
         status: 'draft',
-        metadata: input.metadata ?? {}
+        metadata
       });
 
       const view = toRequestView(created.toObject());
@@ -614,6 +756,8 @@ export class ExpensesService implements ExpenseServiceContract {
     ensureMutableRequestStatus(current.status as ExpenseRequestStatus);
 
     const updateData: Record<string, unknown> = {};
+    let nextCategoryId: Types.ObjectId | null = current.categoryId ?? null;
+    let nextMetadata: Record<string, unknown> | null | undefined = current.metadata;
     if (typeof input.patch.title === 'string') {
       updateData.title = input.patch.title.trim();
     }
@@ -635,6 +779,8 @@ export class ExpensesService implements ExpenseServiceContract {
         );
       }
       updateData.categoryKey = category.key;
+      updateData.categoryId = category._id;
+      nextCategoryId = category._id;
     }
     if (typeof input.patch.amount === 'number') {
       updateData.amount = input.patch.amount;
@@ -647,6 +793,20 @@ export class ExpensesService implements ExpenseServiceContract {
     }
     if (typeof input.patch.metadata !== 'undefined') {
       updateData.metadata = input.patch.metadata;
+      nextMetadata = input.patch.metadata;
+    }
+
+    if (nextCategoryId) {
+      const taxonomy = await resolveRequestTaxonomyFromMetadata({
+        tenantId,
+        categoryId: nextCategoryId,
+        metadata: nextMetadata
+      });
+      updateData.subcategoryId = taxonomy.subcategoryId;
+      updateData.subcategoryKey = taxonomy.subcategoryKey;
+    } else {
+      updateData.subcategoryId = null;
+      updateData.subcategoryKey = null;
     }
 
     const updated = await ExpenseRequestModel.findOneAndUpdate(
@@ -1125,6 +1285,171 @@ export class ExpensesService implements ExpenseServiceContract {
     return view;
   }
 
+  async createSubcategory(input: CreateExpenseSubcategoryInput): Promise<ExpenseSubcategoryView> {
+    assertTenantContextConsistency(input.tenantId, input.context);
+    const tenantId = parseObjectIdInput(input.tenantId, 'tenantId');
+    const categoryId = parseObjectIdInput(input.categoryId, 'categoryId');
+
+    const category = await ExpenseCategoryModel.findOne({
+      _id: categoryId,
+      tenantId,
+      isActive: true
+    }).lean();
+
+    if (!category) {
+      throw buildExpensesError(
+        ERROR_CODES.EXPENSE_CATEGORY_NOT_FOUND,
+        'Expense category not found',
+        HTTP_STATUS.NOT_FOUND
+      );
+    }
+
+    try {
+      const created = await ExpenseSubcategoryModel.create({
+        tenantId,
+        categoryId,
+        key: input.key.trim(),
+        normalizedKey: normalizeCategoryKey(input.key),
+        name: input.name.trim(),
+        requiresAttachment: input.requiresAttachment ?? true,
+        isActive: true,
+        monthlyLimit: input.monthlyLimit ?? null
+      });
+
+      const view = toSubcategoryView(created.toObject());
+      await this.recordAuditLog({
+        context: input.context,
+        tenantId: input.tenantId,
+        action: 'expenses.subcategory.create',
+        resource: {
+          type: 'expense_subcategory',
+          id: view.id
+        },
+        severity: 'info',
+        changes: {
+          after: {
+            categoryId: view.categoryId,
+            key: view.key,
+            name: view.name
+          }
+        }
+      });
+
+      return view;
+    } catch (error) {
+      if (isMongoDuplicateKeyError(error)) {
+        throw buildExpensesError(
+          ERROR_CODES.EXPENSE_CATEGORY_ALREADY_EXISTS,
+          'Expense subcategory already exists in category',
+          HTTP_STATUS.CONFLICT
+        );
+      }
+      throw error;
+    }
+  }
+
+  async listSubcategories(
+    input: ListExpenseSubcategoriesInput
+  ): Promise<ListExpenseSubcategoriesResult> {
+    const tenantId = parseObjectIdInput(input.tenantId, 'tenantId');
+    const categoryId = parseObjectIdInput(input.categoryId, 'categoryId');
+
+    const query: Record<string, unknown> = {
+      tenantId,
+      categoryId
+    };
+
+    if (!input.includeInactive) {
+      query.isActive = true;
+    }
+
+    if (input.search) {
+      query.$or = [
+        { key: { $regex: escapeRegexLiteral(input.search), $options: 'i' } },
+        { name: { $regex: escapeRegexLiteral(input.search), $options: 'i' } }
+      ];
+    }
+
+    const skip = (input.page - 1) * input.limit;
+    const [subcategories, total] = await Promise.all([
+      ExpenseSubcategoryModel.find(query)
+        .sort({ name: 1 })
+        .skip(skip)
+        .limit(input.limit)
+        .lean(),
+      ExpenseSubcategoryModel.countDocuments(query)
+    ]);
+
+    return {
+      items: subcategories.map((subcategory) => toSubcategoryView(subcategory)),
+      page: input.page,
+      limit: input.limit,
+      total
+    };
+  }
+
+  async updateSubcategory(input: UpdateExpenseSubcategoryInput): Promise<ExpenseSubcategoryView> {
+    assertTenantContextConsistency(input.tenantId, input.context);
+    const tenantId = parseObjectIdInput(input.tenantId, 'tenantId');
+    const subcategoryId = parseObjectIdInput(input.subcategoryId, 'subcategoryId');
+    const updateData: Record<string, unknown> = {};
+
+    if (typeof input.patch.name === 'string') {
+      updateData.name = input.patch.name.trim();
+    }
+    if (typeof input.patch.requiresAttachment === 'boolean') {
+      updateData.requiresAttachment = input.patch.requiresAttachment;
+    }
+    if (typeof input.patch.isActive === 'boolean') {
+      updateData.isActive = input.patch.isActive;
+    }
+    if (typeof input.patch.monthlyLimit !== 'undefined') {
+      updateData.monthlyLimit = input.patch.monthlyLimit;
+    }
+
+    const updated = await ExpenseSubcategoryModel.findOneAndUpdate(
+      {
+        _id: subcategoryId,
+        tenantId
+      },
+      {
+        $set: updateData
+      },
+      {
+        new: true
+      }
+    );
+
+    if (!updated) {
+      throw buildExpensesError(
+        ERROR_CODES.EXPENSE_CATEGORY_NOT_FOUND,
+        'Expense subcategory not found',
+        HTTP_STATUS.NOT_FOUND
+      );
+    }
+
+    const view = toSubcategoryView(updated.toObject());
+    await this.recordAuditLog({
+      context: input.context,
+      tenantId: input.tenantId,
+      action: 'expenses.subcategory.update',
+      resource: {
+        type: 'expense_subcategory',
+        id: view.id
+      },
+      severity: 'info',
+      changes: {
+        fields: Object.keys(input.patch),
+        after: {
+          name: view.name,
+          isActive: view.isActive
+        }
+      }
+    });
+
+    return view;
+  }
+
   async getSettings(tenantId: string): Promise<ExpenseSettingsView> {
     const tenantObjectId = parseObjectIdInput(tenantId, 'tenantId');
     const settings = await ExpenseSettingsModel.findOneAndUpdate(
@@ -1238,7 +1563,8 @@ export class ExpensesService implements ExpenseServiceContract {
       {
         $set: {
           status: 'submitted',
-          submittedAt: new Date()
+          submittedAt: new Date(),
+          submittedByUserId: parseObjectIdInput(input.actorUserId, 'actorUserId')
         }
       },
       { new: true }
@@ -1290,6 +1616,9 @@ export class ExpensesService implements ExpenseServiceContract {
       {
         $set: {
           status: 'returned',
+          reviewedByUserId: input.actorUserId
+            ? parseObjectIdInput(input.actorUserId, 'actorUserId')
+            : null,
           rejectionReasonCode: null,
           metadata: {
             ...(current.metadata ?? {}),
@@ -1360,6 +1689,9 @@ export class ExpensesService implements ExpenseServiceContract {
         $set: {
           status: 'approved',
           approvedAt: new Date(),
+          approvedByUserId: input.actorUserId
+            ? parseObjectIdInput(input.actorUserId, 'actorUserId')
+            : null,
           rejectionReasonCode: null
         }
       },
@@ -1417,6 +1749,9 @@ export class ExpensesService implements ExpenseServiceContract {
       {
         $set: {
           status: 'rejected',
+          rejectedByUserId: input.actorUserId
+            ? parseObjectIdInput(input.actorUserId, 'actorUserId')
+            : null,
           rejectionReasonCode: reasonCode
         }
       },
@@ -1479,7 +1814,8 @@ export class ExpensesService implements ExpenseServiceContract {
       {
         $set: {
           status: 'canceled',
-          canceledAt: new Date()
+          canceledAt: new Date(),
+          canceledByUserId: parseObjectIdInput(input.actorUserId, 'actorUserId')
         }
       },
       { new: true }
@@ -1541,6 +1877,9 @@ export class ExpensesService implements ExpenseServiceContract {
         $set: {
           status: 'paid',
           paidAt: new Date(),
+          paidByUserId: input.actorUserId
+            ? parseObjectIdInput(input.actorUserId, 'actorUserId')
+            : null,
           paymentReference
         }
       },
@@ -1976,6 +2315,7 @@ export class ExpensesService implements ExpenseServiceContract {
     _id: Types.ObjectId;
     tenantId: Types.ObjectId;
     requesterUserId: Types.ObjectId;
+    categoryId?: Types.ObjectId | null;
     status: ExpenseRequestStatus;
     metadata?: Record<string, unknown>;
   }> {

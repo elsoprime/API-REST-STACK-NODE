@@ -1,4 +1,4 @@
-# Expenses Checklist Maestro de Integracion
+﻿# Expenses Checklist Maestro de Integracion
 
 Fecha de corte: 2026-03-22
 Tipo: checklist maestro de planificacion y control
@@ -106,6 +106,7 @@ Antes de mergear una ola:
 - [x] Hotfix limites de query frontend (`100`)
 - [x] Ola Metricas nativas backend/frontend
 - [x] Hotfix create-request date ISO (Ola 6.0)
+- [x] Ola 6 Backend Subcategorias Reales
 
 ## Prioridad Operativa Inmediata
 
@@ -157,11 +158,11 @@ Objetivo:
 - convertir la convencion por `key` en una estructura formal de catalogo
 
 Backend:
-- [ ] definir modelo de subcategoria
-- [ ] relacionar `categoryId` / `subcategoryId`
-- [ ] CRUD tenant-scoped de subcategorias
-- [ ] reglas de integridad y activacion/inactivacion
-- [ ] migracion o compatibilidad con keys historicas
+- [x] definir modelo de subcategoria
+- [x] relacionar `categoryId` / `subcategoryId`
+- [x] CRUD tenant-scoped de subcategorias
+- [x] reglas de integridad y activacion/inactivacion
+- [ ] migracion o compatibilidad con keys historicas (pendiente decision formal)
 
 Frontend:
 - [ ] UI de subcategorias en settings
@@ -170,7 +171,7 @@ Frontend:
 
 DoD:
 - [ ] request usa subcategoria real
-- [ ] categorias/subcategorias con contratos propios
+- [x] categorias/subcategorias con contratos propios (backend)
 - [ ] compatibilidad de datos existentes definida
 
 ### Ola 7 - Workflow Multi-Step
@@ -315,3 +316,5 @@ Si una ola falla:
 
 - [x] creado en backend
 - [ ] proximo paso: crear espejo frontend y registrar referencia en README operativo
+
+

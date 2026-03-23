@@ -1,0 +1,94 @@
+﻿get:
+  tags:
+    - Expenses
+  summary: List expense subcategories
+  operationId: listExpenseSubcategories
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+    - name: categoryId
+      in: query
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-fA-F0-9]{24}$'
+    - name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    - name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    - name: search
+      in: query
+      required: false
+      schema:
+        type: string
+    - name: includeInactive
+      in: query
+      required: false
+      schema:
+        type: boolean
+        default: false
+  responses:
+    '200':
+      description: Expense subcategories list
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/expenses.yaml#/ExpenseSubcategoryListSuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+post:
+  tags:
+    - Expenses
+  summary: Create expense subcategory
+  operationId: createExpenseSubcategory
+  security:
+    - bearerAuth: []
+    - accessTokenCookie: []
+  parameters:
+    - $ref: ../../components/parameters/_index.yaml#/TenantIdHeader
+    - name: X-CSRF-Token
+      in: header
+      required: false
+      description: Required when authenticating with access token cookie; not required for Bearer auth.
+      schema:
+        type: string
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../../components/schemas/expenses.yaml#/CreateExpenseSubcategoryRequest
+  responses:
+    '201':
+      description: Expense subcategory created
+      content:
+        application/json:
+          schema:
+            $ref: ../../components/schemas/expenses.yaml#/ExpenseSubcategorySuccessResponse
+    '400':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '401':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '403':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '404':
+      $ref: ../../components/responses/_index.yaml#/GenericError
+    '409':
+      $ref: ../../components/responses/_index.yaml#/GenericError

@@ -20,15 +20,19 @@ import {
   createExpenseAttachmentSchema,
   createExpenseCategorySchema,
   createExpenseRequestSchema,
+  createExpenseSubcategorySchema,
   createExpenseUploadPresignSchema,
   expenseAttachmentParamsSchema,
   expenseCategoryParamsSchema,
+  expenseSubcategoryParamsSchema,
   listExpenseDashboardQuerySchema,
+  listExpenseSubcategoriesQuerySchema,
   expenseRequestParamsSchema,
   listExpenseCategoriesQuerySchema,
   listExpenseQueueQuerySchema,
   listExpenseRequestsQuerySchema,
   updateExpenseCategorySchema,
+  updateExpenseSubcategorySchema,
   updateExpenseRequestSchema,
   updateExpenseSettingsSchema
 } from '@/modules/expenses/schemas/expenses.schemas';
@@ -100,6 +104,9 @@ const validateExpenseWorkflowRequestParams = buildParamValidator(
 );
 const validateExpenseAttachmentParams = buildParamValidator(expenseAttachmentParamsSchema.safeParse);
 const validateExpenseCategoryParams = buildParamValidator(expenseCategoryParamsSchema.safeParse);
+const validateExpenseSubcategoryParams = buildParamValidator(
+  expenseSubcategoryParamsSchema.safeParse
+);
 
 export function createExpensesRouter(service: ExpenseServiceContract = expensesService): Router {
   const router = Router();
@@ -281,6 +288,27 @@ export function createExpensesRouter(service: ExpenseServiceContract = expensesS
     validateExpenseCategoryParams,
     validateBody(updateExpenseCategorySchema),
     controller.updateCategory
+  );
+  router.post(
+    '/subcategories',
+    requirePermission(EXPENSES_PERMISSIONS.SETTINGS_UPDATE),
+    requireCsrfForCookieAuth(),
+    validateBody(createExpenseSubcategorySchema),
+    controller.createSubcategory
+  );
+  router.get(
+    '/subcategories',
+    requirePermission(EXPENSES_PERMISSIONS.SETTINGS_READ),
+    validateQuery(listExpenseSubcategoriesQuerySchema),
+    controller.listSubcategories
+  );
+  router.patch(
+    '/subcategories/:subcategoryId',
+    requirePermission(EXPENSES_PERMISSIONS.SETTINGS_UPDATE),
+    requireCsrfForCookieAuth(),
+    validateExpenseSubcategoryParams,
+    validateBody(updateExpenseSubcategorySchema),
+    controller.updateSubcategory
   );
 
   router.get('/settings', requirePermission(EXPENSES_PERMISSIONS.SETTINGS_READ), controller.getSettings);

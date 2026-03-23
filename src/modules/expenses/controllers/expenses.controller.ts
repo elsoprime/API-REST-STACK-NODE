@@ -273,6 +273,76 @@ export function createExpensesController(service: ExpenseServiceContract) {
       }
     },
 
+    createSubcategory: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+      try {
+        const tenantContext = getTenantContext(res);
+        const subcategory = await service.createSubcategory({
+          tenantId: tenantContext.tenantId,
+          categoryId: req.body.categoryId,
+          key: req.body.key,
+          name: req.body.name,
+          requiresAttachment: req.body.requiresAttachment,
+          monthlyLimit: req.body.monthlyLimit,
+          context: getExecutionContext(res)
+        });
+
+        res.status(HTTP_STATUS.CREATED).json(buildSuccess({ subcategory }, getTraceId(res)));
+      } catch (error) {
+        next(error);
+      }
+    },
+
+    listSubcategories: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+      try {
+        const tenantContext = getTenantContext(res);
+        const query = req.query as Record<string, string | number | boolean | undefined>;
+        const result = await service.listSubcategories({
+          tenantId: tenantContext.tenantId,
+          categoryId: String(query.categoryId),
+          page: Number(query.page),
+          limit: Number(query.limit),
+          search: typeof query.search === 'string' ? query.search : undefined,
+          includeInactive: Boolean(query.includeInactive)
+        });
+
+        res
+          .status(HTTP_STATUS.OK)
+          .json(
+            buildPaginatedSuccess(
+              { items: result.items },
+              {
+                page: result.page,
+                limit: result.limit,
+                total: result.total
+              },
+              getTraceId(res)
+            )
+          );
+      } catch (error) {
+        next(error);
+      }
+    },
+
+    updateSubcategory: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+      try {
+        const tenantContext = getTenantContext(res);
+        const rawSubcategoryId = req.params.subcategoryId;
+        const subcategoryId = Array.isArray(rawSubcategoryId)
+          ? rawSubcategoryId[0]
+          : rawSubcategoryId;
+        const subcategory = await service.updateSubcategory({
+          tenantId: tenantContext.tenantId,
+          subcategoryId,
+          patch: req.body,
+          context: getExecutionContext(res)
+        });
+
+        res.status(HTTP_STATUS.OK).json(buildSuccess({ subcategory }, getTraceId(res)));
+      } catch (error) {
+        next(error);
+      }
+    },
+
     getSettings: async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
       try {
         const tenantContext = getTenantContext(res);
